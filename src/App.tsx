@@ -1,5 +1,6 @@
 // src/App.tsx
-import React, { useState, useEffect } from 'react';
+import { initializeData } from './initialData';
+import { useState, useEffect } from 'react';
 import './app-styles.css';
 import TaskList from './components/TaskList';
 import ContextWizard from './components/ContextWizard';
@@ -7,10 +8,12 @@ import CategoryManager from './components/CategoryManager';
 import ProjectManager from './components/ProjectManager';
 import { Task, Category, Project } from './types';
 
+
 type TabType = 'dashboard' | 'all-tasks' | 'projects' | 'categories';
 
 function App() {
   // Navigation state
+  initializeData();
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
   
   // State management for tasks
@@ -216,18 +219,16 @@ function App() {
     task => task.dueDate && task.dueDate >= today && task.dueDate < tomorrow && task.status !== 'completed'
   );
   
-  const upcomingTasks = tasks.filter(
-    task => task.dueDate && task.dueDate >= tomorrow && task.status !== 'completed'
-  );
   
   const completedTasks = tasks.filter(
     task => task.status === 'completed'
   );
   
   // Parent task options for the capture bar
-  const parentOptions = tasks
-    .filter(task => !task.parentId && task.status !== 'completed')
-    .map(task => ({ id: task.id, title: task.title }));
+  const parentOptions = tasks.filter(task => !task.parentId).map(task => ({
+    id: task.id,
+    title: task.title,
+  }));
   
   // General tasks for context wizard
   const generalTasks = [
@@ -299,7 +300,7 @@ function App() {
                 ? `${dateInput.value}T${timeInput?.value || '00:00:00'}` 
                 : null;
               
-              addTask(title, dueDate);
+                addTask(title, dueDate, newParent);
               titleInput.value = '';
               if (dateInput) dateInput.value = '';
               if (timeInput) timeInput.value = '';
@@ -320,6 +321,18 @@ function App() {
                 className="form-control time-input"
               />
             </div>
+            <select 
+              className="form-control"
+              value={newParent}
+              onChange={(e) => setNewParent(e.target.value)}
+            >
+              <option value="">No Parent Task</option>
+              {parentOptions.map(o => (
+                <option key={o.id} value={o.id}>
+                  {o.title}  
+                </option>
+              ))}
+            </select>
             <button type="submit" className="btn btn-primary">Add</button>
           </form>
         </div>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Task, Project, Category } from '../types';
 import TaskList from './TaskList';
 
