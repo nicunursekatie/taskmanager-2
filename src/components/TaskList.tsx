@@ -13,6 +13,7 @@ type TaskListProps = {
     categories?: string[],
     projectId?: string | null
   ) => void;
+  addSubtask: (parentId: string, title: string) => void;
   categories: Category[];
   projects: Project[];
 };
@@ -22,6 +23,7 @@ export default function TaskList({
   toggleTask,
   deleteTask,
   updateTask,
+  addSubtask,
   categories,
   projects,
 }: TaskListProps) {
@@ -88,13 +90,13 @@ export default function TaskList({
                       className={`category-option ${editCategories.includes(category.id) ? 'selected' : ''}`}
                       style={{
                         backgroundColor: editCategories.includes(category.id) ? category.color : 'transparent',
-                        border: `1px solid ${category.color}`,
+                        border: `2px solid ${category.color}`,
                         color: editCategories.includes(category.id) ? 'white' : category.color,
-                        padding: '4px 8px',
+                        padding: '4px 10px',
                         borderRadius: '12px',
                         cursor: 'pointer',
                         display: 'inline-block',
-                        margin: '0 4px 4px 0'
+                        margin: '0 6px 6px 0'
                       }}
                       onClick={() => {
                         if (editCategories.includes(category.id)) {
@@ -181,6 +183,17 @@ export default function TaskList({
                     }}
                   >
                     Edit
+                  </button>
+                  <button 
+                    className="btn btn-sm btn-primary"
+                    onClick={() => {
+                      const subtaskTitle = prompt('Enter subtask title:');
+                      if (subtaskTitle && subtaskTitle.trim()) {
+                        addSubtask(task.id, subtaskTitle.trim());
+                      }
+                    }}
+                  >
+                    Add Subtask
                   </button>
                   <button 
                     className="btn btn-sm btn-danger"

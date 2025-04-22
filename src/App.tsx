@@ -1,6 +1,6 @@
+// src/App.tsx
 import React, { useState, useEffect } from 'react';
 import './app-styles.css';
-import CaptureBar from './components/CaptureBar';
 import TaskList from './components/TaskList';
 import ContextWizard from './components/ContextWizard';
 import CategoryManager from './components/CategoryManager';
@@ -75,6 +75,21 @@ function App() {
       parentId,
       categories: categoryIds || [],
       projectId: projectId || null,
+    };
+    setTasks(prev => [...prev, newTask]);
+  };
+  
+  // Add new subtask
+  const addSubtask = (parentId: string, title: string) => {
+    const id = Date.now().toString();
+    const newTask: Task = {
+      id,
+      title,
+      dueDate: null,
+      status: 'pending',
+      parentId,
+      categories: [],
+      projectId: null,
     };
     setTasks(prev => [...prev, newTask]);
   };
@@ -200,10 +215,6 @@ function App() {
     task => task.dueDate && task.dueDate >= tomorrow && task.status !== 'completed'
   );
   
-  const noDateTasks = tasks.filter(
-    task => !task.dueDate && task.status !== 'completed'
-  );
-  
   const completedTasks = tasks.filter(
     task => task.status === 'completed'
   );
@@ -220,23 +231,6 @@ function App() {
     'Clear your inbox',
     'Take a break'
   ];
-
-  // Organize tasks by project
-  const tasksByProject = projects.map(project => {
-    const projectTasks = tasks.filter(task => task.projectId === project.id);
-    const pendingTasks = projectTasks.filter(task => task.status !== 'completed');
-    const completedTasks = projectTasks.filter(task => task.status === 'completed');
-    return {
-      project,
-      pendingTasks,
-      completedTasks
-    };
-  });
-
-  // Get tasks without a project
-  const tasksWithoutProject = tasks.filter(task => task.projectId === null);
-  const pendingTasksWithoutProject = tasksWithoutProject.filter(task => task.status !== 'completed');
-  const completedTasksWithoutProject = tasksWithoutProject.filter(task => task.status === 'completed');
 
   return (
     <div className="app-container full-width">
@@ -327,156 +321,159 @@ function App() {
         
         {/* Main Content Area */}
         <div className="content-area">
-        {activeTab === 'dashboard' && (
-  <div className="dashboard-view">
-    {/* Projects Section */}
-    <div className="section-card">
-      <h2 className="section-title">Projects</h2>
-      <div className="projects-grid dashboard-grid">
-        {projects.map(project => {
-          const projectTasks = tasks.filter(t => 
-            t.projectId === project.id && 
-            t.status !== 'completed'
-          );
-          
-          if (projectTasks.length === 0) return null;
-          
-          return (
-            <div key={project.id} className="project-card mini-card">
-              <div className="project-header">
-                <h3 className="project-title">{project.name}</h3>
-                <span className="task-count">{projectTasks.length}</span>
+          {activeTab === 'dashboard' && (
+            <div className="dashboard-view">
+              {/* Projects Section */}
+              <div className="section-card">
+                <h2 className="section-title">Projects</h2>
+                <div className="projects-grid dashboard-grid">
+                  {projects.map(project => {
+                    const projectTasks = tasks.filter(t => 
+                      t.projectId === project.id && 
+                      t.status !== 'completed'
+                    );
+                    
+                    if (projectTasks.length === 0) return null;
+                    
+                    return (
+                      <div key={project.id} className="project-card mini-card">
+                        <div className="project-header">
+                          <h3 className="project-title">{project.name}</h3>
+                          <span className="task-count">{projectTasks.length}</span>
+                        </div>
+                        
+                        <div className="project-task-list">
+                          {projectTasks.slice(0, 3).map(task => (
+                            <div key={task.id} className="mini-task-item">
+                              <input 
+                                type="checkbox" 
+                                checked={false} 
+                                onChange={() => toggleTask(task.id)}
+                              />
+                              <span className="mini-task-title">{task.title}</span>
+                            </div>
+                          ))}
+                          {projectTasks.length > 3 && (
+                            <div className="more-tasks">
+                              +{projectTasks.length - 3} more tasks
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                  
+                  {/* Unassigned Tasks Card */}
+                  {tasks.filter(t => !t.projectId && t.status !== 'completed').length > 0 && (
+                    <div className="project-card mini-card no-project-card">
+                      <div className="project-header">
+                        <h3 className="project-title">Unassigned Tasks</h3>
+                        <span className="task-count">
+                          {tasks.filter(t => !t.projectId && t.status !== 'completed').length}
+                        </span>
+                      </div>
+                      
+                      <div className="project-task-list">
+                        {tasks
+                          .filter(t => !t.projectId && t.status !== 'completed')
+                          .slice(0, 3)
+                          .map(task => (
+                            <div key={task.id} className="mini-task-item">
+                              <input 
+                                type="checkbox" 
+                                checked={false} 
+                                onChange={() => toggleTask(task.id)}
+                              />
+                              <span className="mini-task-title">{task.title}</span>
+                            </div>
+                          ))}
+                        {tasks.filter(t => !t.projectId && t.status !== 'completed').length > 3 && (
+                          <div className="more-tasks">
+                            +{tasks.filter(t => !t.projectId && t.status !== 'completed').length - 3} more tasks
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
               
-              <div className="project-task-list">
-                {projectTasks.slice(0, 3).map(task => (
-                  <div key={task.id} className="mini-task-item">
-                    <input 
-                      type="checkbox" 
-                      checked={false} 
-                      onChange={() => toggleTask(task.id)}
-                    />
-                    <span className="mini-task-title">{task.title}</span>
-                  </div>
-                ))}
-                {projectTasks.length > 3 && (
-                  <div className="more-tasks">
-                    +{projectTasks.length - 3} more tasks
-                  </div>
-                )}
-              </div>
-            </div>
-          );
-        })}
-        
-        {/* Unassigned Tasks Card */}
-        {tasks.filter(t => !t.projectId && t.status !== 'completed').length > 0 && (
-          <div className="project-card mini-card no-project-card">
-            <div className="project-header">
-              <h3 className="project-title">Unassigned Tasks</h3>
-              <span className="task-count">
-                {tasks.filter(t => !t.projectId && t.status !== 'completed').length}
-              </span>
-            </div>
-            
-            <div className="project-task-list">
-              {tasks
-                .filter(t => !t.projectId && t.status !== 'completed')
-                .slice(0, 3)
-                .map(task => (
-                  <div key={task.id} className="mini-task-item">
-                    <input 
-                      type="checkbox" 
-                      checked={false} 
-                      onChange={() => toggleTask(task.id)}
-                    />
-                    <span className="mini-task-title">{task.title}</span>
-                  </div>
-                ))}
-              {tasks.filter(t => !t.projectId && t.status !== 'completed').length > 3 && (
-                <div className="more-tasks">
-                  +{tasks.filter(t => !t.projectId && t.status !== 'completed').length - 3} more tasks
+              {/* Recent Activity Section */}
+              <div className="section-card">
+                <h2 className="section-title">Recent Activity</h2>
+                <div className="recent-tasks">
+                  {tasks
+                    .filter(t => t.status !== 'completed')
+                    .sort((a, b) => (Number(b.id) || 0) - (Number(a.id) || 0)) // Sort by most recent (assuming ID is timestamp-based)
+                    .slice(0, 5)
+                    .map(task => (
+                      <div key={task.id} className="recent-task-item">
+                        <input 
+                          type="checkbox" 
+                          checked={false} 
+                          onChange={() => toggleTask(task.id)}
+                        />
+                        <span className="recent-task-title">{task.title}</span>
+                        {task.projectId && (
+                          <span className="task-project tag">
+                            {projects.find(p => p.id === task.projectId)?.name}
+                          </span>
+                        )}
+                      </div>
+                    ))
+                  }
                 </div>
-              )}
+              </div>
+              
+              {/* Due Soon Section (for tasks with due dates) */}
+              {todayTasks.length > 0 || overdueTasks.length > 0 ? (
+                <div className="section-card">
+                  <h2 className="section-title">Due Soon</h2>
+                  {overdueTasks.length > 0 && (
+                    <div className="overdue-section">
+                      <h3 className="subsection-title">Overdue</h3>
+                      <TaskList 
+                        tasks={overdueTasks} 
+                        toggleTask={toggleTask} 
+                        deleteTask={deleteTask} 
+                        updateTask={updateTask}
+                        addSubtask={addSubtask}
+                        categories={categories}
+                        projects={projects}
+                      />
+                    </div>
+                  )}
+                  
+                  {todayTasks.length > 0 && (
+                    <div className="today-section">
+                      <h3 className="subsection-title">Today</h3>
+                      <TaskList 
+                        tasks={todayTasks} 
+                        toggleTask={toggleTask} 
+                        deleteTask={deleteTask} 
+                        updateTask={updateTask}
+                        addSubtask={addSubtask}
+                        categories={categories}
+                        projects={projects}
+                      />
+                    </div>
+                  )}
+                </div>
+              ) : null}
             </div>
-          </div>
-        )}
-      </div>
-    </div>
-    
-    {/* Recent Activity Section (Optional) */}
-    <div className="section-card">
-      <h2 className="section-title">Recent Activity</h2>
-      <div className="recent-tasks">
-        {tasks
-          .filter(t => t.status !== 'completed')
-          .sort((a, b) => (Number(b.id) || 0) - (Number(a.id) || 0)) // Sort by most recent (assuming ID is timestamp-based)
-          .slice(0, 5)
-          .map(task => (
-            <div key={task.id} className="recent-task-item">
-              <input 
-                type="checkbox" 
-                checked={false} 
-                onChange={() => toggleTask(task.id)}
-              />
-              <span className="recent-task-title">{task.title}</span>
-              {task.projectId && (
-                <span className="task-project tag">
-                  {projects.find(p => p.id === task.projectId)?.name}
-                </span>
-              )}
-            </div>
-          ))
-        }
-      </div>
-    </div>
-    
-    {/* Due Soon Section (for tasks with due dates) */}
-    {todayTasks.length > 0 || overdueTasks.length > 0 ? (
-      <div className="section-card">
-        <h2 className="section-title">Due Soon</h2>
-        {overdueTasks.length > 0 && (
-          <div className="overdue-section">
-            <h3 className="subsection-title">Overdue</h3>
-            <TaskList 
-              tasks={overdueTasks} 
-              toggleTask={toggleTask} 
-              deleteTask={deleteTask} 
-              updateTask={updateTask} 
-              categories={categories}
-              projects={projects}
-            />
-          </div>
-        )}
-        
-        {todayTasks.length > 0 && (
-          <div className="today-section">
-            <h3 className="subsection-title">Today</h3>
-            <TaskList 
-              tasks={todayTasks} 
-              toggleTask={toggleTask} 
-              deleteTask={deleteTask} 
-              updateTask={updateTask} 
-              categories={categories}
-              projects={projects}
-            />
-          </div>
-        )}
-      </div>
-    ) : null}
-  </div>
-)}
+          )}
           
           {activeTab === 'all-tasks' && (
             <div className="all-tasks-view">
               <div className="section-card">
                 <h2 className="section-title">All Tasks</h2>
-                {tasks.length > 0 ? (
+                {tasks.filter(task => task.status !== 'completed').length > 0 ? (
                   <TaskList 
                     tasks={tasks.filter(task => task.status !== 'completed')} 
                     toggleTask={toggleTask} 
                     deleteTask={deleteTask} 
-                    updateTask={updateTask} 
+                    updateTask={updateTask}
+                    addSubtask={addSubtask}
                     categories={categories}
                     projects={projects}
                   />
@@ -492,7 +489,8 @@ function App() {
                     tasks={completedTasks} 
                     toggleTask={toggleTask} 
                     deleteTask={deleteTask} 
-                    updateTask={updateTask} 
+                    updateTask={updateTask}
+                    addSubtask={addSubtask}
                     categories={categories}
                     projects={projects}
                   />
@@ -514,7 +512,6 @@ function App() {
                             className="btn btn-sm btn-outline"
                             onClick={() => {
                               // Open project edit modal
-                              // For simplicity, we'll just use the project manager
                               setShowProjectManager(true);
                             }}
                           >
@@ -534,7 +531,8 @@ function App() {
                             tasks={tasks.filter(t => t.projectId === project.id && t.status !== 'completed')} 
                             toggleTask={toggleTask} 
                             deleteTask={deleteTask} 
-                            updateTask={updateTask} 
+                            updateTask={updateTask}
+                            addSubtask={addSubtask}
                             categories={categories}
                             projects={projects}
                           />
@@ -550,7 +548,8 @@ function App() {
                             tasks={tasks.filter(t => t.projectId === project.id && t.status === 'completed')} 
                             toggleTask={toggleTask} 
                             deleteTask={deleteTask} 
-                            updateTask={updateTask} 
+                            updateTask={updateTask}
+                            addSubtask={addSubtask}
                             categories={categories}
                             projects={projects}
                           />
@@ -589,7 +588,7 @@ function App() {
                 )}
                 
                 {/* No Project Tasks Section */}
-                {tasksWithoutProject.length > 0 && (
+                {tasks.filter(t => !t.projectId).length > 0 && (
                   <div className="project-card no-project-card">
                     <div className="project-header">
                       <h2 className="project-title">Unassigned Tasks</h2>
@@ -597,12 +596,13 @@ function App() {
                     
                     <div className="project-task-section">
                       <h3 className="task-section-title">Tasks</h3>
-                      {pendingTasksWithoutProject.length > 0 ? (
+                      {tasks.filter(t => !t.projectId && t.status !== 'completed').length > 0 ? (
                         <TaskList 
-                          tasks={pendingTasksWithoutProject} 
+                          tasks={tasks.filter(t => !t.projectId && t.status !== 'completed')} 
                           toggleTask={toggleTask} 
                           deleteTask={deleteTask} 
-                          updateTask={updateTask} 
+                          updateTask={updateTask}
+                          addSubtask={addSubtask}
                           categories={categories}
                           projects={projects}
                         />
@@ -611,14 +611,15 @@ function App() {
                       )}
                     </div>
                     
-                    {completedTasksWithoutProject.length > 0 && (
+                    {tasks.filter(t => !t.projectId && t.status === 'completed').length > 0 && (
                       <div className="project-task-section">
                         <h3 className="task-section-title">Completed</h3>
                         <TaskList 
-                          tasks={completedTasksWithoutProject} 
+                          tasks={tasks.filter(t => !t.projectId && t.status === 'completed')} 
                           toggleTask={toggleTask} 
                           deleteTask={deleteTask} 
-                          updateTask={updateTask} 
+                          updateTask={updateTask}
+                          addSubtask={addSubtask}
                           categories={categories}
                           projects={projects}
                         />
@@ -637,7 +638,7 @@ function App() {
                   <div 
                     key={category.id} 
                     className="category-card"
-                    style={{ borderLeft: `4px solid ${category.color}` }}
+                    style={{ borderLeft: `5px solid ${category.color}` }}
                   >
                     <div className="category-header">
                       <h2 className="category-title">
@@ -664,7 +665,8 @@ function App() {
                           tasks={tasks.filter(t => t.categories?.includes(category.id) && t.status !== 'completed')} 
                           toggleTask={toggleTask} 
                           deleteTask={deleteTask} 
-                          updateTask={updateTask} 
+                          updateTask={updateTask}
+                          addSubtask={addSubtask}
                           categories={categories}
                           projects={projects}
                         />
@@ -680,7 +682,8 @@ function App() {
                           tasks={tasks.filter(t => t.categories?.includes(category.id) && t.status === 'completed')} 
                           toggleTask={toggleTask} 
                           deleteTask={deleteTask} 
-                          updateTask={updateTask} 
+                          updateTask={updateTask}
+                          addSubtask={addSubtask}
                           categories={categories}
                           projects={projects}
                         />
