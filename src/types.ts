@@ -18,9 +18,9 @@ export type Task = {
   title: string;
   dueDate?: string | null;
   status: 'pending' | 'completed';
-  categories?: string[];
+  parentId?: string;  // Make sure this is included
   projectId?: string | null;
-  dependsOn?: string[]; // Array of task IDs this task depends on
+  categories?: string[];
 };
 
 export type TaskListProps = {

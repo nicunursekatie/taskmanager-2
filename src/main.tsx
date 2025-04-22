@@ -5,8 +5,6 @@ import App from './App.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App tasks={[]} onClose={function (): void {
-      throw new Error('Function not implemented.')
-    } } generalTasks={[]} />
+    <App />
   </StrictMode>,
 )
