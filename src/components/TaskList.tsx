@@ -167,10 +167,11 @@ export default function TaskList({
                     Add Subtask
                   </button>
                   <button 
-                    className="btn btn-sm btn-danger"
-                    onClick={() => deleteTask(task.id)}
+                    onClick={() => deleteTask(task.id)} 
+                    className="btn btn-sm btn-muted" 
+                    title="Delete task"
                   >
-                    Delete
+                    🗑️
                   </button>
                 </div>
               </div>
@@ -261,12 +262,13 @@ export default function TaskList({
                       </span>
                     </div>
                     <button 
-                      className="btn btn-sm btn-outline"
-                      onClick={() => deleteTask(sub.id)}
+                      onClick={() => deleteTask(task.id)} 
+                      className="btn btn-sm btn-muted" 
+                      title="Delete task"
                     >
-                      Delete
+                        🗑️
                     </button>
-                  </div>
+                    </div>
                 ))}
             </div>
           )}

@@ -81,19 +81,24 @@ function App() {
   
   // Add new subtask
   const addSubtask = (parentId: string, title: string) => {
-    const id = Date.now().toString();
-    const newTask: Task = {
-      id,
-      title,
-      dueDate: null,
-      status: 'pending',
-      parentId,
-      categories: [],
-      projectId: null,
-    };
-    setTasks(prev => [...prev, newTask]);
-  };
+    setTasks(prev => {
+      const parentTask = prev.find(t => t.id === parentId);
+      if (!parentTask) return prev;
   
+      const newSubtask: Task = {
+        id: Date.now().toString(),
+        title,
+        status: 'pending',
+        parentId,
+        dueDate: null,
+        projectId: parentTask.projectId,
+        categories: parentTask.categories,
+      };
+  
+      return [...prev, newSubtask];
+    });
+  };  
+
   // Toggle task completion status
   const toggleTask = (id: string) => {
     setTasks(prev =>
