@@ -762,3 +762,219 @@ body {
 
 .w-full { width: 100%; }
 .hidden { display: none; }
+
+/* Add these styles to your app-styles.css file */
+.project-view {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.item-card {
+  background-color: var(--card-bg);
+  border-radius: var(--border-radius);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+}
+
+.subtask-form {
+  margin-left: 24px;
+  margin-top: 8px;
+  margin-bottom: 16px;
+}
+
+/* Make sure flex layouts are working properly */
+.flex {
+  display: flex;
+}
+
+.gap-sm {
+  gap: 8px;
+}
+
+.mb-sm {
+  margin-bottom: 8px;
+}
+
+.mb-md {
+  margin-bottom: 16px;
+}
+
+.mb-lg {
+  margin-bottom: 24px;
+}
+
+/* Add these styles to your app-styles.css file */
+
+.subtask-form {
+  margin-left: 20px;
+  margin-top: 8px;
+  margin-bottom: 12px;
+}
+
+.subtasks {
+  margin-top: 8px;
+  margin-left: 20px;
+  border-left: 1px dashed var(--border-color);
+  padding-left: 15px;
+}
+
+.subtask-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border-color-light, #eee);
+}
+
+.subtask-title-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.subtask-title {
+  font-size: 0.9em;
+}
+
+.subtask-title.completed {
+  text-decoration: line-through;
+  color: var(--text-light);
+}
+
+.task-title-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Make sure task headers are properly aligned */
+.task-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+/* ProjectView styling */
+.project-view-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+  max-width: 100%;
+}
+
+.project-view-card {
+  background-color: var(--card-bg, white);
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+  width: 100%;
+  margin-bottom: 24px;
+}
+
+.project-view-header {
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--border-color, #e0e0e0);
+  padding-bottom: 12px;
+}
+
+.project-view-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.project-view-description {
+  color: var(--text-light, #666);
+  margin-bottom: 20px;
+}
+
+.project-view-section {
+  margin-bottom: 24px;
+}
+
+.project-view-section-title {
+  font-size: 1.2rem;
+  font-weight: 500;
+  margin-top: 0;
+  margin-bottom: 12px;
+}
+
+.project-view-subtask-form {
+  margin-left: 20px;
+  margin-top: 8px;
+  margin-bottom: 16px;
+}
+
+.project-view-subtask-input {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.project-view-subtask-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.project-view-add-subtask-btn {
+  margin-bottom: 8px;
+}
+
+.project-view-empty-message {
+  text-align: center;
+  color: var(--text-light, #666);
+  padding: 20px 0;
+}
+
+/* Make sure task items have enough space */
+.task-item {
+  padding: 12px;
+  margin-bottom: 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color, #e0e0e0);
+  background-color: var(--card-bg, white);
+  width: 100%;
+}
+
+/* Task header layout */
+.task-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start; /* Changed from center to allow for wrapping */
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+/* Subtasks styling */
+.subtasks {
+  margin-top: 12px;
+  margin-left: 20px;
+  padding-left: 12px;
+  border-left: 1px dashed var(--border-color, #e0e0e0);
+}
+
+.subtask-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  margin-bottom: 6px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .task-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .task-actions {
+    margin-top: 8px;
+    align-self: flex-end;
+  }
+}

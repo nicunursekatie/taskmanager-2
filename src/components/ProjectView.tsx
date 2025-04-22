@@ -1,5 +1,4 @@
-// src/components/ProjectView.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import { Task, Project, Category } from '../types';
 import TaskList from './TaskList';
 
@@ -16,6 +15,7 @@ type ProjectViewProps = {
     categories?: string[],
     projectId?: string | null
   ) => void;
+  addSubtask: (parentId: string, title: string) => void;
 };
 
 export default function ProjectView({
@@ -25,7 +25,20 @@ export default function ProjectView({
   toggleTask,
   deleteTask,
   updateTask,
+  addSubtask,
 }: ProjectViewProps) {
+  const [newSubtaskParent, setNewSubtaskParent] = useState<string | null>(null);
+  const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
+
+  // Handle adding a subtask - properly using the title parameter
+  const handleAddSubtask = (parentId: string) => {
+    if (newSubtaskTitle.trim()) {
+      addSubtask(parentId, newSubtaskTitle.trim());
+      setNewSubtaskTitle('');
+      setNewSubtaskParent(null);
+    }
+  };
+
   if (projects.length === 0) {
     return (
       <div className="empty-state">
@@ -35,7 +48,7 @@ export default function ProjectView({
   }
 
   return (
-    <div className="project-view">
+    <div className="project-view-container">
       {projects.map(project => {
         // Filter tasks for this project
         const projectTasks = tasks.filter(task => task.projectId === project.id);
@@ -45,39 +58,82 @@ export default function ProjectView({
         const completedTasks = projectTasks.filter(task => task.status === 'completed');
         
         return (
-          <div key={project.id} className="item-card mb-lg">
-            <div className="item-header">
-              <h2 className="section-title mt-0">{project.name}</h2>
+          <div key={project.id} className="project-view-card">
+            <div className="project-view-header">
+              <h2 className="project-view-title">{project.name}</h2>
             </div>
             
             {project.description && (
-              <p className="item-description mb-md">{project.description}</p>
+              <p className="project-view-description">{project.description}</p>
             )}
             
             {projectTasks.length > 0 ? (
               <>
                 {pendingTasks.length > 0 && (
-                  <div className="mb-md">
-                    <h3 className="font-lg mb-sm">Pending</h3>
+                  <div className="project-view-section">
+                    <h3 className="project-view-section-title">Pending</h3>
                     <TaskList 
                       tasks={pendingTasks} 
                       toggleTask={toggleTask} 
                       deleteTask={deleteTask} 
-                      updateTask={updateTask} 
+                      updateTask={updateTask}
+                      addSubtask={addSubtask}
                       categories={categories}
                       projects={projects}
                     />
+                    
+                    {/* Add subtask interface */}
+                    {pendingTasks.map(task => (
+                      <div key={`add-subtask-${task.id}`} className="project-view-subtask-form">
+                        {newSubtaskParent === task.id ? (
+                          <div className="project-view-subtask-input">
+                            <input
+                              type="text"
+                              className="form-control"
+                              placeholder="New subtask..."
+                              value={newSubtaskTitle}
+                              onChange={(e) => setNewSubtaskTitle(e.target.value)}
+                            />
+                            <div className="project-view-subtask-buttons">
+                              <button 
+                                className="btn btn-sm btn-primary"
+                                onClick={() => handleAddSubtask(task.id)}
+                              >
+                                Add
+                              </button>
+                              <button 
+                                className="btn btn-sm btn-outline"
+                                onClick={() => {
+                                  setNewSubtaskParent(null);
+                                  setNewSubtaskTitle('');
+                                }}
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <button 
+                            className="btn btn-sm btn-outline project-view-add-subtask-btn"
+                            onClick={() => setNewSubtaskParent(task.id)}
+                          >
+                            + Add Subtask
+                          </button>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 )}
                 
                 {completedTasks.length > 0 && (
-                  <div>
-                    <h3 className="font-lg mb-sm">Completed</h3>
+                  <div className="project-view-section">
+                    <h3 className="project-view-section-title">Completed</h3>
                     <TaskList 
                       tasks={completedTasks} 
                       toggleTask={toggleTask} 
                       deleteTask={deleteTask} 
-                      updateTask={updateTask} 
+                      updateTask={updateTask}
+                      addSubtask={addSubtask}
                       categories={categories}
                       projects={projects}
                     />
@@ -85,7 +141,7 @@ export default function ProjectView({
                 )}
               </>
             ) : (
-              <div className="text-center text-light py-md">
+              <div className="project-view-empty-message">
                 No tasks in this project yet.
               </div>
             )}

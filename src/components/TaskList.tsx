@@ -13,7 +13,7 @@ type TaskListProps = {
     categories?: string[],
     projectId?: string | null
   ) => void;
-  addSubtask: (parentId: string, title: string) => void;
+  addSubtask: (parentId: string, title: string) => void; // Make sure this prop is defined
   categories: Category[];
   projects: Project[];
 };
@@ -23,7 +23,7 @@ export default function TaskList({
   toggleTask,
   deleteTask,
   updateTask,
-  addSubtask,
+  addSubtask, // Include the prop
   categories,
   projects,
 }: TaskListProps) {
@@ -32,34 +32,29 @@ export default function TaskList({
   const [editDueDate, setEditDueDate] = useState<string>('');
   const [editCategories, setEditCategories] = useState<string[]>([]);
   const [editProjectId, setEditProjectId] = useState<string | null>(null);
+  
+  // States for subtask creation
+  const [addingSubtaskFor, setAddingSubtaskFor] = useState<string | null>(null);
+  const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
 
   // Only render top-level tasks (no parentId)
   const topTasks = tasks.filter(t => !t.parentId);
 
-  // Helper function to get task classes
-  const getTaskClasses = (task: Task) => {
-    let classes = 'task-item';
-    
-    if (task.status === 'completed') {
-      classes += ' completed';
-    } else {
-      const now = new Date();
-      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
-      
-      if (task.dueDate && task.dueDate < today) {
-        classes += ' overdue';
-      }
+  // Handle subtask creation
+  const handleAddSubtask = (parentId: string) => {
+    if (newSubtaskTitle.trim()) {
+      addSubtask(parentId, newSubtaskTitle.trim());
+      setNewSubtaskTitle('');
+      setAddingSubtaskFor(null);
     }
-    
-    return classes;
   };
 
   return (
-    <div className="task-list">
+    <>
       {topTasks.map(task => (
         <div 
           key={task.id} 
-          className={getTaskClasses(task)}
+          className={`task-item ${task.status === 'completed' ? 'completed' : ''}`}
         >
           {editingId === task.id ? (
             // Edit mode
@@ -90,13 +85,7 @@ export default function TaskList({
                       className={`category-option ${editCategories.includes(category.id) ? 'selected' : ''}`}
                       style={{
                         backgroundColor: editCategories.includes(category.id) ? category.color : 'transparent',
-                        border: `2px solid ${category.color}`,
-                        color: editCategories.includes(category.id) ? 'white' : category.color,
-                        padding: '4px 10px',
-                        borderRadius: '12px',
-                        cursor: 'pointer',
-                        display: 'inline-block',
-                        margin: '0 6px 6px 0'
+                        border: `1px solid ${category.color}`
                       }}
                       onClick={() => {
                         if (editCategories.includes(category.id)) {
@@ -150,12 +139,11 @@ export default function TaskList({
             // View mode
             <>
               <div className="task-header">
-                <div className="task-title-wrapper">
-                  <input 
-                    type="checkbox" 
+                <div className="task-title-container">
+                  <input
+                    type="checkbox"
                     checked={task.status === 'completed'}
                     onChange={() => toggleTask(task.id)}
-                    className="task-checkbox"
                   />
                   <h3 
                     className={`task-title ${task.status === 'completed' ? 'completed' : ''}`}
@@ -174,24 +162,7 @@ export default function TaskList({
                 <div className="task-actions">
                   <button 
                     className="btn btn-sm btn-outline"
-                    onClick={() => {
-                      setEditingId(task.id);
-                      setEditTitle(task.title);
-                      setEditDueDate(task.dueDate ? task.dueDate.split('T')[0] : '');
-                      setEditCategories(task.categories || []);
-                      setEditProjectId(task.projectId ?? null);
-                    }}
-                  >
-                    Edit
-                  </button>
-                  <button 
-                    className="btn btn-sm btn-primary"
-                    onClick={() => {
-                      const subtaskTitle = prompt('Enter subtask title:');
-                      if (subtaskTitle && subtaskTitle.trim()) {
-                        addSubtask(task.id, subtaskTitle.trim());
-                      }
-                    }}
+                    onClick={() => setAddingSubtaskFor(task.id)}
                   >
                     Add Subtask
                   </button>
@@ -232,6 +203,36 @@ export default function TaskList({
                   </span>
                 )}
               </div>
+              
+              {/* Add subtask form */}
+              {addingSubtaskFor === task.id && (
+                <div className="subtask-form">
+                  <div className="flex gap-sm">
+                    <input 
+                      type="text"
+                      className="form-control"
+                      placeholder="New subtask..."
+                      value={newSubtaskTitle}
+                      onChange={(e) => setNewSubtaskTitle(e.target.value)}
+                    />
+                    <button 
+                      className="btn btn-sm btn-primary"
+                      onClick={() => handleAddSubtask(task.id)}
+                    >
+                      Add
+                    </button>
+                    <button 
+                      className="btn btn-sm btn-outline"
+                      onClick={() => {
+                        setAddingSubtaskFor(null);
+                        setNewSubtaskTitle('');
+                      }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
             </>
           )}
 
@@ -242,22 +243,23 @@ export default function TaskList({
                 .filter(sub => sub.parentId === task.id)
                 .map(sub => (
                   <div key={sub.id} className="subtask-item">
-                    <input 
-                      type="checkbox"
-                      checked={sub.status === 'completed'}
-                      onChange={() => toggleTask(sub.id)}
-                      className="subtask-checkbox"
-                    />
-                    <span
-                      className={`subtask-title ${sub.status === 'completed' ? 'completed' : ''}`}
-                    >
-                      {sub.title}
-                      {sub.dueDate && (
-                        <span className="task-date ml-xs">
-                          {new Date(sub.dueDate).toLocaleDateString()}
-                        </span>
-                      )}
-                    </span>
+                    <div className="subtask-title-container">
+                      <input
+                        type="checkbox"
+                        checked={sub.status === 'completed'}
+                        onChange={() => toggleTask(sub.id)}
+                      />
+                      <span
+                        className={`subtask-title ${sub.status === 'completed' ? 'completed' : ''}`}
+                      >
+                        {sub.title}
+                        {sub.dueDate && (
+                          <span className="task-date ml-xs">
+                            {new Date(sub.dueDate).toLocaleDateString()}
+                          </span>
+                        )}
+                      </span>
+                    </div>
                     <button 
                       className="btn btn-sm btn-outline"
                       onClick={() => deleteTask(sub.id)}
@@ -270,10 +272,6 @@ export default function TaskList({
           )}
         </div>
       ))}
-      
-      {topTasks.length === 0 && (
-        <p className="empty-message">No tasks found</p>
-      )}
-    </div>
+    </>
   );
 }
