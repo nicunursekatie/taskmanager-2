@@ -27,15 +27,6 @@ export function loadPreloadedData(): {
       },
       {
         id: 't3',
-        title: 'Designate laundry zones (dirty/clean)',
-        status: 'pending',
-        parentId: null,
-        dueDate: null,
-        projectId: 'p1',
-        categories: ['c2'],
-      },
-      {
-        id: 't4',
         title: 'Finalize NeoBelly trial plan',
         status: 'pending',
         parentId: null,
@@ -53,12 +44,12 @@ export function loadPreloadedData(): {
       {
         id: 'p1',
         name: 'Tackle the Laundry',
-        description: 'Purge, organize, and systematize all clothing-related tasks.',
+        description: 'Handle the laundry bins, sorting, and system setup.',
       },
       {
         id: 'p2',
         name: 'NICU Improvements',
-        description: 'Initiatives to improve clinical care and documentation tools.',
+        description: 'Clinical innovations and documentation upgrades.',
       },
     ],
   };
