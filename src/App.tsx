@@ -1,4 +1,12 @@
 // src/App.tsx
+function forceInitializeData() {
+  const preloadedData = loadPreloadedData();
+  localStorage.setItem('tasks', JSON.stringify(preloadedData.tasks));
+  localStorage.setItem('categories', JSON.stringify(preloadedData.categories));
+  localStorage.setItem('projects', JSON.stringify(preloadedData.projects));
+  return preloadedData;
+}
+
 import './compact-styles.css';
 import './app-styles.css';
 import { initializeData } from './initialData';
