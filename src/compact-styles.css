@@ -1,7 +1,9 @@
 /* Forceful compact styling */
 
 /* Make everything more compact */
-div.project-card, div.section-card, div.task-item {
+  .dashboard-view div.project-card.mini-card,
+  .dashboard-view div.section-card,
+  .dashboard-view div.task-item {
     padding: 8px !important;
     margin-bottom: 8px !important;
     border-radius: 6px !important;
