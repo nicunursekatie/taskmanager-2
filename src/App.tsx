@@ -1,10 +1,10 @@
 // src/App.tsx
 import './compact-styles.css';
-import { loadPreloadedData } from './preloadedData.js';
-import { initializeData } from './initialData.js';
-import { useState, useEffect } from 'react';
 import './app-styles.css';
-import TaskList from './components/TaskList.js';
+import { initializeData } from './initialData';
+import { useState, useEffect } from 'react';
+
+import TaskList from './components/TaskList';
 import ContextWizard from './components/ContextWizard';
 import CategoryManager from './components/CategoryManager';
 import ProjectManager from './components/ProjectManager';
