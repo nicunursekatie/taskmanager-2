@@ -18,7 +18,7 @@ export type Task = {
   title: string;
   dueDate?: string | null;
   status: 'pending' | 'completed';
-  parentId?: string;  // Make sure this is included
+  parentId?: string | null;  // Add | null here
   projectId?: string | null;
   categories?: string[];
 };
