@@ -53,11 +53,9 @@ export const initialData: {
 };
 
 export function initializeData(): void {
-  // Only initialize if data doesn't exist
-  if (!localStorage.getItem('projects')) {
-    localStorage.setItem('categories', JSON.stringify(initialData.categories));
-    localStorage.setItem('projects', JSON.stringify(initialData.projects));
-    localStorage.setItem('tasks', JSON.stringify(initialData.tasks));
-    console.log('Initialized app with sample data');
-  }
+  // Always initialize data, regardless of what's in localStorage
+  console.log('Initializing app with sample data');
+  localStorage.setItem('categories', JSON.stringify(initialData.categories));
+  localStorage.setItem('projects', JSON.stringify(initialData.projects));
+  localStorage.setItem('tasks', JSON.stringify(initialData.tasks));
 }
