@@ -16,36 +16,20 @@ type TabType = 'dashboard' | 'all-tasks' | 'projects' | 'categories';
 
 function App() {
   // Navigation state
-  
-  useEffect(() => {
-    initializeData();
-
-    const tasksData = localStorage.getItem('tasks');
-    const projectsData = localStorage.getItem('projects');
-
-    let hasData = false;
-    try {
-      const tasks = JSON.parse(tasksData || '[]');
-      const projects = JSON.parse(projectsData || '[]');
-      hasData = tasks.length > 0 && projects.length > 0;
-    } catch (err) {
-      hasData = false;
-    }
-
-    if (!hasData) {
-      console.log("No valid data found, loading preloaded data");
-      loadPreloadedData();
-      window.location.reload();
-    } else {
-      console.log("Existing data found in localStorage");
-    }
-  }, []);
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
   
   // State management for tasks
   const [tasks, setTasks] = useState<Task[]>(() => {
-    const savedTasks = localStorage.getItem('tasks');
-    return savedTasks ? JSON.parse(savedTasks) : [];
+    const saved = localStorage.getItem('tasks');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      } catch {}
+    }
+    const { tasks } = loadPreloadedData();
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+    return tasks;
   });
   
   // Save tasks to localStorage when they change
@@ -63,12 +47,16 @@ function App() {
   
   // Example initial categories
   const [categories, setCategories] = useState<Category[]>(() => {
-    const savedCategories = localStorage.getItem('categories');
-    return savedCategories ? JSON.parse(savedCategories) : [
-      { id: '1', name: 'Work', color: '#F59E0B' },
-      { id: '2', name: 'Personal', color: '#10B981' },
-      { id: '3', name: 'NICU', color: '#3B82F6' },
-    ];
+    const saved = localStorage.getItem('categories');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      } catch {}
+    }
+    const { categories } = loadPreloadedData();
+    localStorage.setItem('categories', JSON.stringify(categories));
+    return categories;
   });
 
   // Save categories to localStorage when they change
@@ -78,8 +66,16 @@ function App() {
   
   // Projects state
   const [projects, setProjects] = useState<Project[]>(() => {
-    const savedProjects = localStorage.getItem('projects');
-    return savedProjects ? JSON.parse(savedProjects) : [];
+    const saved = localStorage.getItem('projects');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      } catch {}
+    }
+    const { projects } = loadPreloadedData();
+    localStorage.setItem('projects', JSON.stringify(projects));
+    return projects;
   });
 
   // Save projects to localStorage when they change
