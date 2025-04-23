@@ -18,17 +18,24 @@ function App() {
   // Navigation state
   
   useEffect(() => {
-    // Check if data exists
     initializeData();
+
     const tasksData = localStorage.getItem('tasks');
     const projectsData = localStorage.getItem('projects');
-    const hasData = tasksData && projectsData && 
-                   JSON.parse(tasksData).length > 0 && 
-                   JSON.parse(projectsData).length > 0;
-    
+
+    let hasData = false;
+    try {
+      const tasks = JSON.parse(tasksData || '[]');
+      const projects = JSON.parse(projectsData || '[]');
+      hasData = tasks.length > 0 && projects.length > 0;
+    } catch (err) {
+      hasData = false;
+    }
+
     if (!hasData) {
-      console.log("No existing data found, loading preloaded data");
+      console.log("No valid data found, loading preloaded data");
       loadPreloadedData();
+      window.location.reload();
     } else {
       console.log("Existing data found in localStorage");
     }
