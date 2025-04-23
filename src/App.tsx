@@ -1,8 +1,8 @@
 // src/App.tsx
-import { initializeData } from './initialData';
+import { initializeData } from './initialData.js';
 import { useState, useEffect } from 'react';
 import './app-styles.css';
-import TaskList from './components/TaskList';
+import TaskList from './components/TaskList.js';
 import ContextWizard from './components/ContextWizard';
 import CategoryManager from './components/CategoryManager';
 import ProjectManager from './components/ProjectManager';
