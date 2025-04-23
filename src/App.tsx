@@ -1,4 +1,5 @@
 // src/App.tsx
+import './compact-styles.css';
 import { loadPreloadedData } from './preloadedData.js';
 import { initializeData } from './initialData.js';
 import { useState, useEffect } from 'react';

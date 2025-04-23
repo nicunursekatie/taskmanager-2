@@ -1,0 +1,102 @@
+/* Add these styles to your app-styles.css file or create a new file */
+
+/* Compact cards and containers */
+.project-card, .section-card, .task-item {
+    padding: 10px;
+    margin-bottom: 10px;
+  }
+  
+  /* Reduce spacing in forms */
+  .form-control {
+    padding: 6px 8px;
+    font-size: 0.9rem;
+  }
+  
+  /* Make top nav more compact */
+  .top-nav {
+    padding: 8px 15px;
+    height: auto;
+    min-height: 55px;
+  }
+  
+  /* Smaller text in task items */
+  .task-title {
+    font-size: 0.95rem;
+  }
+  
+  .subtask-title {
+    font-size: 0.9rem;
+  }
+  
+  /* More compact buttons */
+  .btn {
+    padding: 4px 10px;
+    font-size: 0.9rem;
+  }
+  
+  .btn-sm {
+    padding: 2px 6px;
+    font-size: 0.8rem;
+  }
+  
+  /* Reduce margins between sections */
+  .section-title, .project-title, .category-title {
+    margin-bottom: 8px;
+    font-size: 1.1rem;
+  }
+  
+  /* Make task metadata more compact */
+  .task-meta {
+    gap: 4px;
+    margin-top: 4px;
+  }
+  
+  .task-date, .task-category, .task-project {
+    font-size: 0.75rem;
+    padding: 1px 6px;
+  }
+  
+  /* Subtasks with less spacing */
+  .subtasks {
+    margin-top: 5px;
+    margin-left: 15px;
+    padding-left: 8px;
+  }
+  
+  .subtask-item {
+    padding: 3px 0;
+  }
+  
+  /* Category/tag containers */
+  .category-option {
+    font-size: 0.8rem;
+    padding: 2px 8px;
+    margin: 2px;
+  }
+  
+  /* Dashboard view with more compact grid */
+  .dashboard-grid {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 12px;
+  }
+  
+  /* Tighten up overall spacing */
+  .app-container {
+    padding: 1rem;
+  }
+  
+  .main-content {
+    padding: 10px;
+  }
+  
+  /* Reduce modal size */
+  .modal {
+    padding: 15px;
+    max-width: 600px;
+  }
+  
+  /* Make form labels take up less space */
+  .form-label {
+    margin-bottom: 2px;
+    font-size: 0.9rem;
+  }
