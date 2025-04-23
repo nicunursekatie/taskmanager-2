@@ -9,6 +9,7 @@ import ContextWizard from './components/ContextWizard';
 import CategoryManager from './components/CategoryManager';
 import ProjectManager from './components/ProjectManager';
 import { Task, Category, Project } from './types';
+import { loadPreloadedData } from './preloadedData';
 
 
 type TabType = 'dashboard' | 'all-tasks' | 'projects' | 'categories';
