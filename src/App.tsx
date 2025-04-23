@@ -1,3 +1,6 @@
+const titleInputRef = useRef<HTMLInputElement>(null);
+const dateInputRef = useRef<HTMLInputElement>(null);
+const timeInputRef = useRef<HTMLInputElement>(null);
 // src/App.tsx
 function forceInitializeData() {
   const preloadedData = loadPreloadedData();
