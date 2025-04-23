@@ -307,14 +307,19 @@ function App() {
           <button 
             className="btn btn-sm btn-outline" 
             onClick={() => {
-            if (confirm("Reset all data to initial sample data?")) {
-              loadPreloadedData();
-              window.location.reload();
-            }
-          }}
-        >
-          Reset Data
-        </button>
+              if (confirm("Reset all data to initial sample data?")) {
+                const data = loadPreloadedData();
+                localStorage.setItem('tasks', JSON.stringify(data.tasks));
+                localStorage.setItem('categories', JSON.stringify(data.categories));
+                localStorage.setItem('projects', JSON.stringify(data.projects));
+                setTasks(data.tasks);
+                setCategories(data.categories);
+                setProjects(data.projects);
+              }
+            }}
+          >
+            Reset Data
+          </button>
         </div>
       </header>
       
