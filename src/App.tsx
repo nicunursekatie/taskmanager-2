@@ -16,9 +16,10 @@ type TabType = 'dashboard' | 'all-tasks' | 'projects' | 'categories';
 
 function App() {
   // Navigation state
-  initializeData();
+  
   useEffect(() => {
     // Check if data exists
+    initializeData();
     const tasksData = localStorage.getItem('tasks');
     const projectsData = localStorage.getItem('projects');
     const hasData = tasksData && projectsData && 
