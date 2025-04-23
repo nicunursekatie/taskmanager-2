@@ -1142,3 +1142,85 @@ button[class*="add-subtask"],
   width: 100%;
   box-sizing: border-box;
 }
+
+/* Add these styles to your app-styles.css file */
+
+/* Fix for the tiny input field issue */
+.capture-form input[type="text"],
+.capture-input,
+.form-control.capture-input {
+  width: 100% !important;
+  min-width: 200px !important;
+  min-height: 38px !important;
+  height: auto !important;
+  padding: 8px 12px !important;
+  font-size: 16px !important;
+  box-sizing: border-box !important;
+  display: block !important;
+  flex: 1 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Ensure the capture form and its elements are properly displayed */
+.capture-form {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 10px !important;
+  width: 100% !important;
+  margin-bottom: 20px !important;
+  align-items: center !important;
+}
+
+/* Make date/time inputs visible */
+.date-time-inputs {
+  display: flex !important;
+  gap: 8px !important;
+  min-width: 120px !important;
+}
+
+.date-time-inputs input {
+  min-width: 120px !important;
+  min-height: 38px !important;
+}
+
+/* Make sure the Add button is visible and clickable */
+.capture-form button[type="submit"],
+.btn.btn-primary {
+  min-height: 38px !important;
+  min-width: 80px !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Ensure all selects are properly sized */
+.capture-form select,
+.form-control {
+  min-height: 38px !important;
+  min-width: 150px !important;
+  padding: 8px 12px !important;
+  font-size: 16px !important;
+  box-sizing: border-box !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* For mobile responsiveness */
+@media (max-width: 768px) {
+  .capture-form {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  
+  .capture-form input,
+  .capture-form select,
+  .capture-form button,
+  .date-time-inputs {
+    width: 100% !important;
+    margin-bottom: 10px !important;
+  }
+}
