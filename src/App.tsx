@@ -334,24 +334,25 @@ function App() {
       <main className="main-content full-width">
         {/* Capture Bar */}
         <div className="capture-container">
-          <form className="capture-form" onSubmit={(e) => {
-            e.preventDefault();
-            const titleInput = e.currentTarget.querySelector('input[type="text"]') as HTMLInputElement;
-            const dateInput = e.currentTarget.querySelector('input[type="date"]') as HTMLInputElement;
-            const timeInput = e.currentTarget.querySelector('input[type="time"]') as HTMLInputElement;
-            
-            if (titleInput && titleInput.value.trim()) {
-              const title = titleInput.value.trim();
-              const dueDate = dateInput && dateInput.value 
-                ? `${dateInput.value}T${timeInput?.value || '00:00:00'}` 
-                : null;
-              
-                addTask(title, dueDate, newParent);
-              titleInput.value = '';
-              if (dateInput) dateInput.value = '';
-              if (timeInput) timeInput.value = '';
-            }
-          }}>
+        <form className="capture-form" onSubmit={(e) => {
+          e.preventDefault();
+          const titleInput = e.currentTarget.querySelector('input[type="text"]') as HTMLInputElement;
+          const dateInput = e.currentTarget.querySelector('input[type="date"]') as HTMLInputElement;
+          const timeInput = e.currentTarget.querySelector('input[type="time"]') as HTMLInputElement;
+  
+          if (titleInput && titleInput.value.trim()) {
+            const title = titleInput.value.trim();
+            const dueDate = dateInput && dateInput.value 
+              ? `${dateInput.value}T${timeInput?.value || '00:00:00'}` 
+              : null;
+    
+            addTask(title, dueDate, newParent);
+            titleInput.value = '';
+            if (dateInput) dateInput.value = '';
+            if (timeInput) timeInput.value = '';
+          }
+        }}>
+      
             <input 
               type="text" 
               className="form-control capture-input" 
