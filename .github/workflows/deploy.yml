@@ -3,26 +3,29 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       
-      - name: Setup Node
-        uses: actions/setup-node@v2
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
         with:
-          node-version: '16'
-          
-      - name: Install Dependencies
-        run: npm install
-        
+          node-version: '18'
+      
+      - name: Clean install with correct platform
+        run: |
+          rm -rf node_modules
+          npm install
+      
       - name: Build
         run: npm run build
-        
-      - name: Deploy
-        uses: JamesIves/github-pages-deploy-action@4.1.4
+      
+      - name: Deploy to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
         with:
-          branch: gh-pages
           folder: dist
+          branch: gh-pages
