@@ -1,4 +1,5 @@
 // src/App.tsx
+import { loadPreloadedData } from './preloadedData.js';
 import { initializeData } from './initialData.js';
 import { useState, useEffect } from 'react';
 import './app-styles.css';
@@ -14,6 +15,21 @@ type TabType = 'dashboard' | 'all-tasks' | 'projects' | 'categories';
 function App() {
   // Navigation state
   initializeData();
+  useEffect(() => {
+    // Check if data exists
+    const tasksData = localStorage.getItem('tasks');
+    const projectsData = localStorage.getItem('projects');
+    const hasData = tasksData && projectsData && 
+                   JSON.parse(tasksData).length > 0 && 
+                   JSON.parse(projectsData).length > 0;
+    
+    if (!hasData) {
+      console.log("No existing data found, loading preloaded data");
+      loadPreloadedData();
+    } else {
+      console.log("Existing data found in localStorage");
+    }
+  }, []);
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
   
   // State management for tasks
@@ -282,6 +298,17 @@ function App() {
           >
             Manage {activeTab === 'projects' ? 'Projects' : 'Categories'}
           </button>
+          <button 
+            className="btn btn-sm btn-outline" 
+            onClick={() => {
+            if (confirm("Reset all data to initial sample data?")) {
+              loadPreloadedData();
+              window.location.reload();
+            }
+          }}
+        >
+          Reset Data
+        </button>
         </div>
       </header>
       
