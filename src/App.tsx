@@ -1,9 +1,9 @@
 // src/App.tsx
-import './compact-styles.css';
+import './app-styles.css';
+import './compact-styles-important.css';  // Add this line after existing CSS imports
 import { loadPreloadedData } from './preloadedData.js';
 import { initializeData } from './initialData.js';
 import { useState, useEffect } from 'react';
-import './app-styles.css';
 import TaskList from './components/TaskList.js';
 import ContextWizard from './components/ContextWizard';
 import CategoryManager from './components/CategoryManager';
