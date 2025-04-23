@@ -1,14 +1,15 @@
 // src/App.tsx
+import './compact-styles.css';
 import './app-styles.css';
-import './compact-styles-important.css';  // Add this line after existing CSS imports
-import { loadPreloadedData } from './preloadedData.js';
-import { initializeData } from './initialData.js';
+import { initializeData } from './initialData';
 import { useState, useEffect } from 'react';
-import TaskList from './components/TaskList.js';
+
+import TaskList from './components/TaskList';
 import ContextWizard from './components/ContextWizard';
 import CategoryManager from './components/CategoryManager';
 import ProjectManager from './components/ProjectManager';
 import { Task, Category, Project } from './types';
+import { loadPreloadedData } from './preloadedData';
 
 
 type TabType = 'dashboard' | 'all-tasks' | 'projects' | 'categories';
