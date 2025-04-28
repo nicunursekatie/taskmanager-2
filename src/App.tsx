@@ -834,6 +834,9 @@ function App() {
       {/* Import/Export Modal - New! */}
       {showImportExport && (
         <ImportExport
+          tasks={tasks}
+          categories={categories}
+          projects={projects}
           setTasks={setTasks}
           setCategories={setCategories}
           setProjects={setProjects}

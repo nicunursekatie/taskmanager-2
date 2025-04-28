@@ -4,6 +4,9 @@ import { downloadData, importData } from '../utils/dataUtils';
 import { Task, Category, Project } from '../types';
 
 type ImportExportProps = {
+  tasks: Task[]; // Add tasks prop
+  categories: Category[]; // Add categories prop
+  projects: Project[]; // Add projects prop
   setTasks: React.Dispatch<React.SetStateAction<Task[]>>;
   setCategories: React.Dispatch<React.SetStateAction<Category[]>>;
   setProjects: React.Dispatch<React.SetStateAction<Project[]>>;
@@ -11,6 +14,9 @@ type ImportExportProps = {
 };
 
 export default function ImportExport({
+  tasks, // Include tasks in destructuring
+  categories, // Include categories in destructuring
+  projects, // Include projects in destructuring
   setTasks,
   setCategories,
   setProjects,
