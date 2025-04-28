@@ -3,7 +3,8 @@
 // Import the sampleData utilities instead
 import CalendarView from './components/CalendarView';
 import './styles/calendar-view.css'; // Make sure to include the CSS
-
+import DailyPlanner from './components/DailyPlanner';
+import { useTimeBlocks } from './hooks/useTimeBlocks';
 import { loadSampleData } from './utils/sampleData';
 
 import './compact-styles.css';
@@ -18,7 +19,7 @@ import ImportExport from './components/ImportExport'; // Add import for new comp
 import { Task, Subtask, Category, Project, AddSubtaskFn } from './types';
 import { clearAllData } from './utils/dataUtils'; // Import the clear function
 
-type TabType = 'dashboard' | 'all-tasks' | 'projects' | 'categories' | 'calendar';
+type TabType = 'dashboard' | 'all-tasks' | 'projects' | 'categories' | 'calendar' | 'daily-planner';
 
 
 function App() {
@@ -57,6 +58,17 @@ function App() {
   const [showProjectManager, setShowProjectManager] = useState(false);
   const [showImportExport, setShowImportExport] = useState(false); // New state for import/export modal
   
+  // Add right after your other state variables (around line 57)
+  const {
+    timeBlocks,
+    currentDate,
+    setCurrentDate,
+    addTimeBlock,
+    updateTimeBlock,
+    deleteTimeBlock,
+    assignTaskToBlock
+  } = useTimeBlocks();
+
   // Example initial categories
   const [categories, setCategories] = useState<Category[]>(() => {
     const saved = localStorage.getItem('categories');
@@ -383,6 +395,12 @@ function App() {
           >
             Reset Data
           </button>
+          <button 
+            className={`nav-button ${activeTab === 'daily-planner' ? 'active' : ''}`}
+            onClick={() => setActiveTab('daily-planner')}
+          >
+            Daily Planner
+          </button>
         </div>
       </header>
       
@@ -437,6 +455,20 @@ function App() {
         
         {/* Main Content Area */}
         <div className="content-area">
+        {activeTab === 'daily-planner' && (
+          <div className="daily-planner-view">
+            <DailyPlanner 
+              tasks={tasks}
+              timeBlocks={timeBlocks}
+              addTimeBlock={addTimeBlock}
+              updateTimeBlock={updateTimeBlock}
+              deleteTimeBlock={deleteTimeBlock}
+              assignTaskToBlock={assignTaskToBlock}
+              date={currentDate}
+              setDate={setCurrentDate}
+            />
+        </div>
+      )}
           {/* ... Rest of the content area remains the same ... */}
           {activeTab === 'calendar' && (
             <div className="calendar-view-container">
