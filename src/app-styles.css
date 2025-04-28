@@ -1409,3 +1409,83 @@ input[type="checkbox"] {
   gap: 8px;
   margin-top: 8px;
 }
+
+/* Add these styles to your app-styles.css file */
+
+/* Context Wizard Styling */
+.recommended-tasks {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+  margin-bottom: 16px;
+}
+
+.task-item.recommendation {
+  border-left: 4px solid var(--primary-color);
+  transition: all 0.2s ease;
+}
+
+.task-item.recommendation:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  cursor: pointer;
+}
+
+.subtask-count {
+  display: inline-block;
+  padding: 2px 8px;
+  background-color: var(--section-bg);
+  border-radius: 12px;
+  font-size: 0.85rem;
+  color: var(--text-light);
+}
+
+/* Make the wizard choices more visually appealing */
+.wizard-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 16px 0;
+}
+
+.wizard-choice-btn {
+  flex: 1;
+  min-width: 80px;
+  padding: 12px;
+  text-align: center;
+  border-radius: 8px;
+  border: 2px solid var(--border-color);
+  background-color: var(--card-bg);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.wizard-choice-btn:hover {
+  border-color: var(--primary-color);
+  background-color: var(--section-bg);
+}
+
+.wizard-choice-btn.selected {
+  border-color: var(--primary-color);
+  background-color: var(--primary-color);
+  color: white;
+}
+
+/* Navigation buttons */
+.wizard-nav {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 24px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .wizard-choices {
+    flex-direction: column;
+  }
+  
+  .wizard-choice-btn {
+    width: 100%;
+  }
+}

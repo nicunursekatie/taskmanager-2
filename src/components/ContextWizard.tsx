@@ -14,38 +14,95 @@ const ContextWizard: React.FC<ContextWizardProps> = ({ tasks, onClose, generalTa
   const [energySelected, setEnergySelected] = useState<string | null>(null);
   const [blockingSelected, setBlockingSelected] = useState<string | null>(null);
   
-  // Filter and sort tasks for suggestions
-  const pendingTasks = tasks.filter(t => t.status === 'pending');
-  const sortedTasks = [...pendingTasks].sort((a, b) => {
-    // Sort by due date first
-    if (a.dueDate && b.dueDate) {
-      return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+  // Get all pending tasks (both parent and subtasks)
+  const pendingTasks = tasks.filter(t => t.status !== 'completed');
+  
+  // Get the complete tree path for a task (including all parent names)
+  const getTaskPath = (task: Task): string => {
+    if (!task.parentId) {
+      return task.title;
     }
-    if (a.dueDate) return -1;
-    if (b.dueDate) return 1;
-    return 0;
-  });
+    
+    const parentTask = tasks.find(t => t.id === task.parentId);
+    if (!parentTask) {
+      return task.title;
+    }
+    
+    return `${getTaskPath(parentTask)} > ${task.title}`;
+  };
+  
+  // Count subtasks for a given task
+  const countSubtasks = (taskId: string): number => {
+    return tasks.filter(t => t.parentId === taskId).length;
+  };
+  
+  // Count completed subtasks for a given task
+  const countCompletedSubtasks = (taskId: string): number => {
+    return tasks.filter(t => t.parentId === taskId && t.status === 'completed').length;
+  };
   
   // Choose tasks based on selected criteria
-  const getRecommendedTasks = () => {
-    let filteredTasks = [...sortedTasks];
+  const getRecommendedTasks = (): Task[] => {
+    if (!timeSelected || !energySelected) return [];
+    
+    let filteredTasks = [...pendingTasks];
+    let availableTime = parseInt(timeSelected);
     
     // Filter by time available
-    if (timeSelected === '5') {
-      // Quick tasks first
-      filteredTasks = filteredTasks.slice(0, 3);
+    if (availableTime <= 10) {
+      // For very short times, prefer tasks with no subtasks or mostly completed subtasks
+      filteredTasks = filteredTasks.filter(task => {
+        const subtaskCount = countSubtasks(task.id);
+        const completedSubtasks = countCompletedSubtasks(task.id);
+        
+        // Keep it if it's a subtask itself, has no subtasks, or most subtasks are done
+        return task.parentId || subtaskCount === 0 || (completedSubtasks / subtaskCount) > 0.7;
+      });
+    } else if (availableTime <= 25) {
+      // Medium time - may be able to tackle a small parent task
+      filteredTasks = filteredTasks.filter(task => {
+        const subtaskCount = countSubtasks(task.id);
+        return subtaskCount <= 3; // Tasks with few or no subtasks
+      });
     }
+    // For longer times, include any tasks
     
     // Filter by energy level
     if (energySelected === 'Low') {
-      // Simple tasks without due dates might be easier
-      filteredTasks = filteredTasks.filter(t => !t.dueDate).slice(0, 3);
+      // When energy is low, prioritize subtasks (smaller chunks) or tasks with no subtasks
+      filteredTasks = filteredTasks.filter(task => 
+        task.parentId || countSubtasks(task.id) === 0
+      );
     } else if (energySelected === 'High') {
-      // Important tasks with due dates soon
-      filteredTasks = filteredTasks.filter(t => t.dueDate).slice(0, 3);
+      // When energy is high, prioritize parent tasks (larger chunks)
+      filteredTasks = filteredTasks.filter(task => 
+        !task.parentId && countSubtasks(task.id) > 0
+      );
+      // If no parent tasks are available, fall back to any task
+      if (filteredTasks.length === 0) {
+        filteredTasks = pendingTasks;
+      }
     }
     
-    // If we don't have enough filtered tasks, add some general tasks
+    // Consider what's blocking the user
+    if (blockingSelected === 'Too many choices') {
+      // Sort by hierarchy (parent tasks first, then subtasks)
+      filteredTasks.sort((a, b) => {
+        if (a.parentId && !b.parentId) return 1;
+        if (!a.parentId && b.parentId) return -1;
+        return 0;
+      });
+    } else if (blockingSelected === 'Decision fatigue') {
+      // Just pick the first few tasks, minimize choices
+      filteredTasks = filteredTasks.slice(0, 3);
+    } else if (blockingSelected === 'Need a quick win') {
+      // Prioritize subtasks or tasks with no children (quick wins)
+      filteredTasks = filteredTasks.filter(task => 
+        task.parentId || countSubtasks(task.id) === 0
+      );
+    }
+    
+    // If nothing matches, suggest general tasks
     if (filteredTasks.length === 0) {
       return generalTasks.map(title => ({
         id: `gen-${Math.random().toString(36).substring(7)}`,
@@ -54,16 +111,12 @@ const ContextWizard: React.FC<ContextWizardProps> = ({ tasks, onClose, generalTa
       }));
     }
     
-    return filteredTasks;
+    // Return top 3 recommended tasks
+    return filteredTasks.slice(0, 3);
   };
   
-  const recommendedTasks = getRecommendedTasks();
-  const suggestion = recommendedTasks[0] || {
-    id: 'default',
-    title: 'Take a short break and plan your next steps',
-    status: 'pending' as const
-  };
-
+  const recommendedTasks = step === 3 ? getRecommendedTasks() : [];
+  
   return (
     <div className="modal-overlay">
       <div className="modal">
@@ -77,7 +130,7 @@ const ContextWizard: React.FC<ContextWizardProps> = ({ tasks, onClose, generalTa
             <>
               <h3>How much time do you have?</h3>
               <div className="flex gap-sm">
-                {[5, 10, 20, 30].map(n => (
+                {[5, 10, 25, 60].map(n => (
                   <button 
                     key={n} 
                     className={`btn ${timeSelected === n.toString() ? 'btn-primary' : 'btn-outline'}`}
@@ -160,19 +213,39 @@ const ContextWizard: React.FC<ContextWizardProps> = ({ tasks, onClose, generalTa
           
           {step === 3 && (
             <>
-              <h3>I recommend you work on:</h3>
-              <div className="task-item">
-                <div className="task-header">
-                  <h3 className="task-title">{suggestion.title}</h3>
+              <h3>{recommendedTasks.length > 0 ? 'I recommend you work on:' : 'Consider taking a break and resetting'}</h3>
+              
+              {recommendedTasks.length > 0 ? (
+                <div className="recommended-tasks">
+                  {recommendedTasks.map((task, index) => (
+                    <div key={index} className="task-item recommendation">
+                      <div className="task-header">
+                        <h3 className="task-title">
+                          {/* Show full path for subtasks */}
+                          {task.parentId ? getTaskPath(task) : task.title}
+                        </h3>
+                      </div>
+                      
+                      {/* Show subtask info if relevant */}
+                      {!task.parentId && countSubtasks(task.id) > 0 && (
+                        <div className="task-meta">
+                          <span className="subtask-count">
+                            {countCompletedSubtasks(task.id)}/{countSubtasks(task.id)} subtasks completed
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
-                {(suggestion as Task).dueDate && (
-                  <div className="task-meta">
-                    <span className="task-date">
-                      Due: {new Date((suggestion as Task).dueDate!).toLocaleDateString()}
-                    </span>
+              ) : (
+                <div className="task-item">
+                  <div className="task-header">
+                    <h3 className="task-title">Take a short break</h3>
                   </div>
-                )}
-              </div>
+                  <p>It seems like now might be a good time to reset and recharge. Consider taking a 10-minute break.</p>
+                </div>
+              )}
+              
               <div className="flex justify-between mt-lg">
                 <button className="btn btn-outline" onClick={() => setStep(2)}>
                   Back
