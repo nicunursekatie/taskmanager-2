@@ -373,30 +373,39 @@ function App() {
       
       <main className="main-content full-width">
         {/* Capture Bar */}
-        <div className="capture-container">
-          <form className="capture-form" onSubmit={handleTaskSubmit}>
+        /* Replace the capture form in App.tsx with this improved version */
+
+      <div className="capture-container">
+        <form className="capture-form" onSubmit={handleTaskSubmit}>
+          <div style={{ flex: "1 1 300px", minWidth: "300px" }}>
             <input 
               type="text" 
               className="form-control capture-input" 
               placeholder="Quick capture a new task..."
               ref={titleInputRef}
+              style={{ width: "100%" }}
             />
-            <div className="date-time-inputs">
-              <input 
-                type="date" 
-                className="form-control date-input"
-                ref={dateInputRef}
-              />
-              <input 
-                type="time" 
-                className="form-control time-input"
-                ref={timeInputRef}
-              />
-            </div>
+          </div>
+          
+          <div className="date-time-inputs" style={{ flex: "0 0 auto" }}>
+            <input 
+              type="date" 
+              className="form-control date-input"
+              ref={dateInputRef}
+            />
+            <input 
+              type="time" 
+              className="form-control time-input"
+              ref={timeInputRef}
+            />
+          </div>
+          
+          <div style={{ flex: "0 0 auto", width: "180px" }}>
             <select 
               className="form-control"
               value={newParent}
               onChange={(e) => setNewParent(e.target.value)}
+              style={{ width: "100%" }}
             >
               <option value="">No Parent Task</option>
               {parentOptions.map(o => (
@@ -405,9 +414,13 @@ function App() {
                 </option>
               ))}
             </select>
+          </div>
+          
+          <div style={{ flex: "0 0 auto" }}>
             <button type="submit" className="btn btn-primary">Add</button>
-          </form>
-        </div>
+          </div>
+        </form>
+      </div>
         
         {/* Main Content Area */}
         <div className="content-area">

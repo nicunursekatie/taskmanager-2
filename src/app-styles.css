@@ -1223,4 +1223,61 @@ button[class*="add-subtask"],
     width: 100% !important;
     margin-bottom: 10px !important;
   }
+}/* Add these styles to the end of app-styles.css */
+
+/* Force the text input to have a minimum width */
+.capture-form input[type="text"],
+.form-control.capture-input {
+  min-width: 250px !important;
+  flex: 1 !important;
+  width: 100% !important;
+}
+
+/* Make the capture form more responsive */
+.capture-form {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 10px !important;
+  align-items: center !important;
+}
+
+/* Set reasonable widths for date/time and select inputs */
+.date-time-inputs {
+  display: flex !important;
+  gap: 5px !important;
+}
+
+.date-time-inputs input {
+  width: auto !important;
+  min-width: 120px !important;
+}
+
+.capture-form select {
+  width: auto !important;
+  min-width: 150px !important;
+  max-width: 200px !important;
+}
+
+/* Ensure all form controls have proper dimensions */
+.capture-form .form-control {
+  height: 38px !important;
+  line-height: 1.5 !important;
+  padding: 8px 12px !important;
+  font-size: 16px !important;
+}
+
+/* Make the form wrap nicely on smaller screens */
+@media (max-width: 768px) {
+  .capture-form {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  
+  .capture-form input,
+  .capture-form select,
+  .capture-form .date-time-inputs,
+  .capture-form button {
+    width: 100% !important;
+    margin-bottom: 10px !important;
+  }
 }
