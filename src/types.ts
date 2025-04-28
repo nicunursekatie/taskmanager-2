@@ -1,60 +1,74 @@
 // src/types.ts
 // Complete type definitions for the TaskManager app
 
+export type ContextTag = 
+  | 'phone-call'  // For tasks requiring phone calls
+  | 'errand'      // For tasks that require going somewhere
+  | 'online'      // For tasks that can be done online
+  | 'home'        // For tasks that must be done at home
+  | 'work'        // For tasks that must be done at work (NICU)
+  | 'anywhere';   // For tasks that can be done anywhere
+
+// Project type
 export type Project = {
   id: string;
   name: string;
   description?: string;
 };
 
+// Category type
 export type Category = {
   id: string;
   name: string;
   color: string;
 };
 
-// Basic Task type
+// Task type with context support
 export type Task = {
   id: string;
   title: string;
   dueDate?: string | null;
   status: 'pending' | 'completed';
-  parentId?: string | null;  // Reference to parent task
+  parentId?: string | null;
   projectId?: string | null;
   categories?: string[];
+  context?: ContextTag;     // New context property
+  estimatedMinutes?: number; // Optional time estimate
+  priority?: 'must-do' | 'want-to-do' | 'when-i-can'; // Optional priority level
 };
 
-// Subtask is just a Task with a parentId
-export type Subtask = Task & {
-  parentId: string; // Required for subtasks (not optional)
+// Function to update task context
+export type UpdateTaskContextFn = (id: string, context: ContextTag | null) => void;
+
+// Time block type for daily planning
+export type TimeBlock = {
+  id: string;
+  startTime: string; // Format: "HH:MM" (24 hour)
+  endTime: string;   // Format: "HH:MM" (24 hour)
+  title: string;
+  taskIds: string[]; // IDs of tasks assigned to this block
+  color?: string;    // Optional color
 };
 
-// Function types for better TypeScript support
-export type ToggleTaskFn = (id: string) => void;
-export type DeleteTaskFn = (id: string) => void;
-export type UpdateTaskFn = (
-  id: string, 
-  title: string, 
-  dueDate: string | null,
-  categories?: string[],
-  projectId?: string | null
-) => void;
-export type AddSubtaskFn = (parentId: string, title: string) => void;
-export type AddTaskFn = (
-  title: string,
-  dueDate: string | null,
-  parentId?: string,
-  categoryIds?: string[],
-  projectId?: string | null
-) => void;
+// Function to add/update time blocks
+export type AddTimeBlockFn = (block: Omit<TimeBlock, 'id'>) => void;
+export type UpdateTimeBlockFn = (id: string, block: Partial<TimeBlock>) => void;
+export type DeleteTimeBlockFn = (id: string) => void;
+export type AssignTaskToBlockFn = (taskId: string, blockId: string | null) => void;
 
-// Component Props types
+// Component prop types
 export type TaskListProps = {
   tasks: Task[];
-  toggleTask: ToggleTaskFn;
-  deleteTask: DeleteTaskFn;
-  updateTask: UpdateTaskFn;
-  addSubtask: AddSubtaskFn;
+  toggleTask: (id: string) => void;
+  deleteTask: (id: string) => void;
+  updateTask: (
+    id: string, 
+    title: string, 
+    dueDate: string | null,
+    categories?: string[],
+    projectId?: string | null,
+    dependsOn?: string[]
+  ) => void;
   categories: Category[];
   projects: Project[];
 };
@@ -70,10 +84,13 @@ export type FilterPanelProps = {
 };
 
 export type CaptureBarProps = {
-  addTask: AddTaskFn;
-  newParent: string;
-  setNewParent: (id: string) => void;
-  parentOptions: { id: string; title: string }[];
+  addTask: (
+    title: string,
+    dueDate: string | null,
+    categoryIds?: string[],
+    projectId?: string | null,
+    dependsOn?: string[]
+  ) => void;
   categories: Category[];
   projects: Project[];
 };
