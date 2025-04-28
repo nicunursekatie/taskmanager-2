@@ -6,7 +6,7 @@ import './styles/calendar-view.css'; // Make sure to include the CSS
 import DailyPlanner from './components/DailyPlanner';
 import { useTimeBlocks } from './hooks/useTimeBlocks';
 import { loadSampleData } from './utils/sampleData';
-
+import MoreOptionsMenu from './components/MoreOptionsMenu';
 import './compact-styles.css';
 import './app-styles.css';
 import { useState, useEffect, useRef } from 'react';
@@ -328,81 +328,66 @@ function App() {
   return (
     <div className="app-container full-width">
       {/* Top Navigation */}
-      <header className="top-nav">
-        <h1 className="app-title">Task Manager</h1>
-        <nav className="main-nav">
-          <button 
-            className={`nav-button ${activeTab === 'dashboard' ? 'active' : ''}`}
-            onClick={() => setActiveTab('dashboard')}
-          >
-            Dashboard
-          </button>
-          <button 
-            className={`nav-button ${activeTab === 'all-tasks' ? 'active' : ''}`}
-            onClick={() => setActiveTab('all-tasks')}
-          >
-            All Tasks
-          </button>
-          <button 
-            className={`nav-button ${activeTab === 'projects' ? 'active' : ''}`}
-            onClick={() => setActiveTab('projects')}
-          >
-            Projects
-          </button>
-          <button 
-            className={`nav-button ${activeTab === 'categories' ? 'active' : ''}`}
-            onClick={() => setActiveTab('categories')}
-          >
-            Categories
-          </button>
-          <button 
-            className={`nav-button ${activeTab === 'calendar' ? 'active' : ''}`}
-            onClick={() => setActiveTab('calendar')}
-          >
-            Calendar
-          </button>
-        </nav>
+      // 1. First, import the MoreOptionsMenu component at the top of App.tsx
+import MoreOptionsMenu from './components/MoreOptionsMenu';
 
-        <div className="top-actions">
-          <button 
-            className="btn btn-primary" 
-            onClick={() => setShowWizard(true)}
-          >
-            What now?
-          </button>
-          <button 
-            className="btn btn-outline" 
-            onClick={() => activeTab === 'projects' ? setShowProjectManager(true) : setShowCategoryManager(true)}
-          >
-            Manage {activeTab === 'projects' ? 'Projects' : 'Categories'}
-          </button>
-          {/* New button for Import/Export */}
-          <button 
-            className="btn btn-sm btn-outline" 
-            onClick={() => setShowImportExport(true)}
-          >
-            Import/Export
-          </button>
-          <button 
-            className="btn btn-sm btn-outline" 
-            onClick={handleLoadSampleData}
-          >
-            Load Sample Data
-          </button>
-          <button 
-            className="btn btn-sm btn-danger" 
-            onClick={resetAllData}
-          >
-            Reset Data
-          </button>
-          <button 
-            className={`nav-button ${activeTab === 'daily-planner' ? 'active' : ''}`}
-            onClick={() => setActiveTab('daily-planner')}
-          >
-            Daily Planner
-          </button>
-        </div>
-      </header>
+// 2. Then, replace your current top navigation section with this:
+<header className="top-nav">
+  <h1 className="app-title">Task Manager</h1>
+      <nav className="main-nav">
+        <button 
+          className={`nav-button ${activeTab === 'dashboard' ? 'active' : ''}`}
+          onClick={() => setActiveTab('dashboard')}
+        >
+          Dashboard
+        </button>
+        <button 
+          className={`nav-button ${activeTab === 'all-tasks' ? 'active' : ''}`}
+          onClick={() => setActiveTab('all-tasks')}
+        >
+          All Tasks
+        </button>
+        <button 
+          className={`nav-button ${activeTab === 'projects' ? 'active' : ''}`}
+          onClick={() => setActiveTab('projects')}
+        >
+          Projects
+        </button>
+        <button 
+          className={`nav-button ${activeTab === 'categories' ? 'active' : ''}`}
+          onClick={() => setActiveTab('categories')}
+        >
+          Categories
+        </button>
+        <button 
+          className={`nav-button ${activeTab === 'calendar' ? 'active' : ''}`}
+          onClick={() => setActiveTab('calendar')}
+        >
+          Calendar
+        </button>
+        <button 
+          className={`nav-button ${activeTab === 'daily-planner' ? 'active' : ''}`}
+          onClick={() => setActiveTab('daily-planner')}
+        >
+          Daily Planner
+        </button>
+      </nav>
+
+      <div className="top-actions">
+        <button 
+          className="btn btn-primary" 
+          onClick={() => setShowWizard(true)}
+        >
+          What now?
+        </button>
+        <MoreOptionsMenu 
+          onManageCategories={() => setShowCategoryManager(true)}
+          onImportExport={() => setShowImportExport(true)}
+          onLoadSample={handleLoadSampleData}
+          onResetData={resetAllData}
+        />
+      </div>
+    </header>
       
       <main className="main-content full-width">
         {/* Capture Bar */}
