@@ -1,6 +1,5 @@
 import { useState } from 'react';
 
-// Use type instead of interface
 type MoreOptionsMenuProps = {
   onManageCategories: () => void;
   onImportExport: () => void;

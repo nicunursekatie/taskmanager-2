@@ -55,7 +55,7 @@ export const sampleData: {
 /**
  * Loads sample data into the application
  */
-export function loadSampleData(): {
+export function loadSampleData(setTasks: unknown, setCategories: unknown, setProjects: unknown): {
   tasks: Task[];
   categories: Category[];
   projects: Project[];

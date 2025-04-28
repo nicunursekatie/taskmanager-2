@@ -89,7 +89,7 @@ export function downloadData(filename = 'taskmanager-export.json'): void {
 /**
  * Clears all data from localStorage
  */
-export function clearAllData(): void {
+export function clearAllData(setTasks: unknown, setCategories: unknown, setProjects: unknown): void {
   localStorage.removeItem('tasks');
   localStorage.removeItem('categories');
   localStorage.removeItem('projects');

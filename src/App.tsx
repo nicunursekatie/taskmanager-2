@@ -1,12 +1,14 @@
 // src/App.tsx
 // Remove these imports since we're no longer using them
 // Import the sampleData utilities instead
+
+
 import CalendarView from './components/CalendarView';
 import './styles/calendar-view.css'; // Make sure to include the CSS
 import DailyPlanner from './components/DailyPlanner';
 import { useTimeBlocks } from './hooks/useTimeBlocks';
 import { loadSampleData } from './utils/sampleData';
-import MoreOptionsMenu from './components/MoreOptionsMenu';
+import MoreOptionsMenu from './components/MoreOptionsMenu'; // Ensure this file exists in the components folder
 import './compact-styles.css';
 import './app-styles.css';
 import { useState, useEffect, useRef } from 'react';
@@ -257,7 +259,7 @@ function App() {
   // Reset all data (now using clearAllData util function)
   const resetAllData = () => {
     if (confirm("Are you sure you want to clear all data? This will remove all tasks, projects, and categories.")) {
-      clearAllData();
+      clearAllData(setTasks, setCategories, setProjects);
       setTasks([]);
       setCategories([]);
       setProjects([]);
@@ -267,7 +269,7 @@ function App() {
   // Load sample data for new users
   const handleLoadSampleData = () => {
     if (confirm("Load sample data? This will add some example tasks, categories, and projects to help you get started.")) {
-      const data = loadSampleData();
+      const data = loadSampleData(setTasks, setCategories, setProjects);
       setTasks(data.tasks);
       setCategories(data.categories);
       setProjects(data.projects);
@@ -328,10 +330,6 @@ function App() {
   return (
     <div className="app-container full-width">
       {/* Top Navigation */}
-      // 1. First, import the MoreOptionsMenu component at the top of App.tsx
-import MoreOptionsMenu from './components/MoreOptionsMenu';
-
-// 2. Then, replace your current top navigation section with this:
 <header className="top-nav">
   <h1 className="app-title">Task Manager</h1>
       <nav className="main-nav">
@@ -380,11 +378,11 @@ import MoreOptionsMenu from './components/MoreOptionsMenu';
         >
           What now?
         </button>
-        <MoreOptionsMenu 
+        <MoreOptionsMenu
           onManageCategories={() => setShowCategoryManager(true)}
           onImportExport={() => setShowImportExport(true)}
-          onLoadSample={handleLoadSampleData}
-          onResetData={resetAllData}
+          onLoadSample={() => loadSampleData(setTasks, setCategories, setProjects)}
+          onResetData={() => clearAllData(setTasks, setCategories, setProjects)}
         />
       </div>
     </header>
