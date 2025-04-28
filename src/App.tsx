@@ -1,8 +1,16 @@
 // src/App.tsx
+function forceInitializeData() {
+  const preloadedData = loadPreloadedData();
+  localStorage.setItem('tasks', JSON.stringify(preloadedData.tasks));
+  localStorage.setItem('categories', JSON.stringify(preloadedData.categories));
+  localStorage.setItem('projects', JSON.stringify(preloadedData.projects));
+  return preloadedData;
+}
+
 import './compact-styles.css';
 import './app-styles.css';
 import { initializeData } from './initialData';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 import TaskList from './components/TaskList';
 import ContextWizard from './components/ContextWizard';
@@ -16,36 +24,25 @@ type TabType = 'dashboard' | 'all-tasks' | 'projects' | 'categories';
 
 function App() {
   // Navigation state
-  
-  useEffect(() => {
-    initializeData();
-
-    const tasksData = localStorage.getItem('tasks');
-    const projectsData = localStorage.getItem('projects');
-
-    let hasData = false;
-    try {
-      const tasks = JSON.parse(tasksData || '[]');
-      const projects = JSON.parse(projectsData || '[]');
-      hasData = tasks.length > 0 && projects.length > 0;
-    } catch (err) {
-      hasData = false;
-    }
-
-    if (!hasData) {
-      console.log("No valid data found, loading preloaded data");
-      loadPreloadedData();
-      window.location.reload();
-    } else {
-      console.log("Existing data found in localStorage");
-    }
-  }, []);
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
+  
+  // Form refs for more reliable element access
+  const titleInputRef = useRef<HTMLInputElement>(null);
+  const dateInputRef = useRef<HTMLInputElement>(null);
+  const timeInputRef = useRef<HTMLInputElement>(null);
   
   // State management for tasks
   const [tasks, setTasks] = useState<Task[]>(() => {
-    const savedTasks = localStorage.getItem('tasks');
-    return savedTasks ? JSON.parse(savedTasks) : [];
+    const saved = localStorage.getItem('tasks');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      } catch {}
+    }
+    const { tasks } = loadPreloadedData();
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+    return tasks;
   });
   
   // Save tasks to localStorage when they change
@@ -63,12 +60,16 @@ function App() {
   
   // Example initial categories
   const [categories, setCategories] = useState<Category[]>(() => {
-    const savedCategories = localStorage.getItem('categories');
-    return savedCategories ? JSON.parse(savedCategories) : [
-      { id: '1', name: 'Work', color: '#F59E0B' },
-      { id: '2', name: 'Personal', color: '#10B981' },
-      { id: '3', name: 'NICU', color: '#3B82F6' },
-    ];
+    const saved = localStorage.getItem('categories');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      } catch {}
+    }
+    const { categories } = loadPreloadedData();
+    localStorage.setItem('categories', JSON.stringify(categories));
+    return categories;
   });
 
   // Save categories to localStorage when they change
@@ -78,8 +79,16 @@ function App() {
   
   // Projects state
   const [projects, setProjects] = useState<Project[]>(() => {
-    const savedProjects = localStorage.getItem('projects');
-    return savedProjects ? JSON.parse(savedProjects) : [];
+    const saved = localStorage.getItem('projects');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      } catch {}
+    }
+    const { projects } = loadPreloadedData();
+    localStorage.setItem('projects', JSON.stringify(projects));
+    return projects;
   });
 
   // Save projects to localStorage when they change
@@ -264,6 +273,25 @@ function App() {
     'Take a break'
   ];
 
+  // Handle task form submission with refs
+  const handleTaskSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (titleInputRef.current && titleInputRef.current.value.trim()) {
+      const title = titleInputRef.current.value.trim();
+      const dueDate = dateInputRef.current && dateInputRef.current.value 
+        ? `${dateInputRef.current.value}T${timeInputRef.current?.value || '00:00:00'}` 
+        : null;
+      
+      addTask(title, dueDate, newParent);
+      
+      // Clear inputs
+      titleInputRef.current.value = '';
+      if (dateInputRef.current) dateInputRef.current.value = '';
+      if (timeInputRef.current) timeInputRef.current.value = '';
+    }
+  };
+
   return (
     <div className="app-container full-width">
       {/* Top Navigation */}
@@ -311,51 +339,42 @@ function App() {
           <button 
             className="btn btn-sm btn-outline" 
             onClick={() => {
-            if (confirm("Reset all data to initial sample data?")) {
-              loadPreloadedData();
-              window.location.reload();
-            }
-          }}
-        >
-          Reset Data
-        </button>
+              if (confirm("Reset all data to initial sample data?")) {
+                const data = loadPreloadedData();
+                localStorage.setItem('tasks', JSON.stringify(data.tasks));
+                localStorage.setItem('categories', JSON.stringify(data.categories));
+                localStorage.setItem('projects', JSON.stringify(data.projects));
+                setTasks(data.tasks);
+                setCategories(data.categories);
+                setProjects(data.projects);
+              }
+            }}
+          >
+            Reset Data
+          </button>
         </div>
       </header>
       
       <main className="main-content full-width">
         {/* Capture Bar */}
         <div className="capture-container">
-          <form className="capture-form" onSubmit={(e) => {
-            e.preventDefault();
-            const titleInput = e.currentTarget.querySelector('input[type="text"]') as HTMLInputElement;
-            const dateInput = e.currentTarget.querySelector('input[type="date"]') as HTMLInputElement;
-            const timeInput = e.currentTarget.querySelector('input[type="time"]') as HTMLInputElement;
-            
-            if (titleInput && titleInput.value.trim()) {
-              const title = titleInput.value.trim();
-              const dueDate = dateInput && dateInput.value 
-                ? `${dateInput.value}T${timeInput?.value || '00:00:00'}` 
-                : null;
-              
-                addTask(title, dueDate, newParent);
-              titleInput.value = '';
-              if (dateInput) dateInput.value = '';
-              if (timeInput) timeInput.value = '';
-            }
-          }}>
+          <form className="capture-form" onSubmit={handleTaskSubmit}>
             <input 
               type="text" 
               className="form-control capture-input" 
               placeholder="Quick capture a new task..."
+              ref={titleInputRef}
             />
             <div className="date-time-inputs">
               <input 
                 type="date" 
                 className="form-control date-input"
+                ref={dateInputRef}
               />
               <input 
                 type="time" 
                 className="form-control time-input"
+                ref={timeInputRef}
               />
             </div>
             <select 
