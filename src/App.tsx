@@ -384,8 +384,6 @@ function App() {
       
       <main className="main-content full-width">
         {/* Capture Bar */}
-        /* Replace the capture form in App.tsx with this improved version */
-
       <div className="capture-container">
         <form className="capture-form" onSubmit={handleTaskSubmit}>
           <div style={{ flex: "1 1 300px", minWidth: "300px" }}>
