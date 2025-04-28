@@ -59,6 +59,9 @@ export default function ImportExport({
     fileInputRef.current?.click();
   };
 
+  // Check if this is likely a first-time setup
+  const isFirstTimeSetup = tasks.length === 0 && categories.length === 0 && projects.length === 0;
+
   return (
     <div className="modal-overlay">
       <div className="modal">
@@ -68,6 +71,18 @@ export default function ImportExport({
         </div>
         
         <div className="modal-body">
+          {isFirstTimeSetup && (
+            <div className="section-card new-user-message">
+              <h3>Welcome to Task Manager!</h3>
+              <p>It looks like you're just getting started. You can:</p>
+              <ul>
+                <li>Import data from another task manager</li>
+                <li>Use the "Load Sample Data" button on the main screen to get started with examples</li>
+                <li>Or just start creating your own tasks, categories, and projects from scratch</li>
+              </ul>
+            </div>
+          )}
+
           <div className="section-card">
             <h3>Export Data</h3>
             <p>Download all your tasks, categories, and projects as a JSON file.</p>

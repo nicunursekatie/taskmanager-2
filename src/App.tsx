@@ -1,24 +1,19 @@
 // src/App.tsx
-function forceInitializeData() {
-  const preloadedData = loadPreloadedData();
-  localStorage.setItem('tasks', JSON.stringify(preloadedData.tasks));
-  localStorage.setItem('categories', JSON.stringify(preloadedData.categories));
-  localStorage.setItem('projects', JSON.stringify(preloadedData.projects));
-  return preloadedData;
-}
+// Remove these imports since we're no longer using them
+// Import the sampleData utilities instead
+import { loadSampleData } from './utils/sampleData';
 
 import './compact-styles.css';
 import './app-styles.css';
-import { initializeData } from './initialData';
 import { useState, useEffect, useRef } from 'react';
 
 import TaskList from './components/TaskList';
 import ContextWizard from './components/ContextWizard';
 import CategoryManager from './components/CategoryManager';
 import ProjectManager from './components/ProjectManager';
+import ImportExport from './components/ImportExport'; // Add import for new component
 import { Task, Category, Project } from './types';
-import { loadPreloadedData } from './preloadedData';
-
+import { clearAllData } from './utils/dataUtils'; // Import the clear function
 
 type TabType = 'dashboard' | 'all-tasks' | 'projects' | 'categories';
 
@@ -40,9 +35,8 @@ function App() {
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
       } catch {}
     }
-    const { tasks } = loadPreloadedData();
-    localStorage.setItem('tasks', JSON.stringify(tasks));
-    return tasks;
+    // Return empty array instead of preloaded data
+    return [];
   });
   
   // Save tasks to localStorage when they change
@@ -57,6 +51,7 @@ function App() {
   const [showWizard, setShowWizard] = useState(false);
   const [showCategoryManager, setShowCategoryManager] = useState(false);
   const [showProjectManager, setShowProjectManager] = useState(false);
+  const [showImportExport, setShowImportExport] = useState(false); // New state for import/export modal
   
   // Example initial categories
   const [categories, setCategories] = useState<Category[]>(() => {
@@ -67,9 +62,8 @@ function App() {
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
       } catch {}
     }
-    const { categories } = loadPreloadedData();
-    localStorage.setItem('categories', JSON.stringify(categories));
-    return categories;
+    // Return empty array instead of preloaded data
+    return [];
   });
 
   // Save categories to localStorage when they change
@@ -86,9 +80,8 @@ function App() {
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
       } catch {}
     }
-    const { projects } = loadPreloadedData();
-    localStorage.setItem('projects', JSON.stringify(projects));
-    return projects;
+    // Return empty array instead of preloaded data
+    return [];
   });
 
   // Save projects to localStorage when they change
@@ -241,6 +234,26 @@ function App() {
     setCategories(prev => prev.filter(cat => cat.id !== id));
   };
   
+  // Reset all data (now using clearAllData util function)
+  const resetAllData = () => {
+    if (confirm("Are you sure you want to clear all data? This will remove all tasks, projects, and categories.")) {
+      clearAllData();
+      setTasks([]);
+      setCategories([]);
+      setProjects([]);
+    }
+  };
+  
+  // Load sample data for new users
+  const handleLoadSampleData = () => {
+    if (confirm("Load sample data? This will add some example tasks, categories, and projects to help you get started.")) {
+      const data = loadSampleData();
+      setTasks(data.tasks);
+      setCategories(data.categories);
+      setProjects(data.projects);
+    }
+  };
+  
   // Filter tasks by due date for different sections
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
@@ -336,19 +349,22 @@ function App() {
           >
             Manage {activeTab === 'projects' ? 'Projects' : 'Categories'}
           </button>
+          {/* New button for Import/Export */}
           <button 
             className="btn btn-sm btn-outline" 
-            onClick={() => {
-              if (confirm("Reset all data to initial sample data?")) {
-                const data = loadPreloadedData();
-                localStorage.setItem('tasks', JSON.stringify(data.tasks));
-                localStorage.setItem('categories', JSON.stringify(data.categories));
-                localStorage.setItem('projects', JSON.stringify(data.projects));
-                setTasks(data.tasks);
-                setCategories(data.categories);
-                setProjects(data.projects);
-              }
-            }}
+            onClick={() => setShowImportExport(true)}
+          >
+            Import/Export
+          </button>
+          <button 
+            className="btn btn-sm btn-outline" 
+            onClick={handleLoadSampleData}
+          >
+            Load Sample Data
+          </button>
+          <button 
+            className="btn btn-sm btn-danger" 
+            onClick={resetAllData}
           >
             Reset Data
           </button>
@@ -395,6 +411,7 @@ function App() {
         
         {/* Main Content Area */}
         <div className="content-area">
+          {/* ... Rest of the content area remains the same ... */}
           {activeTab === 'dashboard' && (
             <div className="dashboard-view">
               {/* Projects Section */}
@@ -765,6 +782,18 @@ function App() {
                     )}
                   </div>
                 ))}
+
+                {categories.length === 0 && (
+                  <div className="empty-categories">
+                    <p>No categories yet. Create your first category to organize your tasks.</p>
+                    <button 
+                      className="btn btn-primary"
+                      onClick={() => setShowCategoryManager(true)}
+                    >
+                      Create Category
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -799,6 +828,16 @@ function App() {
           updateProject={updateProject}
           deleteProject={deleteProject}
           onClose={() => setShowProjectManager(false)}
+        />
+      )}
+
+      {/* Import/Export Modal - New! */}
+      {showImportExport && (
+        <ImportExport
+          setTasks={setTasks}
+          setCategories={setCategories}
+          setProjects={setProjects}
+          onClose={() => setShowImportExport(false)}
         />
       )}
     </div>
