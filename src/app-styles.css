@@ -1799,3 +1799,46 @@ input[type="checkbox"] {
   background-color: rgba(var(--danger-color-rgb), 0.1);
   color: var(--danger-color);
 }
+
+/* Dropdown menu styles */
+.dropdown-container {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 100;
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-md);
+  min-width: 200px;
+  padding: var(--space-xs) 0;
+}
+
+.dropdown-item {
+  display: block;
+  width: 100%;
+  padding: 8px 16px;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  color: var(--text-color);
+}
+
+.dropdown-item:hover {
+  background-color: rgba(var(--primary-color-rgb), 0.1);
+}
+
+.dropdown-item.danger {
+  color: var(--danger-color);
+}
+
+.dropdown-item.danger:hover {
+  background-color: rgba(var(--danger-color-rgb), 0.1);
+}
