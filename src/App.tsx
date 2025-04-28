@@ -115,7 +115,7 @@ function App() {
   };
   
   // Add new subtask
-  const addSubtask: AddSubtaskFn = (parentId: string, title: string) => {
+  const addSubtask = (parentId: string, title: string) => {
     // Get parent task to inherit properties
     const parentTask = tasks.find(t => t.id === parentId);
     
@@ -124,12 +124,11 @@ function App() {
       return;
     }
     
-    // Create a new subtask with inherited properties
-    const newSubtask: Subtask = {
+    const newSubtask: Task = {
       id: Date.now().toString(),
       title,
       status: 'pending',
-      parentId, // Required for Subtask type
+      parentId, // Set the parent ID
       // Inherit properties from parent
       dueDate: parentTask.dueDate, // Inherit due date from parent
       projectId: parentTask.projectId, // Inherit project from parent

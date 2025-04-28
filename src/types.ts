@@ -22,6 +22,8 @@ export type Category = {
   name: string;
   color: string;
 };
+// Context type for task categorization
+export type PriorityLevel = 'must-do' | 'want-to-do' | 'when-i-can' | null;
 
 // Task type with context support
 export type Task = {
@@ -32,11 +34,14 @@ export type Task = {
   parentId?: string | null;
   projectId?: string | null;
   categories?: string[];
-  context?: ContextTag;     // New context property
-  estimatedMinutes?: number; // Optional time estimate
-  priority?: 'must-do' | 'want-to-do' | 'when-i-can'; // Optional priority level
+  context?: ContextTag | null; // Allow null
+  estimatedMinutes?: number | null; // Can be number, null, or undefined
+  priority?: PriorityLevel; // Optional priority level
 };
 
+// Add this to your types.ts file
+export type AddSubtaskFn = (parentId: string, title: string) => void;
+export type Subtask = Task;
 // Function to update task context
 export type UpdateTaskContextFn = (id: string, context: ContextTag | null) => void;
 
@@ -69,6 +74,7 @@ export type TaskListProps = {
     projectId?: string | null,
     dependsOn?: string[]
   ) => void;
+  addSubtask: (parentId: string, title: string) => void; // Add this line
   categories: Category[];
   projects: Project[];
 };
