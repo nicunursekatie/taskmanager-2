@@ -1,29 +1,13 @@
 // src/components/TaskList.tsx
 import { useState } from 'react';
-import { Task, Category, Project } from '../types';
-
-type TaskListProps = {
-  tasks: Task[];
-  toggleTask: (id: string) => void;
-  deleteTask: (id: string) => void;
-  updateTask: (
-    id: string, 
-    title: string, 
-    dueDate: string | null,
-    categories?: string[],
-    projectId?: string | null
-  ) => void;
-  addSubtask: (parentId: string, title: string) => void; // Make sure this prop is defined
-  categories: Category[];
-  projects: Project[];
-};
+import { Task, Subtask, TaskListProps, Category, Project } from '../types';
 
 export default function TaskList({
   tasks,
   toggleTask,
   deleteTask,
   updateTask,
-  addSubtask, // Include the prop
+  addSubtask,
   categories,
   projects,
 }: TaskListProps) {
@@ -36,9 +20,30 @@ export default function TaskList({
   // States for subtask creation
   const [addingSubtaskFor, setAddingSubtaskFor] = useState<string | null>(null);
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
+  
+  // State for expanded/collapsed tasks
+  const [collapsedTasks, setCollapsedTasks] = useState<{[key: string]: boolean}>({});
 
   // Only render top-level tasks (no parentId)
-  const topTasks = tasks.filter(t => !t.parentId);
+  const topLevelTasks = tasks.filter(t => !t.parentId);
+
+  // Toggle collapsed state of a task
+  const toggleCollapsed = (taskId: string) => {
+    setCollapsedTasks(prev => ({
+      ...prev,
+      [taskId]: !prev[taskId]
+    }));
+  };
+
+  // Check if a task has subtasks
+  const hasSubtasks = (taskId: string) => {
+    return tasks.some(t => t.parentId === taskId);
+  };
+
+  // Get all subtasks for a given parent
+  const getSubtasks = (parentId: string): Task[] => {
+    return tasks.filter(t => t.parentId === parentId);
+  };
 
   // Handle subtask creation
   const handleAddSubtask = (parentId: string) => {
@@ -46,15 +51,33 @@ export default function TaskList({
       addSubtask(parentId, newSubtaskTitle.trim());
       setNewSubtaskTitle('');
       setAddingSubtaskFor(null);
+      
+      // Auto-expand the parent when adding a subtask
+      setCollapsedTasks(prev => ({
+        ...prev,
+        [parentId]: false
+      }));
     }
   };
-
-  return (
-    <>
-      {topTasks.map(task => (
+  
+  // Render a task and its subtasks recursively
+  const renderTask = (task: Task, depth = 0) => {
+    const isCollapsed = collapsedTasks[task.id];
+    const taskSubtasks = getSubtasks(task.id);
+    const hasChildren = taskSubtasks.length > 0;
+    
+    // Get the category color for the task's left border
+    const categoryColor = task.categories?.length 
+      ? categories.find(c => c.id === task.categories![0])?.color || '#666'
+      : '#666';
+    
+    return (
+      <div key={task.id} style={{ marginLeft: `${depth * 20}px` }}>
         <div 
-          key={task.id} 
           className={`task-item ${task.status === 'completed' ? 'completed' : ''}`}
+          style={{ 
+            borderLeft: hasChildren ? `4px solid ${categoryColor}` : undefined
+          }}
         >
           {editingId === task.id ? (
             // Edit mode
@@ -145,6 +168,18 @@ export default function TaskList({
                     checked={task.status === 'completed'}
                     onChange={() => toggleTask(task.id)}
                   />
+                  
+                  {hasChildren && (
+                    <span 
+                      className="task-collapse-toggle"
+                      onClick={() => toggleCollapsed(task.id)}
+                      role="button"
+                      aria-label={isCollapsed ? "Expand subtasks" : "Collapse subtasks"}
+                    >
+                      {isCollapsed ? '+' : '-'}
+                    </span>
+                  )}
+                  
                   <h3 
                     className={`task-title ${task.status === 'completed' ? 'completed' : ''}`}
                     onClick={() => {
@@ -162,7 +197,13 @@ export default function TaskList({
                 <div className="task-actions">
                   <button 
                     className="btn btn-sm btn-outline"
-                    onClick={() => setAddingSubtaskFor(task.id)}
+                    onClick={() => {
+                      // Automatically expand the task when adding a subtask
+                      if (collapsedTasks[task.id]) {
+                        toggleCollapsed(task.id);
+                      }
+                      setAddingSubtaskFor(task.id);
+                    }}
                   >
                     Add Subtask
                   </button>
@@ -236,44 +277,27 @@ export default function TaskList({
               )}
             </>
           )}
-
-          {/* Subtasks */}
-          {tasks.filter(sub => sub.parentId === task.id).length > 0 && (
-            <div className="subtasks">
-              {tasks
-                .filter(sub => sub.parentId === task.id)
-                .map(sub => (
-                  <div key={sub.id} className="subtask-item">
-                    <div className="subtask-title-container">
-                      <input
-                        type="checkbox"
-                        checked={sub.status === 'completed'}
-                        onChange={() => toggleTask(sub.id)}
-                      />
-                      <span
-                        className={`subtask-title ${sub.status === 'completed' ? 'completed' : ''}`}
-                      >
-                        {sub.title}
-                        {sub.dueDate && (
-                          <span className="task-date ml-xs">
-                            {new Date(sub.dueDate).toLocaleDateString()}
-                          </span>
-                        )}
-                      </span>
-                    </div>
-                    <button 
-                      onClick={() => deleteTask(task.id)} 
-                      className="btn btn-sm btn-muted" 
-                      title="Delete task"
-                    >
-                        🗑️
-                    </button>
-                    </div>
-                ))}
-            </div>
-          )}
         </div>
-      ))}
-    </>
+
+        {/* Render subtasks */}
+        {hasChildren && !isCollapsed && (
+          <div className="subtasks">
+            {taskSubtasks.map(subtask => renderTask(subtask, depth + 1))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <div className="task-list">
+      {topLevelTasks.map(task => renderTask(task))}
+      
+      {topLevelTasks.length === 0 && (
+        <div className="empty-state">
+          <p>No tasks yet. Add your first task above.</p>
+        </div>
+      )}
+    </div>
   );
 }

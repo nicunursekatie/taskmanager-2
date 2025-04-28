@@ -15,7 +15,7 @@ import ContextWizard from './components/ContextWizard';
 import CategoryManager from './components/CategoryManager';
 import ProjectManager from './components/ProjectManager';
 import ImportExport from './components/ImportExport'; // Add import for new component
-import { Task, Category, Project } from './types';
+import { Task, Subtask, Category, Project, AddSubtaskFn } from './types';
 import { clearAllData } from './utils/dataUtils'; // Import the clear function
 
 type TabType = 'dashboard' | 'all-tasks' | 'projects' | 'categories' | 'calendar';
@@ -115,24 +115,29 @@ function App() {
   };
   
   // Add new subtask
-  const addSubtask = (parentId: string, title: string) => {
-    setTasks(prev => {
-      const parentTask = prev.find(t => t.id === parentId);
-      if (!parentTask) return prev;
-  
-      const newSubtask: Task = {
-        id: Date.now().toString(),
-        title,
-        status: 'pending',
-        parentId,
-        dueDate: null,
-        projectId: parentTask.projectId,
-        categories: parentTask.categories,
-      };
-  
-      return [...prev, newSubtask];
-    });
-  };  
+  const addSubtask: AddSubtaskFn = (parentId: string, title: string) => {
+    // Get parent task to inherit properties
+    const parentTask = tasks.find(t => t.id === parentId);
+    
+    if (!parentTask) {
+      console.error("Parent task not found");
+      return;
+    }
+    
+    // Create a new subtask with inherited properties
+    const newSubtask: Subtask = {
+      id: Date.now().toString(),
+      title,
+      status: 'pending',
+      parentId, // Required for Subtask type
+      // Inherit properties from parent
+      dueDate: parentTask.dueDate, // Inherit due date from parent
+      projectId: parentTask.projectId, // Inherit project from parent
+      categories: parentTask.categories, // Inherit categories from parent
+    };
+    
+    setTasks(prev => [...prev, newSubtask]);
+  };
 
   // Toggle task completion status
   const toggleTask = (id: string) => {

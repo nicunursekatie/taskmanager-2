@@ -13,28 +13,48 @@ export type Category = {
   color: string;
 };
 
+// Basic Task type
 export type Task = {
   id: string;
   title: string;
   dueDate?: string | null;
   status: 'pending' | 'completed';
-  parentId?: string | null;  // Updated to allow null values
+  parentId?: string | null;  // Reference to parent task
   projectId?: string | null;
   categories?: string[];
 };
 
+// Subtask is just a Task with a parentId
+export type Subtask = Task & {
+  parentId: string; // Required for subtasks (not optional)
+};
+
+// Function types for better TypeScript support
+export type ToggleTaskFn = (id: string) => void;
+export type DeleteTaskFn = (id: string) => void;
+export type UpdateTaskFn = (
+  id: string, 
+  title: string, 
+  dueDate: string | null,
+  categories?: string[],
+  projectId?: string | null
+) => void;
+export type AddSubtaskFn = (parentId: string, title: string) => void;
+export type AddTaskFn = (
+  title: string,
+  dueDate: string | null,
+  parentId?: string,
+  categoryIds?: string[],
+  projectId?: string | null
+) => void;
+
+// Component Props types
 export type TaskListProps = {
   tasks: Task[];
-  toggleTask: (id: string) => void;
-  deleteTask: (id: string) => void;
-  updateTask: (
-    id: string, 
-    title: string, 
-    dueDate: string | null,
-    categories?: string[],
-    projectId?: string | null,
-    dependsOn?: string[]
-  ) => void;
+  toggleTask: ToggleTaskFn;
+  deleteTask: DeleteTaskFn;
+  updateTask: UpdateTaskFn;
+  addSubtask: AddSubtaskFn;
   categories: Category[];
   projects: Project[];
 };
@@ -50,13 +70,10 @@ export type FilterPanelProps = {
 };
 
 export type CaptureBarProps = {
-  addTask: (
-    title: string,
-    dueDate: string | null,
-    categoryIds?: string[],
-    projectId?: string | null,
-    dependsOn?: string[]
-  ) => void;
+  addTask: AddTaskFn;
+  newParent: string;
+  setNewParent: (id: string) => void;
+  parentOptions: { id: string; title: string }[];
   categories: Category[];
   projects: Project[];
 };
