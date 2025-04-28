@@ -1,6 +1,9 @@
 // src/App.tsx
 // Remove these imports since we're no longer using them
 // Import the sampleData utilities instead
+import CalendarView from './components/CalendarView';
+import './styles/calendar-view.css'; // Make sure to include the CSS
+
 import { loadSampleData } from './utils/sampleData';
 
 import './compact-styles.css';
@@ -15,7 +18,8 @@ import ImportExport from './components/ImportExport'; // Add import for new comp
 import { Task, Category, Project } from './types';
 import { clearAllData } from './utils/dataUtils'; // Import the clear function
 
-type TabType = 'dashboard' | 'all-tasks' | 'projects' | 'categories';
+type TabType = 'dashboard' | 'all-tasks' | 'projects' | 'categories' | 'calendar';
+
 
 function App() {
   // Navigation state
@@ -335,7 +339,14 @@ function App() {
           >
             Categories
           </button>
+          <button 
+            className={`nav-button ${activeTab === 'calendar' ? 'active' : ''}`}
+            onClick={() => setActiveTab('calendar')}
+          >
+            Calendar
+          </button>
         </nav>
+
         <div className="top-actions">
           <button 
             className="btn btn-primary" 
@@ -425,6 +436,19 @@ function App() {
         {/* Main Content Area */}
         <div className="content-area">
           {/* ... Rest of the content area remains the same ... */}
+          {activeTab === 'calendar' && (
+            <div className="calendar-view-container">
+              <div className="section-card">
+                <h2 className="section-title">Calendar</h2>
+                <CalendarView 
+                  tasks={tasks} 
+                  toggleTask={toggleTask}
+                  categories={categories}
+                  projects={projects}
+                />
+              </div>
+            </div>
+          )}
           {activeTab === 'dashboard' && (
             <div className="dashboard-view">
               {/* Projects Section */}

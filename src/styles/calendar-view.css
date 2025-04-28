@@ -1,0 +1,229 @@
+/* Calendar View Styles */
+.calendar-view {
+    padding: 20px;
+    background-color: var(--card-bg);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+  }
+  
+  .view-controls {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    align-items: center;
+  }
+  
+  .view-modes {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .date-navigation {
+    display: flex;
+    gap: 10px;
+  }
+  
+  /* Month View */
+  .month-view {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .month-view h2 {
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+  }
+  
+  .month-view .react-calendar {
+    width: 100%;
+    max-width: 800px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    font-family: inherit;
+  }
+  
+  .calendar-day-marker {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .task-count {
+    background-color: var(--primary-color);
+    color: white;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    margin-top: 5px;
+  }
+  
+  /* Week View */
+  .week-view {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .week-view h2 {
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+  }
+  
+  .week-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 10px;
+  }
+  
+  .week-day {
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 10px;
+    min-height: 150px;
+  }
+  
+  .day-header {
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+    text-align: center;
+    padding-bottom: 5px;
+    border-bottom: 1px solid var(--border-color);
+  }
+  
+  .week-task {
+    padding: 5px;
+    margin-bottom: 5px;
+    background-color: rgba(var(--primary-color-rgb), 0.1);
+    border-radius: 4px;
+    font-size: 0.85rem;
+    cursor: pointer;
+  }
+  
+  .week-task.completed {
+    text-decoration: line-through;
+    opacity: 0.7;
+  }
+  
+  .week-task .task-project {
+    font-size: 0.75rem;
+    display: block;
+    color: var(--text-light);
+  }
+  
+  /* Day View */
+  .day-view {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .day-view h2 {
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+  }
+  
+  .day-tasks {
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 20px;
+  }
+  
+  .day-task {
+    padding: 10px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid var(--border-color);
+  }
+  
+  .day-task:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+  }
+  
+  .day-task.completed .task-title {
+    text-decoration: line-through;
+    color: var(--text-light);
+  }
+  
+  .task-checkbox-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .task-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  
+  .task-category {
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    color: white;
+  }
+  
+  .task-project {
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    background-color: rgba(var(--primary-color-rgb), 0.1);
+    color: var(--text-color);
+  }
+  
+  .no-tasks-message {
+    text-align: center;
+    padding: 20px;
+    color: var(--text-light);
+    font-style: italic;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .view-controls {
+      flex-direction: column;
+      gap: 10px;
+    }
+    
+    .week-grid {
+      grid-template-columns: 1fr;
+    }
+    
+    .week-day {
+      margin-bottom: 10px;
+    }
+  }
+  
+  /* Fix for the input field issue */
+  .capture-form input[type="text"],
+  .form-control.capture-input {
+    min-width: 200px !important;
+    width: 100% !important;
+    flex: 1 !important;
+  }
+  
+  .capture-form {
+    display: flex !important;
+    gap: 10px !important;
+    flex-wrap: wrap !important;
+  }
+  
+  .date-time-inputs {
+    display: flex !important;
+    gap: 5px !important;
+  }
+  
+  .capture-form select {
+    max-width: 200px !important;
+    width: auto !important;
+  }
+  
+  /* Add a CSS variable for primary color with RGB format for transparency */
+  :root {
+    --primary-color-rgb: 67, 97, 238;
+  }
