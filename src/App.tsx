@@ -1,28 +1,30 @@
 // src/App.tsx
-// Remove these imports since we're no longer using them
-// Import the sampleData utilities instead
-
-
-import CalendarView from './components/CalendarView';
-import './styles/calendar-view.css'; // Make sure to include the CSS
-import DailyPlanner from './components/DailyPlanner';
-import { useTimeBlocks } from './hooks/useTimeBlocks';
-import { loadSampleData } from './utils/sampleData';
-import MoreOptionsMenu from './components/MoreOptionsMenu'; // Ensure this file exists in the components folder
+import { useState, useEffect, useRef } from 'react';
+import './styles/calendar-view.css';
 import './compact-styles.css';
 import './app-styles.css';
-import { useState, useEffect, useRef } from 'react';
 
+// Component imports
 import TaskList from './components/TaskList';
 import ContextWizard from './components/ContextWizard';
 import CategoryManager from './components/CategoryManager';
 import ProjectManager from './components/ProjectManager';
-import ImportExport from './components/ImportExport'; // Add import for new component
-import { Task, Subtask, Category, Project, AddSubtaskFn } from './types';
-import { clearAllData } from './utils/dataUtils'; // Import the clear function
+import ImportExport from './components/ImportExport';
+import CalendarView from './components/CalendarView';
+import DailyPlanner from './components/DailyPlanner';
+import MoreOptionsMenu from './components/MoreOptionsMenu';
+
+// Utilities
+import { loadSampleData } from './utils/sampleData';
+import { clearAllData } from './utils/dataUtils';
+
+// Types
+import { Task, Category, Project } from './types';
+
+// Hooks
+import { useTimeBlocks } from './hooks/useTimeBlocks';
 
 type TabType = 'dashboard' | 'all-tasks' | 'projects' | 'categories' | 'calendar' | 'daily-planner';
-
 
 function App() {
   // Navigation state
@@ -58,9 +60,9 @@ function App() {
   const [showWizard, setShowWizard] = useState(false);
   const [showCategoryManager, setShowCategoryManager] = useState(false);
   const [showProjectManager, setShowProjectManager] = useState(false);
-  const [showImportExport, setShowImportExport] = useState(false); // New state for import/export modal
+  const [showImportExport, setShowImportExport] = useState(false);
   
-  // Add right after your other state variables (around line 57)
+  // Time blocks state
   const {
     timeBlocks,
     currentDate,
@@ -71,7 +73,7 @@ function App() {
     assignTaskToBlock
   } = useTimeBlocks();
 
-  // Example initial categories
+  // Categories state
   const [categories, setCategories] = useState<Category[]>(() => {
     const saved = localStorage.getItem('categories');
     if (saved) {
@@ -80,7 +82,6 @@ function App() {
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
       } catch {}
     }
-    // Return empty array instead of preloaded data
     return [];
   });
 
@@ -98,7 +99,6 @@ function App() {
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
       } catch {}
     }
-    // Return empty array instead of preloaded data
     return [];
   });
 
@@ -256,50 +256,6 @@ function App() {
     setCategories(prev => prev.filter(cat => cat.id !== id));
   };
   
-  // Reset all data (now using clearAllData util function)
-  const resetAllData = () => {
-    if (confirm("Are you sure you want to clear all data? This will remove all tasks, projects, and categories.")) {
-      clearAllData(setTasks, setCategories, setProjects);
-      setTasks([]);
-      setCategories([]);
-      setProjects([]);
-    }
-  };
-  
-  // Load sample data for new users
-  const handleLoadSampleData = () => {
-    if (confirm("Load sample data? This will add some example tasks, categories, and projects to help you get started.")) {
-      const data = loadSampleData(setTasks, setCategories, setProjects);
-      setTasks(data.tasks);
-      setCategories(data.categories);
-      setProjects(data.projects);
-    }
-  };
-  
-  // Filter tasks by due date for different sections
-  const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
-  const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).toISOString();
-  
-  const overdueTasks = tasks.filter(
-    task => task.dueDate && task.dueDate < today && task.status !== 'completed'
-  );
-  
-  const todayTasks = tasks.filter(
-    task => task.dueDate && task.dueDate >= today && task.dueDate < tomorrow && task.status !== 'completed'
-  );
-  
-  
-  const completedTasks = tasks.filter(
-    task => task.status === 'completed'
-  );
-  
-  // Parent task options for the capture bar
-  const parentOptions = tasks.filter(task => !task.parentId).map(task => ({
-    id: task.id,
-    title: task.title,
-  }));
-  
   // General tasks for context wizard
   const generalTasks = [
     'Review your priorities',
@@ -327,132 +283,157 @@ function App() {
     }
   };
 
+  // Filter tasks by due date for different sections
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+  const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).toISOString();
+  
+  const overdueTasks = tasks.filter(
+    task => task.dueDate && task.dueDate < today && task.status !== 'completed'
+  );
+  
+  const todayTasks = tasks.filter(
+    task => task.dueDate && task.dueDate >= today && task.dueDate < tomorrow && task.status !== 'completed'
+  );
+  
+  const completedTasks = tasks.filter(
+    task => task.status === 'completed'
+  );
+  
+  // Parent task options for the capture bar
+  const parentOptions = tasks.filter(task => !task.parentId).map(task => ({
+    id: task.id,
+    title: task.title,
+  }));
+
   return (
     <div className="app-container full-width">
       {/* Top Navigation */}
-<header className="top-nav">
-  <h1 className="app-title">Task Manager</h1>
-      <nav className="main-nav">
-        <button 
-          className={`nav-button ${activeTab === 'dashboard' ? 'active' : ''}`}
-          onClick={() => setActiveTab('dashboard')}
-        >
-          Dashboard
-        </button>
-        <button 
-          className={`nav-button ${activeTab === 'all-tasks' ? 'active' : ''}`}
-          onClick={() => setActiveTab('all-tasks')}
-        >
-          All Tasks
-        </button>
-        <button 
-          className={`nav-button ${activeTab === 'projects' ? 'active' : ''}`}
-          onClick={() => setActiveTab('projects')}
-        >
-          Projects
-        </button>
-        <button 
-          className={`nav-button ${activeTab === 'categories' ? 'active' : ''}`}
-          onClick={() => setActiveTab('categories')}
-        >
-          Categories
-        </button>
-        <button 
-          className={`nav-button ${activeTab === 'calendar' ? 'active' : ''}`}
-          onClick={() => setActiveTab('calendar')}
-        >
-          Calendar
-        </button>
-        <button 
-          className={`nav-button ${activeTab === 'daily-planner' ? 'active' : ''}`}
-          onClick={() => setActiveTab('daily-planner')}
-        >
-          Daily Planner
-        </button>
-      </nav>
+      <header className="top-nav">
+        <h1 className="app-title">Task Manager</h1>
+        <nav className="main-nav">
+          <button 
+            className={`nav-button ${activeTab === 'dashboard' ? 'active' : ''}`}
+            onClick={() => setActiveTab('dashboard')}
+          >
+            Dashboard
+          </button>
+          <button 
+            className={`nav-button ${activeTab === 'all-tasks' ? 'active' : ''}`}
+            onClick={() => setActiveTab('all-tasks')}
+          >
+            All Tasks
+          </button>
+          <button 
+            className={`nav-button ${activeTab === 'projects' ? 'active' : ''}`}
+            onClick={() => setActiveTab('projects')}
+          >
+            Projects
+          </button>
+          <button 
+            className={`nav-button ${activeTab === 'categories' ? 'active' : ''}`}
+            onClick={() => setActiveTab('categories')}
+          >
+            Categories
+          </button>
+          <button 
+            className={`nav-button ${activeTab === 'calendar' ? 'active' : ''}`}
+            onClick={() => setActiveTab('calendar')}
+          >
+            Calendar
+          </button>
+          <button 
+            className={`nav-button ${activeTab === 'daily-planner' ? 'active' : ''}`}
+            onClick={() => setActiveTab('daily-planner')}
+          >
+            Daily Planner
+          </button>
+        </nav>
 
-      <div className="top-actions">
-        <button 
-          className="btn btn-primary" 
-          onClick={() => setShowWizard(true)}
-        >
-          What now?
-        </button>
-        <MoreOptionsMenu
-          onManageCategories={() => setShowCategoryManager(true)}
-          onImportExport={() => setShowImportExport(true)}
-          onLoadSample={() => loadSampleData(setTasks, setCategories, setProjects)}
-          onResetData={() => clearAllData(setTasks, setCategories, setProjects)}
-        />
-      </div>
-    </header>
+        <div className="top-actions">
+          <button 
+            className="btn btn-primary" 
+            onClick={() => setShowWizard(true)}
+          >
+            What now?
+          </button>
+          <MoreOptionsMenu
+            onManageCategories={() => setShowCategoryManager(true)}
+            onImportExport={() => setShowImportExport(true)}
+            onLoadSample={() => loadSampleData(setTasks, setCategories, setProjects)}
+            onResetData={() => clearAllData(setTasks, setCategories, setProjects)}
+          />
+        </div>
+      </header>
       
       <main className="main-content full-width">
         {/* Capture Bar */}
-      <div className="capture-container">
-        <form className="capture-form" onSubmit={handleTaskSubmit}>
-          <div style={{ flex: "1 1 300px", minWidth: "300px" }}>
-            <input 
-              type="text" 
-              className="form-control capture-input" 
-              placeholder="Quick capture a new task..."
-              ref={titleInputRef}
-              style={{ width: "100%" }}
-            />
-          </div>
-          
-          <div className="date-time-inputs" style={{ flex: "0 0 auto" }}>
-            <input 
-              type="date" 
-              className="form-control date-input"
-              ref={dateInputRef}
-            />
-            <input 
-              type="time" 
-              className="form-control time-input"
-              ref={timeInputRef}
-            />
-          </div>
-          
-          <div style={{ flex: "0 0 auto", width: "180px" }}>
-            <select 
-              className="form-control"
-              value={newParent}
-              onChange={(e) => setNewParent(e.target.value)}
-              style={{ width: "100%" }}
-            >
-              <option value="">No Parent Task</option>
-              {parentOptions.map(o => (
-                <option key={o.id} value={o.id}>
-                  {o.title}  
-                </option>
-              ))}
-            </select>
-          </div>
-          
-          <div style={{ flex: "0 0 auto" }}>
-            <button type="submit" className="btn btn-primary">Add</button>
-          </div>
-        </form>
-      </div>
+        <div className="capture-container">
+          <form className="capture-form" onSubmit={handleTaskSubmit}>
+            <div style={{ flex: "1 1 300px", minWidth: "300px" }}>
+              <input 
+                type="text" 
+                className="form-control capture-input" 
+                placeholder="Quick capture a new task..."
+                ref={titleInputRef}
+                style={{ width: "100%" }}
+              />
+            </div>
+            
+            <div className="date-time-inputs" style={{ flex: "0 0 auto" }}>
+              <input 
+                type="date" 
+                className="form-control date-input"
+                ref={dateInputRef}
+              />
+              <input 
+                type="time" 
+                className="form-control time-input"
+                ref={timeInputRef}
+              />
+            </div>
+            
+            <div style={{ flex: "0 0 auto", width: "180px" }}>
+              <select 
+                className="form-control"
+                value={newParent}
+                onChange={(e) => setNewParent(e.target.value)}
+                style={{ width: "100%" }}
+              >
+                <option value="">No Parent Task</option>
+                {parentOptions.map(o => (
+                  <option key={o.id} value={o.id}>
+                    {o.title}  
+                  </option>
+                ))}
+              </select>
+            </div>
+            
+            <div style={{ flex: "0 0 auto" }}>
+              <button type="submit" className="btn btn-primary">Add</button>
+            </div>
+          </form>
+        </div>
         
         {/* Main Content Area */}
         <div className="content-area">
-        {activeTab === 'daily-planner' && (
-          <div className="daily-planner-view">
-            <DailyPlanner 
-              tasks={tasks}
-              timeBlocks={timeBlocks}
-              addTimeBlock={addTimeBlock}
-              updateTimeBlock={updateTimeBlock}
-              deleteTimeBlock={deleteTimeBlock}
-              assignTaskToBlock={assignTaskToBlock}
-              date={currentDate}
-              setDate={setCurrentDate}
-            />
-        </div>
-      )}
-          {/* ... Rest of the content area remains the same ... */}
+          {/* Daily Planner */}
+          {activeTab === 'daily-planner' && (
+            <div className="daily-planner-view">
+              <DailyPlanner 
+                tasks={tasks}
+                timeBlocks={timeBlocks}
+                addTimeBlock={addTimeBlock}
+                updateTimeBlock={updateTimeBlock}
+                deleteTimeBlock={deleteTimeBlock}
+                assignTaskToBlock={assignTaskToBlock}
+                date={currentDate}
+                setDate={setCurrentDate}
+              />
+            </div>
+          )}
+          
+          {/* Calendar View */}
           {activeTab === 'calendar' && (
             <div className="calendar-view-container">
               <div className="section-card">
@@ -466,6 +447,8 @@ function App() {
               </div>
             </div>
           )}
+          
+          {/* Dashboard View */}
           {activeTab === 'dashboard' && (
             <div className="dashboard-view">
               {/* Projects Section */}
@@ -608,6 +591,7 @@ function App() {
             </div>
           )}
           
+          {/* All Tasks View */}
           {activeTab === 'all-tasks' && (
             <div className="all-tasks-view">
               <div className="section-card">
@@ -644,6 +628,7 @@ function App() {
             </div>
           )}
           
+          {/* Projects View */}
           {activeTab === 'projects' && (
             <div className="projects-view">
               <div className="projects-grid">
@@ -776,6 +761,7 @@ function App() {
             </div>
           )}
           
+          {/* Categories View */}
           {activeTab === 'categories' && (
             <div className="categories-view">
               <div className="categories-grid">
@@ -885,7 +871,7 @@ function App() {
         />
       )}
 
-      {/* Import/Export Modal - New! */}
+      {/* Import/Export Modal */}
       {showImportExport && (
         <ImportExport
           tasks={tasks}
