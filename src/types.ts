@@ -13,12 +13,12 @@ export type ContextTag =
 export type CalendarEvent = {
   id: string;
   title: string;
-  start: string;    // ISO string format
-  end: string;      // ISO string format
+  start: string; // ISO date string with time: "YYYY-MM-DDTHH:MM:SS"
+  end: string;   // ISO date string with time: "YYYY-MM-DDTHH:MM:SS"
   description?: string;
-  isFlexible?: boolean; // Whether this is a flexible time block
-  source?: 'planner' | 'manual'; // Source of the event
-  color?: string;   // Event color
+  isFlexible?: boolean; // Flag for planner-created events
+  source?: 'planner' | 'calendar'; // To identify the source of the event
+  color?: string; // Optional color for rendering
 };
 
 // Project type

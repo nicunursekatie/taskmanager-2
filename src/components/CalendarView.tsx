@@ -1,4 +1,4 @@
-// src/components/CalendarView.tsx
+// CalendarView.tsx
 import React, { useState, useEffect } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
@@ -17,19 +17,33 @@ type ViewMode = 'month' | 'week' | 'day';
 export default function CalendarView({ tasks, toggleTask, categories, projects }: CalendarViewProps) {
   const [date, setDate] = useState<Date>(new Date());
   const [viewMode, setViewMode] = useState<ViewMode>('month');
-
   const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]);
   
-  // Load calendar events when the component mounts
+  // Load calendar events
   useEffect(() => {
     const events = getCalendarEvents();
     setCalendarEvents(events);
   }, []);
   
+  // Remove an event from the calendar
+  const removeCalendarEvent = (eventId: string) => {
+    if (confirm('Remove this event from the calendar?')) {
+      const updatedEvents = calendarEvents.filter(event => event.id !== eventId);
+      setCalendarEvents(updatedEvents);
+      localStorage.setItem('calendar_events', JSON.stringify(updatedEvents));
+    }
+  };
+  
   // Get tasks for the selected day
   const getDayTasks = (day: Date) => {
     const dayStr = day.toISOString().split('T')[0];
     return tasks.filter(t => t.dueDate && t.dueDate.split('T')[0] === dayStr);
+  };
+  
+  // Get calendar events for the selected day
+  const getDayEvents = (day: Date) => {
+    const dayStr = day.toISOString().split('T')[0];
+    return calendarEvents.filter(event => event.start.split('T')[0] === dayStr);
   };
   
   // Get tasks for the selected week
@@ -47,6 +61,24 @@ export default function CalendarView({ tasks, toggleTask, categories, projects }
     return tasks.filter(t => t.dueDate && t.dueDate >= startStr && t.dueDate <= endStr);
   };
   
+  // Get calendar events for the selected week
+  const getWeekEvents = (day: Date) => {
+    const dayOfWeek = day.getDay();
+    const startDate = new Date(day);
+    startDate.setDate(startDate.getDate() - dayOfWeek);
+    
+    const endDate = new Date(startDate);
+    endDate.setDate(endDate.getDate() + 6);
+    
+    const startStr = startDate.toISOString().split('T')[0];
+    const endStr = endDate.toISOString().split('T')[0];
+    
+    return calendarEvents.filter(event => {
+      const eventDate = event.start.split('T')[0];
+      return eventDate >= startStr && eventDate <= endStr;
+    });
+  };
+  
   // Get tasks for the selected month
   const getMonthTasks = (day: Date) => {
     const year = day.getFullYear();
@@ -61,6 +93,23 @@ export default function CalendarView({ tasks, toggleTask, categories, projects }
     return tasks.filter(t => t.dueDate && t.dueDate >= startStr && t.dueDate <= endStr);
   };
   
+  // Get calendar events for the selected month
+  const getMonthEvents = (day: Date) => {
+    const year = day.getFullYear();
+    const month = day.getMonth();
+    
+    const startDate = new Date(year, month, 1);
+    const endDate = new Date(year, month + 1, 0);
+    
+    const startStr = startDate.toISOString().split('T')[0];
+    const endStr = endDate.toISOString().split('T')[0];
+    
+    return calendarEvents.filter(event => {
+      const eventDate = event.start.split('T')[0];
+      return eventDate >= startStr && eventDate <= endStr;
+    });
+  };
+  
   // Get display tasks based on current view mode
   const getDisplayTasks = () => {
     switch (viewMode) {
@@ -71,6 +120,19 @@ export default function CalendarView({ tasks, toggleTask, categories, projects }
       case 'month':
       default:
         return getMonthTasks(date);
+    }
+  };
+  
+  // Get display events based on current view mode
+  const getDisplayEvents = () => {
+    switch (viewMode) {
+      case 'day':
+        return getDayEvents(date);
+      case 'week':
+        return getWeekEvents(date);
+      case 'month':
+      default:
+        return getMonthEvents(date);
     }
   };
   
@@ -95,8 +157,17 @@ export default function CalendarView({ tasks, toggleTask, categories, projects }
     return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
   };
   
-  // Get the display tasks
+  // Format time for display
+  const formatTime = (timeString: string) => {
+    const [hours, minutes] = timeString.split(':').map(Number);
+    const period = hours >= 12 ? 'PM' : 'AM';
+    const displayHours = hours % 12 || 12;
+    return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+  };
+  
+  // Get the display tasks and events
   const displayTasks = getDisplayTasks();
+  const displayEvents = getDisplayEvents();
   
   return (
     <div className="calendar-view">
@@ -165,8 +236,8 @@ export default function CalendarView({ tasks, toggleTask, categories, projects }
           </button>
         </div>
       </div>
-        
-        {viewMode === 'month' && (
+      
+      {viewMode === 'month' && (
         <div className="month-view">
           <h2>{date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</h2>
           <Calendar
@@ -179,42 +250,12 @@ export default function CalendarView({ tasks, toggleTask, categories, projects }
             value={date}
             tileContent={({ date: d }) => {
               const dayTasks = getDayTasks(d);
+              const dayEvents = getDayEvents(d);
+              const totalCount = dayTasks.length + dayEvents.length;
               
-              // Get events for this day
-              const dateStr = d.toISOString().split('T')[0];
-              const dayEvents = calendarEvents.filter(event => 
-                event.start.startsWith(dateStr)
-              );
-              
-              // Count total items to display
-              const hasContent = dayTasks.length > 0 || dayEvents.length > 0;
-              
-              return hasContent ? (
-                <div className="calendar-day-markers">
-                  {dayTasks.length > 0 && (
-                    <span className="task-count" title={`${dayTasks.length} tasks`}>
-                      {dayTasks.length}
-                    </span>
-                  )}
-                  
-                  {dayEvents.length > 0 && (
-                    <span className="event-count" title={`${dayEvents.length} time blocks`}
-                      style={{
-                        backgroundColor: '#4cc9f0',
-                        color: 'white',
-                        borderRadius: '50%',
-                        width: '24px',
-                        height: '24px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '12px',
-                        marginLeft: dayTasks.length > 0 ? '5px' : '0',
-                      }}
-                    >
-                      {dayEvents.length}
-                    </span>
-                  )}
+              return totalCount > 0 ? (
+                <div className="calendar-day-marker">
+                  <span className="task-count">{totalCount}</span>
                 </div>
               ) : null;
             }}
@@ -233,6 +274,31 @@ export default function CalendarView({ tasks, toggleTask, categories, projects }
                   {formatDate(day)}
                 </h3>
                 <div className="day-tasks">
+                  {/* Display calendar events */}
+                  {getDayEvents(day).map(event => (
+                    <div 
+                      key={event.id} 
+                      className={`week-event ${event.source === 'planner' ? 'flexible-event' : ''}`}
+                      style={{ backgroundColor: event.color || '#4361ee' }}
+                    >
+                      <div className="event-time">
+                        {formatTime(event.start.split('T')[1])} - {formatTime(event.end.split('T')[1])}
+                      </div>
+                      <span className="event-title">{event.title}</span>
+                      
+                      {event.source === 'planner' && (
+                        <button 
+                          className="btn-remove-event" 
+                          onClick={() => removeCalendarEvent(event.id)}
+                          title="Remove this event"
+                        >
+                          ×
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  
+                  {/* Display regular tasks */}
                   {getDayTasks(day).map(task => (
                     <div 
                       key={task.id} 
@@ -258,110 +324,96 @@ export default function CalendarView({ tasks, toggleTask, categories, projects }
         <div className="day-view">
           <h2>{date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</h2>
           
-          {/* Calendar Events from Time Blocks */}
-          {(() => {
-            // Get events for this day
-            const dateStr = date.toISOString().split('T')[0];
-            const dayEvents = calendarEvents.filter(event => 
-              event.start.startsWith(dateStr)
-            );
-            
-            if (dayEvents.length > 0) {
-              return (
-                <div className="time-blocks-section">
-                  <h3 className="section-subtitle">Planned Time Blocks</h3>
-                  <div className="day-events">
-                    {dayEvents.sort((a, b) => a.start.localeCompare(b.start))
-                      .map(event => {
-                        // Format times for display
-                        const startTime = new Date(event.start).toLocaleTimeString([], { 
-                          hour: '2-digit', 
-                          minute: '2-digit' 
-                        });
-                        const endTime = new Date(event.end).toLocaleTimeString([], { 
-                          hour: '2-digit', 
-                          minute: '2-digit' 
-                        });
-                        
-                        return (
-                          <div 
-                            key={event.id} 
-                            className={`day-event ${event.isFlexible ? 'flexible' : ''}`}
-                            style={{ 
-                              borderLeftColor: event.color || '#6B7280',
-                              borderLeftWidth: '4px',
-                              borderLeftStyle: 'solid'
-                            }}
-                          >
-                            <div className="event-header">
-                              <div className="event-time">
-                                {startTime} - {endTime}
-                              </div>
-                              <h4 className="event-title">{event.title}</h4>
-                            </div>
-                            
-                            {event.description && (
-                              <div className="event-description">
-                                {event.description}
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                  </div>
-                </div>
-              );
-            }
-            return null;
-          })()}
-          
-          {/* Task section */}
-          <div className="day-tasks">
-            <h3 className="section-subtitle">Tasks</h3>
-            {displayTasks.length > 0 ? (
-              <div className="tasks-list">
-                {displayTasks.map(task => (
+          <div className="day-content">
+            {/* Display calendar events first */}
+            {displayEvents.length > 0 && (
+              <div className="calendar-events-section">
+                <h3>Calendar Events</h3>
+                {displayEvents.map(event => (
                   <div 
-                    key={task.id} 
-                    className={`day-task ${task.status === 'completed' ? 'completed' : ''}`}
+                    key={event.id} 
+                    className={`event-item ${event.source === 'planner' ? 'flexible-event' : ''}`}
+                    style={{ borderLeftColor: event.color || '#4361ee' }}
                   >
-                    <div className="task-header">
-                      <div className="task-checkbox-title">
-                        <input 
-                          type="checkbox" 
-                          checked={task.status === 'completed'} 
-                          onChange={() => toggleTask(task.id)}
-                        />
-                        <span className="task-title">{task.title}</span>
+                    <div className="event-header">
+                      <div className="event-time-title">
+                        <span className="event-time">
+                          {formatTime(event.start.split('T')[1])} - {formatTime(event.end.split('T')[1])}
+                        </span>
+                        <h4 className="event-title">{event.title}</h4>
                       </div>
                       
-                      <div className="task-meta">
-                        {task.categories && task.categories.map(categoryId => {
-                          const category = categories.find(c => c.id === categoryId);
-                          return category ? (
-                            <span 
-                              key={categoryId} 
-                              className="task-category"
-                              style={{ backgroundColor: category.color }}
-                            >
-                              {category.name}
-                            </span>
-                          ) : null;
-                        })}
-                        
-                        {task.projectId && (
-                          <span className="task-project">
-                            {projects.find(p => p.id === task.projectId)?.name || 'Unknown Project'}
-                          </span>
-                        )}
-                      </div>
+                      {event.source === 'planner' && (
+                        <button 
+                          className="btn btn-sm btn-danger"
+                          onClick={() => removeCalendarEvent(event.id)}
+                          aria-label="Remove event"
+                        >
+                          Remove
+                        </button>
+                      )}
                     </div>
+                    
+                    {event.description && (
+                      <div className="event-description">
+                        {event.description}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
-            ) : (
-              <p className="no-tasks-message">No tasks scheduled for this day.</p>
             )}
+            
+            {/* Then display tasks */}
+            <div className="day-tasks">
+              <h3>Tasks</h3>
+              {displayTasks.length > 0 ? (
+                <div className="tasks-list">
+                  {displayTasks.map(task => (
+                    <div 
+                      key={task.id} 
+                      className={`day-task ${task.status === 'completed' ? 'completed' : ''}`}
+                    >
+                      <div className="task-header">
+                        <div className="task-checkbox-title">
+                          <input 
+                            type="checkbox" 
+                            checked={task.status === 'completed'} 
+                            onChange={() => toggleTask(task.id)}
+                          />
+                          <span className="task-title">{task.title}</span>
+                        </div>
+                        
+                        <div className="task-meta">
+                          {task.categories && task.categories.length > 0 && 
+                            task.categories.map(categoryId => {
+                              const category = categories.find(c => c.id === categoryId);
+                              return category ? (
+                                <span
+                                  key={categoryId}
+                                  className="task-category"
+                                  style={{ backgroundColor: category.color }}
+                                >
+                                  {category.name}
+                                </span>
+                              ) : null;
+                            })
+                          }
+                          
+                          {task.projectId && (
+                            <span className="task-project">
+                              {projects.find(p => p.id === task.projectId)?.name || 'Unknown Project'}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="no-tasks-message">No tasks scheduled for this day.</p>
+              )}
+            </div>
           </div>
         </div>
       )}
