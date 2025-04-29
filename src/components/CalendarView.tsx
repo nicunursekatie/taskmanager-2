@@ -1,8 +1,9 @@
 // src/components/CalendarView.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
-import { Task, Category, Project } from '../types';
+import { Task, Category, Project, CalendarEvent } from '../types';
+import { getCalendarEvents } from '../utils/calendarSync';
 
 type CalendarViewProps = {
   tasks: Task[];
@@ -16,6 +17,14 @@ type ViewMode = 'month' | 'week' | 'day';
 export default function CalendarView({ tasks, toggleTask, categories, projects }: CalendarViewProps) {
   const [date, setDate] = useState<Date>(new Date());
   const [viewMode, setViewMode] = useState<ViewMode>('month');
+
+  const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]);
+  
+  // Load calendar events when the component mounts
+  useEffect(() => {
+    const events = getCalendarEvents();
+    setCalendarEvents(events);
+  }, []);
   
   // Get tasks for the selected day
   const getDayTasks = (day: Date) => {
@@ -156,8 +165,8 @@ export default function CalendarView({ tasks, toggleTask, categories, projects }
           </button>
         </div>
       </div>
-      
-      {viewMode === 'month' && (
+        
+        {viewMode === 'month' && (
         <div className="month-view">
           <h2>{date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</h2>
           <Calendar
@@ -170,9 +179,42 @@ export default function CalendarView({ tasks, toggleTask, categories, projects }
             value={date}
             tileContent={({ date: d }) => {
               const dayTasks = getDayTasks(d);
-              return dayTasks.length > 0 ? (
-                <div className="calendar-day-marker">
-                  <span className="task-count">{dayTasks.length}</span>
+              
+              // Get events for this day
+              const dateStr = d.toISOString().split('T')[0];
+              const dayEvents = calendarEvents.filter(event => 
+                event.start.startsWith(dateStr)
+              );
+              
+              // Count total items to display
+              const hasContent = dayTasks.length > 0 || dayEvents.length > 0;
+              
+              return hasContent ? (
+                <div className="calendar-day-markers">
+                  {dayTasks.length > 0 && (
+                    <span className="task-count" title={`${dayTasks.length} tasks`}>
+                      {dayTasks.length}
+                    </span>
+                  )}
+                  
+                  {dayEvents.length > 0 && (
+                    <span className="event-count" title={`${dayEvents.length} time blocks`}
+                      style={{
+                        backgroundColor: '#4cc9f0',
+                        color: 'white',
+                        borderRadius: '50%',
+                        width: '24px',
+                        height: '24px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '12px',
+                        marginLeft: dayTasks.length > 0 ? '5px' : '0',
+                      }}
+                    >
+                      {dayEvents.length}
+                    </span>
+                  )}
                 </div>
               ) : null;
             }}
@@ -216,7 +258,66 @@ export default function CalendarView({ tasks, toggleTask, categories, projects }
         <div className="day-view">
           <h2>{date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</h2>
           
+          {/* Calendar Events from Time Blocks */}
+          {(() => {
+            // Get events for this day
+            const dateStr = date.toISOString().split('T')[0];
+            const dayEvents = calendarEvents.filter(event => 
+              event.start.startsWith(dateStr)
+            );
+            
+            if (dayEvents.length > 0) {
+              return (
+                <div className="time-blocks-section">
+                  <h3 className="section-subtitle">Planned Time Blocks</h3>
+                  <div className="day-events">
+                    {dayEvents.sort((a, b) => a.start.localeCompare(b.start))
+                      .map(event => {
+                        // Format times for display
+                        const startTime = new Date(event.start).toLocaleTimeString([], { 
+                          hour: '2-digit', 
+                          minute: '2-digit' 
+                        });
+                        const endTime = new Date(event.end).toLocaleTimeString([], { 
+                          hour: '2-digit', 
+                          minute: '2-digit' 
+                        });
+                        
+                        return (
+                          <div 
+                            key={event.id} 
+                            className={`day-event ${event.isFlexible ? 'flexible' : ''}`}
+                            style={{ 
+                              borderLeftColor: event.color || '#6B7280',
+                              borderLeftWidth: '4px',
+                              borderLeftStyle: 'solid'
+                            }}
+                          >
+                            <div className="event-header">
+                              <div className="event-time">
+                                {startTime} - {endTime}
+                              </div>
+                              <h4 className="event-title">{event.title}</h4>
+                            </div>
+                            
+                            {event.description && (
+                              <div className="event-description">
+                                {event.description}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                  </div>
+                </div>
+              );
+            }
+            return null;
+          })()}
+          
+          {/* Task section */}
           <div className="day-tasks">
+            <h3 className="section-subtitle">Tasks</h3>
             {displayTasks.length > 0 ? (
               <div className="tasks-list">
                 {displayTasks.map(task => (

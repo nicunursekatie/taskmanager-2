@@ -8,6 +8,18 @@ export type ContextTag =
   | 'home'        // For tasks that must be done at home
   | 'work'        // For tasks that must be done at work (NICU)
   | 'anywhere';   // For tasks that can be done anywhere
+    
+// Calendar Event type for displaying time blocks in calendar
+export type CalendarEvent = {
+  id: string;
+  title: string;
+  start: string;    // ISO string format
+  end: string;      // ISO string format
+  description?: string;
+  isFlexible?: boolean; // Whether this is a flexible time block
+  source?: 'planner' | 'manual'; // Source of the event
+  color?: string;   // Event color
+};
 
 // Project type
 export type Project = {

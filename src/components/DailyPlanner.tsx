@@ -1,6 +1,7 @@
 // src/components/DailyPlanner.tsx
 import React, { useState, useEffect } from 'react';
 import { Task, TimeBlock, ContextTag } from '../types';
+import { syncToCalendar } from '../utils/calendarSync';
 
 type DailyPlannerProps = {
   tasks: Task[];
@@ -191,7 +192,20 @@ const DailyPlanner: React.FC<DailyPlannerProps> = ({
           >
             + Add Time Block
           </button>
-        </div>
+          {sortedTimeBlocks.length > 0 && (
+          <button 
+            className="btn btn-outline"
+            onClick={() => {
+            const events = syncToCalendar(timeBlocks, date, tasks);
+            // Show a success message
+            alert(`Synced ${events.length} time blocks to calendar view!`);
+        }}
+        title="View these time blocks in the calendar"
+     >
+         📅 View in Calendar
+        </button>
+        )}
+      </div>
       </div>
       
       {showNewBlockForm && (
