@@ -1,5 +1,5 @@
 // src/components/DailyPlanner.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Task, TimeBlock, ContextTag } from '../types';
 
 type DailyPlannerProps = {
@@ -13,7 +13,7 @@ type DailyPlannerProps = {
   setDate: (date: Date) => void;
 };
 
-// Context tag colors - same as in ContextSelector
+// Context tag colors
 const contextColors: Record<ContextTag, string> = {
   'phone-call': '#F59E0B',
   'errand': '#10B981',
@@ -57,6 +57,7 @@ const DailyPlanner: React.FC<DailyPlannerProps> = ({
   const [newBlockEnd, setNewBlockEnd] = useState('10:00');
   const [newBlockTitle, setNewBlockTitle] = useState('');
   const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
   
   // Get available tasks (not completed and not already in a time block)
   const availableTasks = tasks.filter(task => 
@@ -104,14 +105,25 @@ const DailyPlanner: React.FC<DailyPlannerProps> = ({
   // Handle drag and drop functionality
   const handleDragStart = (taskId: string) => {
     setDraggedTaskId(taskId);
+    setIsDragging(true);
+  };
+  
+  const handleDragEnd = () => {
+    setIsDragging(false);
   };
   
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault(); // Allow drop
+    e.currentTarget.classList.add('drag-over');
+  };
+  
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.currentTarget.classList.remove('drag-over');
   };
   
   const handleDrop = (e: React.DragEvent, blockId: string) => {
     e.preventDefault();
+    e.currentTarget.classList.remove('drag-over');
     if (draggedTaskId) {
       assignTaskToBlock(draggedTaskId, blockId);
       setDraggedTaskId(null);
@@ -147,7 +159,7 @@ const DailyPlanner: React.FC<DailyPlannerProps> = ({
             className="btn btn-sm btn-outline"
             onClick={goToPreviousDay}
           >
-            &larr; Previous
+            ← Previous
           </button>
           <h2 className="current-date">
             {date.toLocaleDateString(undefined, { 
@@ -160,7 +172,7 @@ const DailyPlanner: React.FC<DailyPlannerProps> = ({
             className="btn btn-sm btn-outline"
             onClick={goToNextDay}
           >
-            Next &rarr;
+            Next →
           </button>
           {!date.toDateString().includes(new Date().toDateString()) && (
             <button 
@@ -228,111 +240,119 @@ const DailyPlanner: React.FC<DailyPlannerProps> = ({
         </div>
       )}
       
-      <div className="time-blocks-container">
-        {sortedTimeBlocks.length === 0 ? (
-          <div className="no-blocks-message">
-            <p>No time blocks for today. Add some blocks to plan your day.</p>
-          </div>
-        ) : (
-          sortedTimeBlocks.map(block => {
-            // Get tasks assigned to this block
-            const blockTasks = tasks.filter(task => 
-              block.taskIds.includes(task.id)
-            );
-            
-            return (
-              <div 
-                key={block.id} 
-                className="time-block"
-                onDragOver={handleDragOver}
-                onDrop={(e) => handleDrop(e, block.id)}
-                style={{ borderColor: block.color || '#e0e0e0' }}
-              >
-                <div className="time-block-header">
-                  <div className="time-block-time">
-                    {formatTime(block.startTime)} - {formatTime(block.endTime)}
-                    <span className="time-duration">
-                      ({getBlockDuration(block)})
-                    </span>
+      {/* New side-by-side layout */}
+      <div className="daily-planner-content">
+        {/* Left side: Time blocks */}
+        <div className="time-blocks-container">
+          <h3 className="section-title">Time Blocks</h3>
+          {sortedTimeBlocks.length === 0 ? (
+            <div className="no-blocks-message">
+              <p>No time blocks for today. Add some blocks to plan your day.</p>
+            </div>
+          ) : (
+            sortedTimeBlocks.map(block => {
+              // Get tasks assigned to this block
+              const blockTasks = tasks.filter(task => 
+                block.taskIds.includes(task.id)
+              );
+              
+              return (
+                <div 
+                  key={block.id} 
+                  className="time-block"
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={(e) => handleDrop(e, block.id)}
+                  style={{ borderColor: block.color || '#e0e0e0' }}
+                >
+                  <div className="time-block-header">
+                    <div className="time-block-time">
+                      {formatTime(block.startTime)} - {formatTime(block.endTime)}
+                      <span className="time-duration">
+                        ({getBlockDuration(block)})
+                      </span>
+                    </div>
+                    <h3 className="time-block-title">{block.title}</h3>
+                    <div className="time-block-actions">
+                      <button 
+                        className="btn btn-sm btn-outline"
+                        onClick={() => deleteTimeBlock(block.id)}
+                      >
+                        ×
+                      </button>
+                    </div>
                   </div>
-                  <h3 className="time-block-title">{block.title}</h3>
-                  <div className="time-block-actions">
-                    <button 
-                      className="btn btn-sm btn-outline"
-                      onClick={() => deleteTimeBlock(block.id)}
-                    >
-                      ×
-                    </button>
+                  
+                  <div className="time-block-tasks">
+                    {blockTasks.length > 0 ? (
+                      blockTasks.map(task => (
+                        <div 
+                          key={task.id}
+                          className="block-task-item"
+                          style={{
+                            borderLeft: task.context ? 
+                              `4px solid ${contextColors[task.context]}` : 
+                              undefined
+                          }}
+                        >
+                          <div className="block-task-title">
+                            {task.title}
+                          </div>
+                          <button 
+                            className="btn btn-sm btn-text"
+                            onClick={() => assignTaskToBlock(task.id, null)}
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="empty-block-message">
+                        Drop tasks here
+                      </div>
+                    )}
                   </div>
                 </div>
-                
-                <div className="time-block-tasks">
-                  {blockTasks.length > 0 ? (
-                    blockTasks.map(task => (
-                      <div 
-                        key={task.id}
-                        className="block-task-item"
-                        style={{
-                          borderLeft: task.context ? 
-                            `4px solid ${contextColors[task.context]}` : 
-                            undefined
-                        }}
-                      >
-                        <div className="block-task-title">
-                          {task.title}
-                        </div>
-                        <button 
-                          className="btn btn-sm btn-text"
-                          onClick={() => assignTaskToBlock(task.id, null)}
-                        >
-                          ×
-                        </button>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="empty-block-message">
-                      Drop tasks here
-                    </div>
+              );
+            })
+          )}
+        </div>
+        
+        {/* Right side: Available tasks */}
+        <div className="available-tasks-section">
+          <h3 className="section-title">Available Tasks</h3>
+          <div className="available-tasks">
+            {availableTasks.length > 0 ? (
+              availableTasks.map(task => (
+                <div 
+                  key={task.id}
+                  className="available-task-item"
+                  draggable
+                  onDragStart={() => handleDragStart(task.id)}
+                  onDragEnd={handleDragEnd}
+                  style={{
+                    borderLeft: task.context ? 
+                      `4px solid ${contextColors[task.context]}` : 
+                      undefined
+                  }}
+                >
+                  <div className="available-task-title">
+                    {task.title}
+                  </div>
+                  {task.context && (
+                    <div 
+                      className="task-context-indicator"
+                      style={{ backgroundColor: contextColors[task.context] }}
+                    />
                   )}
                 </div>
+              ))
+            ) : (
+              <div className="no-tasks-message">
+                <p>No available tasks. Create some tasks or mark some as completed to see them here.</p>
               </div>
-            );
-          })
-        )}
-      </div>
-      
-      <div className="available-tasks-section">
-        <h3>Available Tasks</h3>
-        <div className="available-tasks">
-          {availableTasks.length > 0 ? (
-            availableTasks.map(task => (
-              <div 
-                key={task.id}
-                className="available-task-item"
-                draggable
-                onDragStart={() => handleDragStart(task.id)}
-                style={{
-                  borderLeft: task.context ? 
-                    `4px solid ${contextColors[task.context]}` : 
-                    undefined
-                }}
-              >
-                <div className="available-task-title">
-                  {task.title}
-                </div>
-                {task.context && (
-                  <div 
-                    className="task-context-indicator"
-                    style={{ backgroundColor: contextColors[task.context] }}
-                  />
-                )}
-              </div>
-            ))
-          ) : (
-            <div className="no-tasks-message">
-              <p>No available tasks. Create some tasks or mark some as completed to see them here.</p>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </div>

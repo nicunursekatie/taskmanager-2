@@ -227,3 +227,230 @@
   :root {
     --primary-color-rgb: 67, 97, 238;
   }
+
+  /* Daily Planner styles - add to your CSS file */
+
+/* Daily planner layout */
+.daily-planner {
+    padding: var(--space-md);
+  }
+  
+  .planner-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-lg);
+  }
+  
+  .date-navigation {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+  }
+  
+  .current-date {
+    margin: 0;
+    font-size: var(--font-size-xl);
+    font-weight: 600;
+  }
+  
+  /* New block form */
+  .new-block-form {
+    background-color: var(--section-bg);
+    padding: var(--space-md);
+    border-radius: var(--border-radius);
+    margin-bottom: var(--space-lg);
+    box-shadow: var(--shadow-sm);
+  }
+  
+  .time-inputs {
+    display: flex;
+    gap: var(--space-md);
+    margin: var(--space-sm) 0;
+  }
+  
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-sm);
+    margin-top: var(--space-md);
+  }
+  
+  /* Side-by-side layout */
+  .daily-planner-content {
+    display: grid;
+    grid-template-columns: 1fr 350px;
+    gap: var(--space-lg);
+    margin-top: var(--space-lg);
+  }
+  
+  /* Time blocks container */
+  .time-blocks-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+  
+  .section-title {
+    margin-top: 0;
+    margin-bottom: var(--space-md);
+    font-weight: 600;
+    font-size: var(--font-size-lg);
+  }
+  
+  /* Time block styling */
+  .time-block {
+    background-color: var(--card-bg);
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+    transition: all 0.2s ease;
+  }
+  
+  .time-block:hover {
+    box-shadow: var(--shadow-md);
+  }
+  
+  .time-block.drag-over {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(var(--primary-color-rgb), 0.3);
+  }
+  
+  .time-block-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-sm) var(--space-md);
+    background-color: var(--section-bg);
+    border-bottom: 1px solid var(--border-color);
+  }
+  
+  .time-block-time {
+    font-size: var(--font-size-sm);
+    color: var(--text-light);
+  }
+  
+  .time-duration {
+    margin-left: var(--space-xs);
+    font-size: var(--font-size-xs);
+    color: var(--text-light);
+  }
+  
+  .time-block-title {
+    font-size: var(--font-size-md);
+    font-weight: 500;
+    margin: 0;
+  }
+  
+  .time-block-tasks {
+    padding: var(--space-sm);
+    min-height: 80px;
+  }
+  
+  .block-task-item {
+    background-color: var(--section-bg);
+    border-radius: var(--border-radius);
+    padding: var(--space-xs) var(--space-sm);
+    margin-bottom: var(--space-xs);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .empty-block-message {
+    color: var(--text-light);
+    font-style: italic;
+    text-align: center;
+    padding: var(--space-md);
+  }
+  
+  /* Available tasks section */
+  .available-tasks-section {
+    background-color: var(--section-bg);
+    border-radius: var(--border-radius);
+    padding: var(--space-md);
+    box-shadow: var(--shadow-sm);
+    height: fit-content;
+    position: sticky;
+    top: var(--space-lg);
+  }
+  
+  .available-tasks {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    max-height: 500px;
+    overflow-y: auto;
+  }
+  
+  .available-task-item {
+    background-color: var(--card-bg);
+    border-radius: var(--border-radius);
+    padding: var(--space-sm);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: grab;
+    transition: all 0.2s ease;
+    box-shadow: var(--shadow-sm);
+  }
+  
+  .available-task-item:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+  
+  .available-task-item:active {
+    cursor: grabbing;
+  }
+  
+  .available-task-title {
+    font-weight: 500;
+  }
+  
+  .task-context-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+  
+  /* Empty state messages */
+  .no-blocks-message, 
+  .no-tasks-message {
+    color: var(--text-light);
+    font-style: italic;
+    text-align: center;
+    padding: var(--space-lg);
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 992px) {
+    .daily-planner-content {
+      grid-template-columns: 1fr 300px;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .planner-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    
+    .planner-actions {
+      margin-top: var(--space-sm);
+    }
+    
+    .daily-planner-content {
+      grid-template-columns: 1fr;
+    }
+    
+    .available-tasks-section {
+      position: relative;
+      top: 0;
+      margin-bottom: var(--space-md);
+    }
+    
+    .available-tasks {
+      max-height: 200px;
+    }
+  }
