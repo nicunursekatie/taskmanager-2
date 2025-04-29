@@ -194,15 +194,15 @@ const DailyPlanner: React.FC<DailyPlannerProps> = ({
           </button>
           {sortedTimeBlocks.length > 0 && (
           <button 
-            className="btn btn-outline"
-            onClick={() => {
+          className="btn btn-outline"
+          onClick={() => {
             const events = syncToCalendar(timeBlocks, date, tasks);
             // Show a success message
             alert(`Synced ${events.length} time blocks to calendar view!`);
-        }}
-        title="View these time blocks in the calendar"
-     >
-         📅 View in Calendar
+          }}
+          title="Push these time blocks to the calendar view"
+        >
+          📅 Push to Calendar
         </button>
         )}
       </div>
