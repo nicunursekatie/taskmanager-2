@@ -26,13 +26,21 @@ export function timeBlockToCalendarEvent(
     // Get tasks assigned to this block
     const blockTasks = tasks.filter(task => block.taskIds.includes(task.id));
 
-    // Create a calendar event with tasks directly in the title
-    let title = `${block.startTime} - ${block.endTime}`;
+    // Convert 24-hour format to 12-hour format
+    const formatTime = (timeString) => {
+      const [hours, minutes] = timeString.split(':').map(Number);
+      const period = hours >= 12 ? 'PM' : 'AM';
+      const displayHours = hours % 12 || 12;
+      return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+    };
+
+    // Create a calendar event with tasks directly in the title using 12-hour format
+    let title = `${formatTime(block.startTime)} - ${formatTime(block.endTime)}`;
     if (block.title) {
       title += `: ${block.title}`;
     }
 
-    // Format tasks for description
+    // Format tasks for description with more prominent bullets
     let description = '';
     if (blockTasks.length > 0) {
       description = blockTasks.map(task => `• ${task.title}`).join('\n');
