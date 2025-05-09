@@ -501,8 +501,8 @@ function App() {
                                 checked={false}
                                 onChange={() => toggleTask(task.id)}
                               />
-                              <span
-                                className="mini-task-title"
+                              <div
+                                className="mini-task-title-container"
                                 onClick={(e) => {
                                   e.stopPropagation(); // Prevent parent (project card) click event
                                   // Set up task edit modal
@@ -514,7 +514,14 @@ function App() {
                                   setShowTaskEditModal(true);
                                 }}
                                 style={{ cursor: 'pointer' }}
-                              >{task.title}</span>
+                              >
+                                <span className="mini-task-title">{task.title}</span>
+                                {task.dueDate && (
+                                  <span className="mini-task-due-date">
+                                    {new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           ))}
                           {projectTasks.length > 3 && (
@@ -562,8 +569,8 @@ function App() {
                                 checked={false}
                                 onChange={() => toggleTask(task.id)}
                               />
-                              <span
-                                className="mini-task-title"
+                              <div
+                                className="mini-task-title-container"
                                 onClick={(e) => {
                                   e.stopPropagation(); // Prevent parent (project card) click event
                                   // Set up task edit modal
@@ -575,7 +582,14 @@ function App() {
                                   setShowTaskEditModal(true);
                                 }}
                                 style={{ cursor: 'pointer' }}
-                              >{task.title}</span>
+                              >
+                                <span className="mini-task-title">{task.title}</span>
+                                {task.dueDate && (
+                                  <span className="mini-task-due-date">
+                                    {new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           ))}
                         {tasks.filter(t => !t.projectId && t.status !== 'completed').length > 3 && (
@@ -604,8 +618,8 @@ function App() {
                           checked={false}
                           onChange={() => toggleTask(task.id)}
                         />
-                        <span
-                          className="recent-task-title"
+                        <div
+                          className="recent-task-title-container"
                           onClick={() => {
                             // Set up task edit modal
                             setEditingTaskId(task.id);
@@ -616,7 +630,14 @@ function App() {
                             setShowTaskEditModal(true);
                           }}
                           style={{ cursor: 'pointer' }}
-                        >{task.title}</span>
+                        >
+                          <span className="recent-task-title">{task.title}</span>
+                          {task.dueDate && (
+                            <span className="recent-task-due-date">
+                              {new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                            </span>
+                          )}
+                        </div>
                         {task.projectId && (
                           <span className="task-project tag">
                             {projects.find(p => p.id === task.projectId)?.name}

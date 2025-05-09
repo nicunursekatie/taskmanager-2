@@ -333,6 +333,24 @@ body {
   text-overflow: ellipsis;
 }
 
+.mini-task-title-container {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+  width: 100%;
+  overflow: hidden;
+}
+
+.mini-task-due-date,
+.recent-task-due-date {
+  font-size: 0.75rem;
+  color: var(--text-light);
+  white-space: nowrap;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
 .more-tasks {
   font-size: var(--font-size-sm);
   color: var(--text-light);
