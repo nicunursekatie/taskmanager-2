@@ -1936,3 +1936,14 @@ input[type="checkbox"] {
     align-self: flex-end;
   }
 }
+
+/* Highlight effect for task navigation */
+@keyframes highlight-pulse {
+  0% { background-color: rgba(255, 235, 59, 0.3); }
+  50% { background-color: rgba(255, 235, 59, 0.5); }
+  100% { background-color: transparent; }
+}
+
+.highlight {
+  animation: highlight-pulse 2s ease-in-out;
+}

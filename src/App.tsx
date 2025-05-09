@@ -464,7 +464,22 @@ function App() {
                     if (projectTasks.length === 0) return null;
                     
                     return (
-                      <div key={project.id} className="project-card mini-card">
+                      <div
+                        key={project.id}
+                        className="project-card mini-card"
+                        onClick={() => {
+                          setActiveTab('projects');
+                          setTimeout(() => {
+                            const projectElement = document.getElementById(`project-${project.id}`);
+                            if (projectElement) {
+                              projectElement.scrollIntoView({ behavior: 'smooth' });
+                              projectElement.classList.add('highlight');
+                              setTimeout(() => projectElement.classList.remove('highlight'), 2000);
+                            }
+                          }, 100);
+                        }}
+                        style={{ cursor: 'pointer' }}
+                      >
                         <div className="project-header">
                           <h3 className="project-title">{project.name}</h3>
                           <span className="task-count">{projectTasks.length}</span>
@@ -473,12 +488,26 @@ function App() {
                         <div className="project-task-list">
                           {projectTasks.slice(0, 3).map(task => (
                             <div key={task.id} className="mini-task-item">
-                              <input 
-                                type="checkbox" 
-                                checked={false} 
+                              <input
+                                type="checkbox"
+                                checked={false}
                                 onChange={() => toggleTask(task.id)}
                               />
-                              <span className="mini-task-title">{task.title}</span>
+                              <span
+                                className="mini-task-title"
+                                onClick={() => {
+                                  setActiveTab('all-tasks');
+                                  setTimeout(() => {
+                                    const taskElement = document.getElementById(`task-${task.id}`);
+                                    if (taskElement) {
+                                      taskElement.scrollIntoView({ behavior: 'smooth' });
+                                      taskElement.classList.add('highlight');
+                                      setTimeout(() => taskElement.classList.remove('highlight'), 2000);
+                                    }
+                                  }, 100);
+                                }}
+                                style={{ cursor: 'pointer' }}
+                              >{task.title}</span>
                             </div>
                           ))}
                           {projectTasks.length > 3 && (
@@ -493,7 +522,21 @@ function App() {
                   
                   {/* Unassigned Tasks Card */}
                   {tasks.filter(t => !t.projectId && t.status !== 'completed').length > 0 && (
-                    <div className="project-card mini-card no-project-card">
+                    <div
+                      className="project-card mini-card no-project-card"
+                      onClick={() => {
+                        setActiveTab('projects');
+                        setTimeout(() => {
+                          const unassignedElement = document.getElementById('unassigned-tasks');
+                          if (unassignedElement) {
+                            unassignedElement.scrollIntoView({ behavior: 'smooth' });
+                            unassignedElement.classList.add('highlight');
+                            setTimeout(() => unassignedElement.classList.remove('highlight'), 2000);
+                          }
+                        }, 100);
+                      }}
+                      style={{ cursor: 'pointer' }}
+                    >
                       <div className="project-header">
                         <h3 className="project-title">Unassigned Tasks</h3>
                         <span className="task-count">
@@ -507,12 +550,26 @@ function App() {
                           .slice(0, 3)
                           .map(task => (
                             <div key={task.id} className="mini-task-item">
-                              <input 
-                                type="checkbox" 
-                                checked={false} 
+                              <input
+                                type="checkbox"
+                                checked={false}
                                 onChange={() => toggleTask(task.id)}
                               />
-                              <span className="mini-task-title">{task.title}</span>
+                              <span
+                                className="mini-task-title"
+                                onClick={() => {
+                                  setActiveTab('all-tasks');
+                                  setTimeout(() => {
+                                    const taskElement = document.getElementById(`task-${task.id}`);
+                                    if (taskElement) {
+                                      taskElement.scrollIntoView({ behavior: 'smooth' });
+                                      taskElement.classList.add('highlight');
+                                      setTimeout(() => taskElement.classList.remove('highlight'), 2000);
+                                    }
+                                  }, 100);
+                                }}
+                                style={{ cursor: 'pointer' }}
+                              >{task.title}</span>
                             </div>
                           ))}
                         {tasks.filter(t => !t.projectId && t.status !== 'completed').length > 3 && (
@@ -536,12 +593,26 @@ function App() {
                     .slice(0, 5)
                     .map(task => (
                       <div key={task.id} className="recent-task-item">
-                        <input 
-                          type="checkbox" 
-                          checked={false} 
+                        <input
+                          type="checkbox"
+                          checked={false}
                           onChange={() => toggleTask(task.id)}
                         />
-                        <span className="recent-task-title">{task.title}</span>
+                        <span
+                          className="recent-task-title"
+                          onClick={() => {
+                            setActiveTab('all-tasks');
+                            setTimeout(() => {
+                              const taskElement = document.getElementById(`task-${task.id}`);
+                              if (taskElement) {
+                                taskElement.scrollIntoView({ behavior: 'smooth' });
+                                taskElement.classList.add('highlight');
+                                setTimeout(() => taskElement.classList.remove('highlight'), 2000);
+                              }
+                            }, 100);
+                          }}
+                          style={{ cursor: 'pointer' }}
+                        >{task.title}</span>
                         {task.projectId && (
                           <span className="task-project tag">
                             {projects.find(p => p.id === task.projectId)?.name}
@@ -634,11 +705,11 @@ function App() {
               <div className="projects-grid">
                 {projects.length > 0 ? (
                   projects.map((project) => (
-                    <div key={project.id} className="project-card">
+                    <div id={`project-${project.id}`} key={project.id} className="project-card">
                       <div className="project-header">
                         <h2 className="project-title">{project.name}</h2>
                         <div className="project-actions">
-                          <button 
+                          <button
                             className="btn btn-sm btn-outline"
                             onClick={() => {
                               // Open project edit modal
@@ -719,7 +790,7 @@ function App() {
                 
                 {/* No Project Tasks Section */}
                 {tasks.filter(t => !t.projectId).length > 0 && (
-                  <div className="project-card no-project-card">
+                  <div id="unassigned-tasks" className="project-card no-project-card">
                     <div className="project-header">
                       <h2 className="project-title">Unassigned Tasks</h2>
                     </div>

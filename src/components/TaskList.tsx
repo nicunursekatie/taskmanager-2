@@ -73,9 +73,10 @@ export default function TaskList({
     
     return (
       <div key={task.id} style={{ marginLeft: `${depth * 20}px` }}>
-        <div 
+        <div
+          id={`task-${task.id}`}
           className={`task-item ${task.status === 'completed' ? 'completed' : ''}`}
-          style={{ 
+          style={{
             borderLeft: hasChildren ? `4px solid ${categoryColor}` : undefined
           }}
         >
