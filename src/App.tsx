@@ -459,6 +459,22 @@ function App() {
           {/* Dashboard View */}
           {activeTab === 'dashboard' && (
             <div className="dashboard-view">
+              {/* Today's Tasks Section */}
+              {todayTasks.length > 0 && (
+                <div className="section-card today-tasks-card">
+                  <h2 className="section-title">Today's Tasks</h2>
+                  <TaskList
+                    tasks={todayTasks}
+                    toggleTask={toggleTask}
+                    deleteTask={deleteTask}
+                    updateTask={updateTask}
+                    addSubtask={addSubtask}
+                    categories={categories}
+                    projects={projects}
+                  />
+                </div>
+              )}
+
               {/* Projects Section */}
               <div className="section-card">
                 <h2 className="section-title">Projects</h2>
@@ -649,41 +665,21 @@ function App() {
                 </div>
               </div>
               
-              {/* Due Soon Section (for tasks with due dates) */}
-              {todayTasks.length > 0 || overdueTasks.length > 0 ? (
-                <div className="section-card">
-                  <h2 className="section-title">Due Soon</h2>
-                  {overdueTasks.length > 0 && (
-                    <div className="overdue-section">
-                      <h3 className="subsection-title">Overdue</h3>
-                      <TaskList 
-                        tasks={overdueTasks} 
-                        toggleTask={toggleTask} 
-                        deleteTask={deleteTask} 
-                        updateTask={updateTask}
-                        addSubtask={addSubtask}
-                        categories={categories}
-                        projects={projects}
-                      />
-                    </div>
-                  )}
-                  
-                  {todayTasks.length > 0 && (
-                    <div className="today-section">
-                      <h3 className="subsection-title">Today</h3>
-                      <TaskList 
-                        tasks={todayTasks} 
-                        toggleTask={toggleTask} 
-                        deleteTask={deleteTask} 
-                        updateTask={updateTask}
-                        addSubtask={addSubtask}
-                        categories={categories}
-                        projects={projects}
-                      />
-                    </div>
-                  )}
+              {/* Overdue Tasks Section */}
+              {overdueTasks.length > 0 && (
+                <div className="section-card overdue-tasks-card">
+                  <h2 className="section-title">Overdue Tasks</h2>
+                  <TaskList
+                    tasks={overdueTasks}
+                    toggleTask={toggleTask}
+                    deleteTask={deleteTask}
+                    updateTask={updateTask}
+                    addSubtask={addSubtask}
+                    categories={categories}
+                    projects={projects}
+                  />
                 </div>
-              ) : null}
+              )}
             </div>
           )}
           

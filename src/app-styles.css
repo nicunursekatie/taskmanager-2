@@ -1869,6 +1869,20 @@ input[type="checkbox"] {
   margin-bottom: 24px !important;
 }
 
+/* Today's Tasks Section */
+.today-tasks-card {
+  border-left: 4px solid #2ecc71 !important; /* Green color for today's tasks */
+  background-color: rgba(46, 204, 113, 0.05) !important;
+  margin-bottom: 24px !important;
+}
+
+/* Overdue Tasks Section */
+.overdue-tasks-card {
+  border-left: 4px solid #e74c3c !important; /* Red color for overdue tasks */
+  background-color: rgba(231, 76, 60, 0.05) !important;
+  margin-bottom: 24px !important;
+}
+
 .upcoming-tasks {
   display: flex;
   flex-direction: column;
