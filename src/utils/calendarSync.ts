@@ -26,10 +26,10 @@ export function timeBlockToCalendarEvent(
     // Get tasks assigned to this block
     const blockTasks = tasks.filter(task => block.taskIds.includes(task.id));
 
-    // Format task list vertically instead of comma-separated
+    // Format each task as an individual item without the "Planned tasks:" prefix
     let description = '';
     if (blockTasks.length > 0) {
-      description = 'Planned tasks:\n' + blockTasks.map(task => `• ${task.title}`).join('\n');
+      description = blockTasks.map(task => `• ${task.title}`).join('\n');
     }
 
     // Create a calendar event
