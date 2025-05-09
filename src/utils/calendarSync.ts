@@ -25,15 +25,20 @@ export function timeBlockToCalendarEvent(
     
     // Get tasks assigned to this block
     const blockTasks = tasks.filter(task => block.taskIds.includes(task.id));
-    const taskList = blockTasks.map(task => task.title).join(', ');
-    
+
+    // Format task list vertically instead of comma-separated
+    let description = '';
+    if (blockTasks.length > 0) {
+      description = 'Planned tasks:\n' + blockTasks.map(task => `• ${task.title}`).join('\n');
+    }
+
     // Create a calendar event
     return {
       id: `planner-${block.id}`,
       title: block.title,
       start: startDateTime,
       end: endDateTime,
-      description: taskList ? `Planned tasks: ${taskList}` : '',
+      description: description,
       isFlexible: true, // Flag to display differently in calendar
       source: 'planner', // To identify planner-created events
       color: block.color || '#6B7280', // Use the block color if available
