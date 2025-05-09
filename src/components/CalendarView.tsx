@@ -276,14 +276,11 @@ export default function CalendarView({ tasks, toggleTask, categories, projects }
                 <div className="day-tasks">
                   {/* Display calendar events */}
                   {getDayEvents(day).map(event => (
-                    <div 
-                      key={event.id} 
+                    <div
+                      key={event.id}
                       className={`week-event ${event.source === 'planner' ? 'flexible-event' : ''}`}
                       style={{ backgroundColor: event.color || '#4361ee' }}
                     >
-                      <div className="event-time">
-                        {formatTime(event.start.split('T')[1])} - {formatTime(event.end.split('T')[1])}
-                      </div>
                       <span className="event-title">{event.title}</span>
                       
                       {event.source === 'planner' && (
@@ -337,9 +334,6 @@ export default function CalendarView({ tasks, toggleTask, categories, projects }
                   >
                     <div className="event-header">
                       <div className="event-time-title">
-                        <span className="event-time">
-                          {formatTime(event.start.split('T')[1])} - {formatTime(event.end.split('T')[1])}
-                        </span>
                         <h4 className="event-title">{event.title}</h4>
                       </div>
                       
