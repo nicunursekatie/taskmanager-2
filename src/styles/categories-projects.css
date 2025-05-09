@@ -1,0 +1,351 @@
+/* Category styles */
+.color-dot {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 8px;
+  }
+  
+  .category-tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    margin-right: 6px;
+    margin-bottom: 4px;
+    color: white;
+  }
+  
+  .category-tag.small {
+    font-size: 0.7rem;
+    padding: 1px 6px;
+  }
+  
+  /* Modal styles */
+  .overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  
+  .modal {
+    background-color: white;
+    padding: 24px;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+  
+  .close-btn {
+    margin-top: 16px;
+  }
+  
+  /* Category and project list styles */
+  .category-list, .project-list {
+    margin: 16px 0;
+  }
+  
+  .category-item, .project-item {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .category-name {
+    flex: 1;
+  }
+  
+  .actions {
+    display: flex;
+    gap: 8px;
+  }
+  
+  .project-name {
+    margin: 0;
+    font-weight: 600;
+  }
+  
+  .project-description {
+    margin: 4px 0 0;
+    font-size: 0.9rem;
+    color: #666;
+  }
+  
+  /* Enhanced capture bar */
+  .capture-bar {
+    background: #f5f5f5;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+  }
+  
+  .main-inputs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  
+  .text-input {
+    flex: 1;
+  }
+  
+  .additional-options {
+    display: flex;
+    gap: 8px;
+  }
+  
+  .category-selector {
+    position: relative;
+  }
+  
+  .category-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 8px;
+    z-index: 10;
+    min-width: 200px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  }
+  
+  .category-option {
+    padding: 4px 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+  }
+  
+  .category-option:hover {
+    background: #f5f5f5;
+  }
+  
+  .category-option.selected {
+    background: #e6f7ff;
+  }
+  
+  .project-select {
+    flex: 1;
+  }
+  
+  /* Task list enhancements */
+  .task-item {
+    margin-bottom: 16px;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  
+  .task-main {
+    padding: 12px;
+    background: #f9f9f9;
+  }
+  
+  .task-content {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .task-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .task-title {
+    font-weight: 500;
+    cursor: pointer;
+  }
+  
+  .task-title.completed {
+    text-decoration: line-through;
+    color: #888;
+  }
+  
+  .task-date {
+    font-size: 0.8rem;
+    color: #666;
+  }
+  
+  .task-metadata {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+  
+  .task-categories {
+    display: flex;
+    flex-wrap: wrap;
+  }
+  
+  .task-project {
+    font-size: 0.8rem;
+    background: #f0f0f0;
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+  
+  .task-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  
+  .subtask-item {
+    padding: 8px 12px;
+    margin-left: 24px;
+    border-top: 1px solid #eee;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .subtask-title {
+    cursor: pointer;
+  }
+  
+  .subtask-title.completed {
+    text-decoration: line-through;
+    color: #888;
+  }
+  
+  .subtask-date {
+    font-size: 0.8rem;
+    color: #666;
+  }
+  
+  .subtask-categories {
+    display: flex;
+    flex-wrap: wrap;
+  }
+  
+  .subtask-actions {
+    margin-left: auto;
+    display: flex;
+    gap: 4px;
+  }
+  
+  /* Task edit form */
+  .task-edit-form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .edit-title {
+    font-size: 1rem;
+    padding: 8px;
+  }
+  
+  .edit-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+  
+  /* Project view styles */
+  .project-section {
+    margin-bottom: 24px;
+    padding: 16px;
+    border: 1px solid #eee;
+    border-radius: 8px;
+  }
+  
+  .project-title {
+    margin-top: 0;
+    margin-bottom: 8px;
+    color: #2c3e50;
+  }
+  
+  .no-tasks-message, .no-projects-message {
+    color: #888;
+    font-style: italic;
+    padding: 16px;
+    text-align: center;
+  }
+  
+  /* Filter panel styles */
+  .filter-panel {
+    background: #f5f5f5;
+    padding: 16px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+  }
+  
+  .filter-header {
+    margin-top: 0;
+    margin-bottom: 12px;
+  }
+  
+  .filter-section {
+    margin-bottom: 16px;
+  }
+  
+  .filter-section h4 {
+    margin-top: 0;
+    margin-bottom: 8px;
+  }
+  
+  .category-filters, .project-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .category-filter, .project-filter {
+    padding: 4px 12px;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+  }
+  
+  .category-filter.active, .project-filter.active {
+    background: #e6f7ff;
+    border-color: #1890ff;
+  }
+  
+  .no-filters {
+    color: #888;
+    font-style: italic;
+    margin: 0;
+  }
+  
+  .clear-filters-btn {
+    margin-top: 8px;
+    background: none;
+    border: none;
+    color: #f56c6c;
+    cursor: pointer;
+    padding: 4px 8px;
+  }
+  
+  .clear-filters-btn:hover {
+    text-decoration: underline;
+  }
+  
+  /* Add a toolbar for managing categories and projects */
+  .toolbar {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
