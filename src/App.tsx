@@ -61,6 +61,14 @@ function App() {
   const [showCategoryManager, setShowCategoryManager] = useState(false);
   const [showProjectManager, setShowProjectManager] = useState(false);
   const [showImportExport, setShowImportExport] = useState(false);
+  const [showTaskEditModal, setShowTaskEditModal] = useState(false);
+
+  // State for editing tasks in the modal
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+  const [editTaskTitle, setEditTaskTitle] = useState('');
+  const [editTaskDueDate, setEditTaskDueDate] = useState<string>('');
+  const [editTaskCategories, setEditTaskCategories] = useState<string[]>([]);
+  const [editTaskProjectId, setEditTaskProjectId] = useState<string | null>(null);
   
   // Time blocks state
   const {
@@ -495,16 +503,15 @@ function App() {
                               />
                               <span
                                 className="mini-task-title"
-                                onClick={() => {
-                                  setActiveTab('all-tasks');
-                                  setTimeout(() => {
-                                    const taskElement = document.getElementById(`task-${task.id}`);
-                                    if (taskElement) {
-                                      taskElement.scrollIntoView({ behavior: 'smooth' });
-                                      taskElement.classList.add('highlight');
-                                      setTimeout(() => taskElement.classList.remove('highlight'), 2000);
-                                    }
-                                  }, 100);
+                                onClick={(e) => {
+                                  e.stopPropagation(); // Prevent parent (project card) click event
+                                  // Set up task edit modal
+                                  setEditingTaskId(task.id);
+                                  setEditTaskTitle(task.title);
+                                  setEditTaskDueDate(task.dueDate ? task.dueDate.split('T')[0] : '');
+                                  setEditTaskCategories(task.categories || []);
+                                  setEditTaskProjectId(task.projectId);
+                                  setShowTaskEditModal(true);
                                 }}
                                 style={{ cursor: 'pointer' }}
                               >{task.title}</span>
@@ -557,16 +564,15 @@ function App() {
                               />
                               <span
                                 className="mini-task-title"
-                                onClick={() => {
-                                  setActiveTab('all-tasks');
-                                  setTimeout(() => {
-                                    const taskElement = document.getElementById(`task-${task.id}`);
-                                    if (taskElement) {
-                                      taskElement.scrollIntoView({ behavior: 'smooth' });
-                                      taskElement.classList.add('highlight');
-                                      setTimeout(() => taskElement.classList.remove('highlight'), 2000);
-                                    }
-                                  }, 100);
+                                onClick={(e) => {
+                                  e.stopPropagation(); // Prevent parent (project card) click event
+                                  // Set up task edit modal
+                                  setEditingTaskId(task.id);
+                                  setEditTaskTitle(task.title);
+                                  setEditTaskDueDate(task.dueDate ? task.dueDate.split('T')[0] : '');
+                                  setEditTaskCategories(task.categories || []);
+                                  setEditTaskProjectId(task.projectId);
+                                  setShowTaskEditModal(true);
                                 }}
                                 style={{ cursor: 'pointer' }}
                               >{task.title}</span>
@@ -601,15 +607,13 @@ function App() {
                         <span
                           className="recent-task-title"
                           onClick={() => {
-                            setActiveTab('all-tasks');
-                            setTimeout(() => {
-                              const taskElement = document.getElementById(`task-${task.id}`);
-                              if (taskElement) {
-                                taskElement.scrollIntoView({ behavior: 'smooth' });
-                                taskElement.classList.add('highlight');
-                                setTimeout(() => taskElement.classList.remove('highlight'), 2000);
-                              }
-                            }, 100);
+                            // Set up task edit modal
+                            setEditingTaskId(task.id);
+                            setEditTaskTitle(task.title);
+                            setEditTaskDueDate(task.dueDate ? task.dueDate.split('T')[0] : '');
+                            setEditTaskCategories(task.categories || []);
+                            setEditTaskProjectId(task.projectId);
+                            setShowTaskEditModal(true);
                           }}
                           style={{ cursor: 'pointer' }}
                         >{task.title}</span>
@@ -953,6 +957,103 @@ function App() {
           setProjects={setProjects}
           onClose={() => setShowImportExport(false)}
         />
+      )}
+
+      {/* Task Edit Modal */}
+      {showTaskEditModal && editingTaskId && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <div className="modal-header">
+              <h2 className="modal-title">Edit Task</h2>
+              <button className="btn btn-sm btn-outline" onClick={() => setShowTaskEditModal(false)}>×</button>
+            </div>
+
+            <div className="modal-body">
+              <div className="task-edit-form">
+                <div className="input-group">
+                  <label className="form-label">Title</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={editTaskTitle}
+                    onChange={e => setEditTaskTitle(e.target.value)}
+                  />
+                </div>
+
+                <div className="input-group">
+                  <label className="form-label">Due Date</label>
+                  <input
+                    type="date"
+                    className="form-control"
+                    value={editTaskDueDate}
+                    onChange={e => setEditTaskDueDate(e.target.value)}
+                  />
+                </div>
+
+                <div className="input-group">
+                  <label className="form-label">Categories</label>
+                  <div className="category-selector">
+                    {categories.map(category => (
+                      <div
+                        key={category.id}
+                        className={`category-option ${editTaskCategories.includes(category.id) ? 'selected' : ''}`}
+                        style={{
+                          backgroundColor: editTaskCategories.includes(category.id) ? category.color : 'transparent',
+                          border: `1px solid ${category.color}`
+                        }}
+                        onClick={() => {
+                          if (editTaskCategories.includes(category.id)) {
+                            setEditTaskCategories(editTaskCategories.filter(id => id !== category.id));
+                          } else {
+                            setEditTaskCategories([...editTaskCategories, category.id]);
+                          }
+                        }}
+                      >
+                        {category.name}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="input-group">
+                  <label className="form-label">Project</label>
+                  <select
+                    className="form-control"
+                    value={editTaskProjectId || ''}
+                    onChange={(e) => setEditTaskProjectId(e.target.value || null)}
+                  >
+                    <option value="">No Project</option>
+                    {projects.map(project => (
+                      <option key={project.id} value={project.id}>
+                        {project.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div className="modal-footer">
+              <button
+                className="btn btn-primary"
+                onClick={() => {
+                  if (editingTaskId && editTaskTitle.trim()) {
+                    updateTask(editingTaskId, editTaskTitle.trim(), editTaskDueDate || null, editTaskCategories, editTaskProjectId);
+                    setShowTaskEditModal(false);
+                  }
+                }}
+              >
+                Save
+              </button>
+              <button
+                className="btn btn-outline"
+                onClick={() => setShowTaskEditModal(false)}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
