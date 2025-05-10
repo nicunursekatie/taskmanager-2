@@ -1004,6 +1004,15 @@ function App() {
           {/* Projects View */}
           {activeTab === 'projects' && (
             <div className="projects-view">
+              <div className="view-header">
+                <h2 className="view-title">Projects</h2>
+                <button
+                  className="btn btn-primary"
+                  onClick={() => setShowProjectManager(true)}
+                >
+                  <span className="icon">+</span> New Project
+                </button>
+              </div>
               <div className="projects-grid">
                 {projects.length > 0 ? (
                   projects.map((project) => (
@@ -1137,6 +1146,15 @@ function App() {
           {/* Categories View */}
           {activeTab === 'categories' && (
             <div className="categories-view">
+              <div className="view-header">
+                <h2 className="view-title">Categories</h2>
+                <button
+                  className="btn btn-primary"
+                  onClick={() => setShowCategoryManager(true)}
+                >
+                  <span className="icon">+</span> New Category
+                </button>
+              </div>
               <div className="categories-grid">
                 {categories.map(category => (
                   <div 

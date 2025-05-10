@@ -1720,6 +1720,34 @@ button[class*="add-subtask"],
   border-color: var(--primary-color);
 }
 
+/* Page header with action buttons */
+.view-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-md);
+  padding-bottom: var(--space-sm);
+  border-bottom: 2px solid var(--border-color);
+}
+
+.view-title {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  margin: 0;
+  color: var(--text-color);
+}
+
+.view-header .btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.view-header .icon {
+  font-size: 1.2em;
+  font-weight: bold;
+}
+
 .task-item:hover {
   box-shadow: var(--shadow-md);
 }
