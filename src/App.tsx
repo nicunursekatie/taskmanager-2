@@ -59,6 +59,7 @@ function App() {
   // State for showing modals
   const [showWizard, setShowWizard] = useState(false);
   const [showCategoryManager, setShowCategoryManager] = useState(false);
+  const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
   const [showProjectManager, setShowProjectManager] = useState(false);
   const [showImportExport, setShowImportExport] = useState(false);
   const [showTaskEditModal, setShowTaskEditModal] = useState(false);
@@ -265,9 +266,15 @@ function App() {
         categories: task.categories ? task.categories.filter(catId => catId !== id) : []
       }))
     );
-    
+
     // Remove the category itself
     setCategories(prev => prev.filter(cat => cat.id !== id));
+  };
+
+  // Start editing a category
+  const startEditing = (category: Category) => {
+    setEditingCategoryId(category.id);
+    setShowCategoryManager(true);
   };
   
   // General tasks for context wizard
@@ -1155,77 +1162,147 @@ function App() {
                   <span className="icon">+</span> New Category
                 </button>
               </div>
-              <div className="categories-grid">
-                {categories.map(category => (
-                  <div 
-                    key={category.id} 
-                    className="category-card"
-                    style={{ borderLeft: `5px solid ${category.color}` }}
-                  >
-                    <div className="category-header">
-                      <h2 className="category-title">
-                        <span 
-                          className="color-dot" 
-                          style={{ backgroundColor: category.color }}
-                        />
-                        {category.name}
-                      </h2>
-                      <div className="category-actions">
-                        <button 
-                          className="btn btn-sm btn-outline"
-                          onClick={() => setShowCategoryManager(true)}
-                        >
-                          Edit
-                        </button>
-                      </div>
-                    </div>
-                    
-                    <div className="category-task-section">
-                      <h3 className="task-section-title">Tasks</h3>
-                      {tasks.filter(t => t.categories?.includes(category.id) && t.status !== 'completed').length > 0 ? (
-                        <TaskList 
-                          tasks={tasks.filter(t => t.categories?.includes(category.id) && t.status !== 'completed')} 
-                          toggleTask={toggleTask} 
-                          deleteTask={deleteTask} 
-                          updateTask={updateTask}
-                          addSubtask={addSubtask}
-                          categories={categories}
-                          projects={projects}
-                        />
-                      ) : (
-                        <p className="empty-message">No active tasks in this category</p>
-                      )}
-                    </div>
-                    
-                    {tasks.filter(t => t.categories?.includes(category.id) && t.status === 'completed').length > 0 && (
-                      <div className="category-task-section">
-                        <h3 className="task-section-title">Completed</h3>
-                        <TaskList 
-                          tasks={tasks.filter(t => t.categories?.includes(category.id) && t.status === 'completed')} 
-                          toggleTask={toggleTask} 
-                          deleteTask={deleteTask} 
-                          updateTask={updateTask}
-                          addSubtask={addSubtask}
-                          categories={categories}
-                          projects={projects}
-                        />
-                      </div>
-                    )}
-                  </div>
-                ))}
 
-                {categories.length === 0 && (
-                  <div className="empty-categories">
-                    <p>No categories yet. Create your first category to organize your tasks.</p>
-                    <button 
-                      className="btn btn-primary"
-                      onClick={() => setShowCategoryManager(true)}
-                    >
-                      Create Category
-                    </button>
+              {/* Category Grid - Two layouts, compact grid and detailed list */}
+              {categories.length > 0 ? (
+                <>
+                  {/* Compact Category Cards */}
+                  <div className="category-cards-grid">
+                    {categories.map(category => {
+                      // Calculate task counts for this category
+                      const activeTasks = tasks.filter(t => t.categories?.includes(category.id) && t.status !== 'completed').length;
+                      const completedTasks = tasks.filter(t => t.categories?.includes(category.id) && t.status === 'completed').length;
+                      const totalTasks = activeTasks + completedTasks;
+
+                      // Generate a lighter version of the category color for the background
+                      const bgColorStyle = {
+                        backgroundColor: `${category.color}15`, // 15 is hex for 8% opacity
+                        borderColor: category.color
+                      };
+
+                      return (
+                        <div
+                          key={category.id}
+                          className="compact-category-card"
+                          style={bgColorStyle}
+                          onClick={() => {
+                            const element = document.getElementById(`category-details-${category.id}`);
+                            if (element) {
+                              element.scrollIntoView({ behavior: 'smooth' });
+                              element.classList.add('highlight');
+                              setTimeout(() => element.classList.remove('highlight'), 2000);
+                            }
+                          }}
+                        >
+                          <div className="category-color-bar" style={{ backgroundColor: category.color }}></div>
+                          <div className="compact-category-content">
+                            <h3 className="compact-category-title">{category.name}</h3>
+                            <div className="compact-category-stats">
+                              <span className="task-count">{totalTasks}</span>
+                              <div className="task-status-breakdown">
+                                {activeTasks > 0 && (
+                                  <span className="active-count">{activeTasks} active</span>
+                                )}
+                                {completedTasks > 0 && (
+                                  <span className="completed-count">{completedTasks} done</span>
+                                )}
+                              </div>
+                            </div>
+                            <div className="category-actions">
+                              <button
+                                className="btn btn-sm btn-outline edit-btn"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  startEditing(category);
+                                }}
+                              >
+                                Edit
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
-                )}
-              </div>
+
+                  {/* Detailed Category Sections */}
+                  <div className="detailed-categories-list">
+                    {categories.map(category => (
+                      <div
+                        id={`category-details-${category.id}`}
+                        key={`details-${category.id}`}
+                        className="category-detail-card"
+                      >
+                        <div className="category-header" style={{ borderLeft: `5px solid ${category.color}` }}>
+                          <div className="category-title-area">
+                            <span
+                              className="color-dot"
+                              style={{ backgroundColor: category.color }}
+                            />
+                            <h2 className="category-title">{category.name}</h2>
+                          </div>
+                          <div className="category-actions">
+                            <button
+                              className="btn btn-sm btn-outline"
+                              onClick={() => startEditing(category)}
+                            >
+                              Edit
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="category-task-section">
+                          <div className="task-section-header">
+                            <h3 className="task-section-title">Tasks</h3>
+                            <span className="task-counter">{tasks.filter(t => t.categories?.includes(category.id) && t.status !== 'completed').length}</span>
+                          </div>
+                          {tasks.filter(t => t.categories?.includes(category.id) && t.status !== 'completed').length > 0 ? (
+                            <TaskList
+                              tasks={tasks.filter(t => t.categories?.includes(category.id) && t.status !== 'completed')}
+                              toggleTask={toggleTask}
+                              deleteTask={deleteTask}
+                              updateTask={updateTask}
+                              addSubtask={addSubtask}
+                              categories={categories}
+                              projects={projects}
+                            />
+                          ) : (
+                            <p className="empty-message">No active tasks in this category</p>
+                          )}
+                        </div>
+
+                        {tasks.filter(t => t.categories?.includes(category.id) && t.status === 'completed').length > 0 && (
+                          <div className="category-task-section">
+                            <div className="task-section-header">
+                              <h3 className="task-section-title">Completed</h3>
+                              <span className="task-counter completed">{tasks.filter(t => t.categories?.includes(category.id) && t.status === 'completed').length}</span>
+                            </div>
+                            <TaskList
+                              tasks={tasks.filter(t => t.categories?.includes(category.id) && t.status === 'completed')}
+                              toggleTask={toggleTask}
+                              deleteTask={deleteTask}
+                              updateTask={updateTask}
+                              addSubtask={addSubtask}
+                              categories={categories}
+                              projects={projects}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <div className="empty-categories">
+                  <p>No categories yet. Create your first category to organize your tasks.</p>
+                  <button
+                    className="btn btn-primary"
+                    onClick={() => setShowCategoryManager(true)}
+                  >
+                    Create Category
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -1247,7 +1324,11 @@ function App() {
           addCategory={addCategory}
           updateCategory={updateCategory}
           deleteCategory={deleteCategory}
-          onClose={() => setShowCategoryManager(false)}
+          editingCategoryId={editingCategoryId}
+          onClose={() => {
+            setShowCategoryManager(false);
+            setEditingCategoryId(null);
+          }}
         />
       )}
 

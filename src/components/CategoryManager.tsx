@@ -8,6 +8,7 @@ type CategoryManagerProps = {
   updateCategory: (id: string, category: Omit<Category, 'id'>) => void;
   deleteCategory: (id: string) => void;
   onClose: () => void;
+  editingCategoryId?: string | null;
 };
 
 export default function CategoryManager({
@@ -16,12 +17,25 @@ export default function CategoryManager({
   updateCategory,
   deleteCategory,
   onClose,
+  editingCategoryId = null
 }: CategoryManagerProps) {
   const [newName, setNewName] = useState('');
   const [newColor, setNewColor] = useState('#3B82F6'); // Default to a blue color
-  const [editId, setEditId] = useState<string | null>(null);
+  const [editId, setEditId] = useState<string | null>(editingCategoryId);
   const [editName, setEditName] = useState('');
   const [editColor, setEditColor] = useState('');
+
+  // Initialize edit form if an editingCategoryId is provided
+  React.useEffect(() => {
+    if (editingCategoryId) {
+      const categoryToEdit = categories.find(c => c.id === editingCategoryId);
+      if (categoryToEdit) {
+        setEditId(categoryToEdit.id);
+        setEditName(categoryToEdit.name);
+        setEditColor(categoryToEdit.color);
+      }
+    }
+  }, [editingCategoryId, categories]);
 
   const handleAddCategory = (e: React.FormEvent) => {
     e.preventDefault();

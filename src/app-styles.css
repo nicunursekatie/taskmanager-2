@@ -1836,6 +1836,132 @@ button[class*="add-subtask"],
   margin-top: 8px;
 }
 
+/* Enhanced Category Styling */
+.category-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.compact-category-card {
+  background-color: var(--card-bg);
+  border-radius: var(--border-radius);
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  position: relative;
+}
+
+.compact-category-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+}
+
+.category-color-bar {
+  height: 4px;
+  width: 100%;
+}
+
+.compact-category-content {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.compact-category-title {
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-color);
+}
+
+.compact-category-stats {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.task-status-breakdown {
+  display: flex;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: var(--text-light);
+}
+
+.active-count {
+  color: var(--primary-color);
+}
+
+.completed-count {
+  color: var(--success-color);
+}
+
+.category-actions {
+  margin-top: 8px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.edit-btn {
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+}
+
+.compact-category-card:hover .edit-btn {
+  opacity: 1;
+}
+
+.detailed-categories-list {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.category-detail-card {
+  background-color: var(--card-bg);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.category-detail-card.highlight {
+  animation: highlight-pulse 2s ease-in-out;
+}
+
+.category-title-area {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.task-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.task-counter {
+  background-color: var(--primary-color);
+  color: white;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 12px;
+  min-width: 24px;
+  text-align: center;
+}
+
+.task-counter.completed {
+  background-color: var(--success-color);
+}
+
 /* Page header with action buttons */
 .view-header {
   display: flex;
