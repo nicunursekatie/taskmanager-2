@@ -30,3 +30,6 @@ dist-ssr
 node_modules/.cache/
 node_modules/.cache/gh-pages/
 **/.claude/settings.local.json
+
+# Deployment files
+deploy-trigger.md
