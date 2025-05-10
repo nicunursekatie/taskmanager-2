@@ -1689,6 +1689,37 @@ button[class*="add-subtask"],
   position: relative;
 }
 
+/* Date shortcuts */
+.date-shortcuts {
+  display: flex;
+  gap: 8px;
+  margin: 8px 0;
+  flex-wrap: wrap;
+}
+
+.date-shortcut-btn {
+  background-color: var(--button-bg);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  padding: 4px 8px;
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.date-shortcut-btn:hover {
+  background-color: rgba(var(--primary-color-rgb), 0.1);
+  border-color: var(--primary-color);
+  transform: translateY(-1px);
+}
+
+.date-shortcut-btn.active {
+  background-color: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
 .task-item:hover {
   box-shadow: var(--shadow-md);
 }

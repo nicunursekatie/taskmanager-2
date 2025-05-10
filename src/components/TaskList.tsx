@@ -102,6 +102,50 @@ export default function TaskList({
                   value={editDueDate}
                   onChange={e => setEditDueDate(e.target.value)}
                 />
+                <div className="date-shortcuts">
+                  <button
+                    type="button"
+                    className={`date-shortcut-btn ${editDueDate === new Date().toISOString().split('T')[0] ? 'active' : ''}`}
+                    onClick={() => {
+                      const today = new Date();
+                      const dateString = today.toISOString().split('T')[0];
+                      setEditDueDate(dateString);
+                    }}
+                  >
+                    Today
+                  </button>
+                  <button
+                    type="button"
+                    className="date-shortcut-btn"
+                    onClick={() => {
+                      const tomorrow = new Date();
+                      tomorrow.setDate(tomorrow.getDate() + 1);
+                      const dateString = tomorrow.toISOString().split('T')[0];
+                      setEditDueDate(dateString);
+                    }}
+                  >
+                    Tomorrow
+                  </button>
+                  <button
+                    type="button"
+                    className="date-shortcut-btn"
+                    onClick={() => {
+                      const nextWeek = new Date();
+                      nextWeek.setDate(nextWeek.getDate() + 7);
+                      const dateString = nextWeek.toISOString().split('T')[0];
+                      setEditDueDate(dateString);
+                    }}
+                  >
+                    Next Week
+                  </button>
+                  <button
+                    type="button"
+                    className="date-shortcut-btn"
+                    onClick={() => setEditDueDate('')}
+                  >
+                    No Date
+                  </button>
+                </div>
               </div>
               
               <div className="input-group">

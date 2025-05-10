@@ -440,23 +440,54 @@ function App() {
         <div className="capture-container">
           <form className="capture-form" onSubmit={handleTaskSubmit}>
             <div style={{ flex: "1 1 300px", minWidth: "300px" }}>
-              <input 
-                type="text" 
-                className="form-control capture-input" 
+              <input
+                type="text"
+                className="form-control capture-input"
                 placeholder="Quick capture a new task..."
                 ref={titleInputRef}
                 style={{ width: "100%" }}
               />
             </div>
-            
+
             <div className="date-time-inputs" style={{ flex: "0 0 auto" }}>
-              <input 
-                type="date" 
-                className="form-control date-input"
-                ref={dateInputRef}
-              />
-              <input 
-                type="time" 
+              <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                <input
+                  type="date"
+                  className="form-control date-input"
+                  ref={dateInputRef}
+                />
+                <div className="date-shortcuts" style={{ margin: "4px 0" }}>
+                  <button
+                    type="button"
+                    className="date-shortcut-btn"
+                    onClick={() => {
+                      if (dateInputRef.current) {
+                        const today = new Date();
+                        const dateString = today.toISOString().split('T')[0];
+                        dateInputRef.current.value = dateString;
+                      }
+                    }}
+                  >
+                    Today
+                  </button>
+                  <button
+                    type="button"
+                    className="date-shortcut-btn"
+                    onClick={() => {
+                      if (dateInputRef.current) {
+                        const tomorrow = new Date();
+                        tomorrow.setDate(tomorrow.getDate() + 1);
+                        const dateString = tomorrow.toISOString().split('T')[0];
+                        dateInputRef.current.value = dateString;
+                      }
+                    }}
+                  >
+                    Tomorrow
+                  </button>
+                </div>
+              </div>
+              <input
+                type="time"
                 className="form-control time-input"
                 ref={timeInputRef}
               />
@@ -1255,6 +1286,50 @@ function App() {
                     value={editTaskDueDate}
                     onChange={e => setEditTaskDueDate(e.target.value)}
                   />
+                  <div className="date-shortcuts">
+                    <button
+                      type="button"
+                      className={`date-shortcut-btn ${editTaskDueDate === new Date().toISOString().split('T')[0] ? 'active' : ''}`}
+                      onClick={() => {
+                        const today = new Date();
+                        const dateString = today.toISOString().split('T')[0];
+                        setEditTaskDueDate(dateString);
+                      }}
+                    >
+                      Today
+                    </button>
+                    <button
+                      type="button"
+                      className="date-shortcut-btn"
+                      onClick={() => {
+                        const tomorrow = new Date();
+                        tomorrow.setDate(tomorrow.getDate() + 1);
+                        const dateString = tomorrow.toISOString().split('T')[0];
+                        setEditTaskDueDate(dateString);
+                      }}
+                    >
+                      Tomorrow
+                    </button>
+                    <button
+                      type="button"
+                      className="date-shortcut-btn"
+                      onClick={() => {
+                        const nextWeek = new Date();
+                        nextWeek.setDate(nextWeek.getDate() + 7);
+                        const dateString = nextWeek.toISOString().split('T')[0];
+                        setEditTaskDueDate(dateString);
+                      }}
+                    >
+                      Next Week
+                    </button>
+                    <button
+                      type="button"
+                      className="date-shortcut-btn"
+                      onClick={() => setEditTaskDueDate('')}
+                    >
+                      No Date
+                    </button>
+                  </div>
                 </div>
 
                 <div className="input-group">
