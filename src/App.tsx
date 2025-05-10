@@ -1177,7 +1177,7 @@ function App() {
                 <div className="category-cards-grid">
                   {categories.map(category => {
                     // Calculate task counts for this category
-                    const activeTasks = tasks.filter(t => t.categories?.includes(category.id) && t.status \!== 'completed').length;
+                    const activeTasks = tasks.filter(t => t.categories?.includes(category.id) && t.status !== 'completed').length;
                     const completedTasks = tasks.filter(t => t.categories?.includes(category.id) && t.status === 'completed').length;
                     const totalTasks = activeTasks + completedTasks;
 
@@ -1199,7 +1199,7 @@ function App() {
 
                     // Find the most recent active task (if any)
                     const recentTasks = tasks
-                      .filter(t => t.categories?.includes(category.id) && t.status \!== 'completed')
+                      .filter(t => t.categories?.includes(category.id) && t.status !== 'completed')
                       .sort((a, b) => Number(b.id) - Number(a.id))
                       .slice(0, 1);
 
@@ -1288,11 +1288,11 @@ function App() {
           )}
 
           {/* Categories View - Single Category Detail View */}
-          {activeTab === 'categories' && selectedCategoryId \!== null && (() => {
+          {activeTab === 'categories' && selectedCategoryId !== null && (() => {
             const category = categories.find(c => c.id === selectedCategoryId);
-            if (\!category) return null;
+            if (!category) return null;
 
-            const activeTasks = tasks.filter(t => t.categories?.includes(category.id) && t.status \!== 'completed');
+            const activeTasks = tasks.filter(t => t.categories?.includes(category.id) && t.status !== 'completed');
             const completedTasks = tasks.filter(t => t.categories?.includes(category.id) && t.status === 'completed');
             const projectsInCategory = projects.filter(project =>
               project.categoryIds && project.categoryIds.includes(category.id)
@@ -1403,7 +1403,7 @@ function App() {
                         {projectsInCategory.map(project => {
                           const projectTasks = tasks.filter(t => t.projectId === project.id);
                           const completedCount = projectTasks.filter(t => t.status === 'completed').length;
-                          const activeCount = projectTasks.filter(t => t.status \!== 'completed').length;
+                          const activeCount = projectTasks.filter(t => t.status !== 'completed').length;
                           const progressPercentage = projectTasks.length > 0
                             ? Math.round((completedCount / projectTasks.length) * 100)
                             : 0;
