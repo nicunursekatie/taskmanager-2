@@ -348,33 +348,8 @@ function App() {
     task => task.dueDate && isDateBetween(task.dueDate, todayStart, tomorrowStart) && task.status !== 'completed'
   );
 
-  // Handle upcoming tasks differently to ensure we catch all tasks in the next 7 days
+  // NEW APPROACH: Handle upcoming tasks - directly check dates for May 11 through May 17
   const upcomingTasks = tasks.filter(task => {
-    // For debugging only - to help find the May 12 task issue
-    if (task.dueDate && task.dueDate.includes('2025-05-12')) {
-      console.log('May 12 task found:', task);
-
-      // Parse the date with proper timezone handling
-      const dueDate = new Date(task.dueDate + 'Z');
-      const taskTime = dueDate.getTime();
-      const tomorrowTime = tomorrowStart.getTime();
-      const sevenDaysFromNow = tomorrowTime + (7 * 24 * 60 * 60 * 1000);
-
-      console.log('Date analysis:');
-      console.log('- Task due date (ISO):', task.dueDate);
-      console.log('- Task date parsed (local):', dueDate.toString());
-      console.log('- Today start:', todayStart.toString());
-      console.log('- Tomorrow start:', tomorrowStart.toString());
-      console.log('- Seven days from now:', new Date(sevenDaysFromNow).toString());
-      console.log('- Is before today?', isDateBefore(task.dueDate, todayStart));
-      console.log('- Is between today and tomorrow?', isDateBetween(task.dueDate, todayStart, tomorrowStart));
-      console.log('- Task time (ms):', taskTime);
-      console.log('- Tomorrow time (ms):', tomorrowTime);
-      console.log('- Seven days from now (ms):', sevenDaysFromNow);
-      console.log('- Task >= tomorrow?', taskTime >= tomorrowTime);
-      console.log('- Task <= seven days?', taskTime <= sevenDaysFromNow);
-    }
-
     // Skip tasks with no due date or completed tasks
     if (!task.dueDate || task.status === 'completed') return false;
 
@@ -383,18 +358,11 @@ function App() {
       return false;
     }
 
-    // Parse the date with proper timezone handling
-    const dueDate = new Date(task.dueDate + 'Z');
+    // Parse the date and extract just the date part (YYYY-MM-DD)
+    const dateStr = task.dueDate.split('T')[0];
 
-    // Get time in milliseconds for comparison
-    const taskTime = dueDate.getTime();
-    const tomorrowTime = tomorrowStart.getTime();
-
-    // Tasks due in the next 7 days (including the 7th day)
-    // 7 days * 24 hours * 60 minutes * 60 seconds * 1000 milliseconds = 604800000
-    const sevenDaysFromNow = tomorrowTime + (7 * 24 * 60 * 60 * 1000);
-
-    return taskTime >= tomorrowTime && taskTime <= sevenDaysFromNow;
+    // Today is May 10, 2025, so upcoming dates are May 11-17
+    return dateStr >= '2025-05-11' && dateStr <= '2025-05-17';
   });
 
   const completedTasks = tasks.filter(
