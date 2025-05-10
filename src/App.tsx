@@ -310,17 +310,28 @@ function App() {
   const isDateBefore = (taskDate: string, compareDate: Date): boolean => {
     if (!taskDate) return false;
 
-    // Parse the task date and normalize to start of day
-    const date = new Date(taskDate);
-    return date < compareDate;
+    // Parse the task date with UTC timezone
+    const date = new Date(taskDate + 'Z');
+
+    // Normalize to start of day for comparison (removing time component)
+    const normalizedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const normalizedCompareDate = new Date(compareDate.getFullYear(), compareDate.getMonth(), compareDate.getDate());
+
+    return normalizedDate < normalizedCompareDate;
   };
 
   const isDateBetween = (taskDate: string, startDate: Date, endDate: Date): boolean => {
     if (!taskDate) return false;
 
-    // Parse the task date and normalize to UTC
-    const date = new Date(taskDate);
-    return date >= startDate && date < endDate;
+    // Parse the task date with UTC timezone
+    const date = new Date(taskDate + 'Z');
+
+    // Normalize to start of day for comparison (removing time component)
+    const normalizedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const normalizedStartDate = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+    const normalizedEndDate = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+
+    return normalizedDate >= normalizedStartDate && normalizedDate < normalizedEndDate;
   };
 
   const overdueTasks = tasks.filter(
@@ -519,7 +530,7 @@ function App() {
                           <h3 className="upcoming-task-title">{task.title}</h3>
                           <div className="upcoming-task-deadline">
                             <span className="due-label">
-                              Due: {new Date(task.dueDate || '').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                              Due: {new Date(task.dueDate || '').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' })}
                             </span>
                             {task.projectId && (
                               <span className="upcoming-task-project">
@@ -584,12 +595,19 @@ function App() {
                         tasksWithDueDates[0])
                       : null;
 
-                    // Categorize urgency
+                    // Categorize urgency with UTC timezone handling
                     let urgencyClass = '';
                     if (nearestDueDate && nearestDueDate.dueDate) {
-                      const dueDate = new Date(nearestDueDate.dueDate);
+                      // Create date objects with UTC time zone
+                      const dueDate = new Date(nearestDueDate.dueDate + 'Z');
                       const currentDate = new Date();
-                      const diffDays = Math.ceil((dueDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24));
+
+                      // Normalize both dates to start of day in local time for comparison
+                      const dueDateStart = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate());
+                      const currentDateStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
+
+                      const diffTime = dueDateStart.getTime() - currentDateStart.getTime();
+                      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
                       if (diffDays < 0) urgencyClass = 'project-overdue';
                       else if (diffDays <= 2) urgencyClass = 'project-urgent';
@@ -672,7 +690,7 @@ function App() {
                               >
                                 <span className="mini-task-title">{task.title}</span>
                                 {task.dueDate && (
-                                  <span className={`mini-task-due-date ${new Date(task.dueDate + 'Z') < new Date() ? 'overdue' : ''}`}>
+                                  <span className={`mini-task-due-date ${isDateBefore(task.dueDate, todayStart) ? 'overdue' : ''}`}>
                                     {new Date(task.dueDate).toLocaleDateString('en-US', {
                                       month: 'short',
                                       day: 'numeric',
@@ -793,7 +811,7 @@ function App() {
                               >
                                 <span className="mini-task-title">{task.title}</span>
                                 {task.dueDate && (
-                                  <span className={`mini-task-due-date ${new Date(task.dueDate + 'Z') < new Date() ? 'overdue' : ''}`}>
+                                  <span className={`mini-task-due-date ${isDateBefore(task.dueDate, todayStart) ? 'overdue' : ''}`}>
                                     {new Date(task.dueDate).toLocaleDateString('en-US', {
                                       month: 'short',
                                       day: 'numeric',
