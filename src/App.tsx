@@ -534,17 +534,46 @@ function App() {
                 <h2 className="section-title">Projects</h2>
                 <div className="projects-grid dashboard-grid">
                   {projects.map(project => {
-                    const projectTasks = tasks.filter(t => 
-                      t.projectId === project.id && 
+                    const projectTasks = tasks.filter(t =>
+                      t.projectId === project.id &&
                       t.status !== 'completed'
                     );
-                    
+
                     if (projectTasks.length === 0) return null;
-                    
+
+                    // Calculate progress
+                    const totalProjectTaskCount = tasks.filter(t => t.projectId === project.id).length;
+                    const completedTaskCount = tasks.filter(t => t.projectId === project.id && t.status === 'completed').length;
+                    const progressPercentage = totalProjectTaskCount > 0
+                      ? Math.round((completedTaskCount / totalProjectTaskCount) * 100)
+                      : 0;
+
+                    // Find the nearest due date
+                    const tasksWithDueDates = projectTasks.filter(t => t.dueDate);
+                    const nearestDueDate = tasksWithDueDates.length > 0
+                      ? tasksWithDueDates.reduce((nearest, task) =>
+                          !nearest.dueDate || (task.dueDate && task.dueDate < nearest.dueDate)
+                            ? task
+                            : nearest,
+                        tasksWithDueDates[0])
+                      : null;
+
+                    // Categorize urgency
+                    let urgencyClass = '';
+                    if (nearestDueDate && nearestDueDate.dueDate) {
+                      const dueDate = new Date(nearestDueDate.dueDate);
+                      const currentDate = new Date();
+                      const diffDays = Math.ceil((dueDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24));
+
+                      if (diffDays < 0) urgencyClass = 'project-overdue';
+                      else if (diffDays <= 2) urgencyClass = 'project-urgent';
+                      else if (diffDays <= 7) urgencyClass = 'project-upcoming';
+                    }
+
                     return (
                       <div
                         key={project.id}
-                        className="project-card mini-card"
+                        className={`project-card mini-card ${urgencyClass}`}
                         onClick={() => {
                           setActiveTab('projects');
                           setTimeout(() => {
@@ -559,10 +588,40 @@ function App() {
                         style={{ cursor: 'pointer' }}
                       >
                         <div className="project-header">
-                          <h3 className="project-title">{project.name}</h3>
-                          <span className="task-count">{projectTasks.length}</span>
+                          <div className="project-title-section">
+                            <h3 className="project-title">{project.name}</h3>
+                            {project.description && (
+                              <div className="project-description-preview">{project.description.length > 60 ?
+                                project.description.substring(0, 60) + '...' :
+                                project.description}
+                              </div>
+                            )}
+                          </div>
+                          <div className="project-stats">
+                            <span className="task-count">{projectTasks.length}</span>
+                          </div>
                         </div>
-                        
+
+                        {/* Progress bar */}
+                        <div className="project-progress-container">
+                          <div className="project-progress-bar">
+                            <div className="project-progress-fill" style={{ width: `${progressPercentage}%` }}></div>
+                          </div>
+                          <div className="project-progress-text">{progressPercentage}% complete</div>
+                        </div>
+
+                        {/* Next due task indicator */}
+                        {nearestDueDate && nearestDueDate.dueDate && (
+                          <div className="project-next-due">
+                            <span className="next-due-label">Next due:</span>
+                            <span className="next-due-date">
+                              {new Date(nearestDueDate.dueDate).toLocaleDateString('en-US',
+                                { weekday: 'short', month: 'short', day: 'numeric' })}
+                            </span>
+                            <span className="next-due-task">{nearestDueDate.title}</span>
+                          </div>
+                        )}
+
                         <div className="project-task-list">
                           {projectTasks.slice(0, 3).map(task => (
                             <div key={task.id} className="mini-task-item">
@@ -587,7 +646,7 @@ function App() {
                               >
                                 <span className="mini-task-title">{task.title}</span>
                                 {task.dueDate && (
-                                  <span className="mini-task-due-date">
+                                  <span className={`mini-task-due-date ${new Date(task.dueDate) < new Date() ? 'overdue' : ''}`}>
                                     {new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                                   </span>
                                 )}
@@ -595,9 +654,23 @@ function App() {
                             </div>
                           ))}
                           {projectTasks.length > 3 && (
-                            <div className="more-tasks">
+                            <button
+                              className="more-tasks-button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setActiveTab('projects');
+                                setTimeout(() => {
+                                  const projectElement = document.getElementById(`project-${project.id}`);
+                                  if (projectElement) {
+                                    projectElement.scrollIntoView({ behavior: 'smooth' });
+                                    projectElement.classList.add('highlight');
+                                    setTimeout(() => projectElement.classList.remove('highlight'), 2000);
+                                  }
+                                }, 100);
+                              }}
+                            >
                               +{projectTasks.length - 3} more tasks
-                            </div>
+                            </button>
                           )}
                         </div>
                       </div>
@@ -622,12 +695,47 @@ function App() {
                       style={{ cursor: 'pointer' }}
                     >
                       <div className="project-header">
-                        <h3 className="project-title">Unassigned Tasks</h3>
-                        <span className="task-count">
-                          {tasks.filter(t => !t.projectId && t.status !== 'completed').length}
-                        </span>
+                        <div className="project-title-section">
+                          <h3 className="project-title">Unassigned Tasks</h3>
+                          <div className="project-description-preview">Tasks not assigned to any project</div>
+                        </div>
+                        <div className="project-stats">
+                          <span className="task-count">
+                            {tasks.filter(t => !t.projectId && t.status !== 'completed').length}
+                          </span>
+                        </div>
                       </div>
-                      
+
+                      {/* Find upcoming and overdue unassigned tasks */}
+                      {(() => {
+                        const unassignedTasks = tasks.filter(t => !t.projectId && t.status !== 'completed');
+                        const now = new Date();
+                        const overdueTasks = unassignedTasks.filter(t => t.dueDate && new Date(t.dueDate) < now);
+                        const upcomingTasks = unassignedTasks.filter(t =>
+                          t.dueDate &&
+                          new Date(t.dueDate) >= now &&
+                          new Date(t.dueDate) <= new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
+                        );
+
+                        if (overdueTasks.length > 0 || upcomingTasks.length > 0) {
+                          return (
+                            <div className="unassigned-task-summary">
+                              {overdueTasks.length > 0 && (
+                                <div className="unassigned-overdue-count">
+                                  <span className="count-circle overdue">{overdueTasks.length}</span> overdue
+                                </div>
+                              )}
+                              {upcomingTasks.length > 0 && (
+                                <div className="unassigned-upcoming-count">
+                                  <span className="count-circle upcoming">{upcomingTasks.length}</span> due soon
+                                </div>
+                              )}
+                            </div>
+                          );
+                        }
+                        return null;
+                      })()}
+
                       <div className="project-task-list">
                         {tasks
                           .filter(t => !t.projectId && t.status !== 'completed')
@@ -655,7 +763,7 @@ function App() {
                               >
                                 <span className="mini-task-title">{task.title}</span>
                                 {task.dueDate && (
-                                  <span className="mini-task-due-date">
+                                  <span className={`mini-task-due-date ${new Date(task.dueDate) < new Date() ? 'overdue' : ''}`}>
                                     {new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                                   </span>
                                 )}
@@ -663,9 +771,23 @@ function App() {
                             </div>
                           ))}
                         {tasks.filter(t => !t.projectId && t.status !== 'completed').length > 3 && (
-                          <div className="more-tasks">
-                            +{tasks.filter(t => !t.projectId && t.status !== 'completed').length - 3} more tasks
-                          </div>
+                          <button
+                            className="more-tasks-button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveTab('projects');
+                              setTimeout(() => {
+                                const unassignedElement = document.getElementById('unassigned-tasks');
+                                if (unassignedElement) {
+                                  unassignedElement.scrollIntoView({ behavior: 'smooth' });
+                                  unassignedElement.classList.add('highlight');
+                                  setTimeout(() => unassignedElement.classList.remove('highlight'), 2000);
+                                }
+                              }, 100);
+                            }}
+                          >
+                            View all {tasks.filter(t => !t.projectId && t.status !== 'completed').length} tasks
+                          </button>
                         )}
                       </div>
                     </div>

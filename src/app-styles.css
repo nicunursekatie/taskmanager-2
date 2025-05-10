@@ -306,80 +306,264 @@ body {
 .dashboard-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: var(--space-lg);
+  gap: var(--space-md);
   margin-bottom: var(--space-lg);
 }
 
 .project-card {
   background-color: var(--card-bg);
   border-radius: var(--border-radius);
-  padding: var(--space-lg);
+  padding: var(--space-md);
   box-shadow: var(--shadow-md);
   display: flex;
   flex-direction: column;
-  gap: var(--space-md);
-  height: 100%;
+  gap: var(--space-sm);
   /* Add a subtle left border to highlight */
   border-left: 5px solid var(--primary-color);
   width: 100%;
   max-width: none;
   box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.2s ease-in-out;
+}
+
+/* Project card special states */
+.project-card.project-overdue {
+  border-left: 5px solid var(--danger-color);
+}
+
+.project-card.project-urgent {
+  border-left: 5px solid var(--warning-color);
+}
+
+.project-card.project-upcoming {
+  border-left: 5px solid var(--primary-color);
 }
 
 .mini-card {
   height: auto;
-  max-height: 350px;
+  max-height: 320px;
 }
 
 .no-project-card {
   border-left: 5px solid var(--text-light);
 }
 
+.project-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+}
+
 .project-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--space-sm);
+  align-items: flex-start;
+  margin-bottom: 6px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(var(--border-color), 0.2);
+}
+
+.project-title-section {
+  display: flex;
+  flex-direction: column;
 }
 
 .project-title {
-  font-size: var(--font-size-lg);
-  font-weight: 600;
+  font-size: var(--font-size-md);
+  font-weight: 700;
   margin: 0;
   color: var(--text-color);
+  line-height: 1.2;
+  margin-bottom: 4px;
+}
+
+.project-description-preview {
+  color: var(--text-light);
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.3;
+  opacity: 0.8;
+}
+
+.project-stats {
+  display: flex;
+  gap: 8px;
+  align-items: center;
 }
 
 .project-description {
   color: var(--text-light);
   margin-top: 0;
-  margin-bottom: var(--space-md);
-  font-size: var(--font-size-md);
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.project-progress-container {
+  margin: 4px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.project-progress-bar {
+  height: 6px;
+  background-color: rgba(var(--border-color), 0.2);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.project-progress-fill {
+  height: 100%;
+  background-color: var(--primary-color);
+  border-radius: 3px;
+}
+
+.project-progress-text {
+  font-size: 0.7rem;
+  color: var(--text-light);
+  text-align: right;
+}
+
+.project-next-due {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+  background-color: rgba(var(--primary-color-rgb), 0.05);
+  padding: 6px 8px;
+  border-radius: 4px;
+  margin-bottom: 8px;
+  font-size: 0.8rem;
+}
+
+.project-overdue .project-next-due {
+  background-color: rgba(var(--danger-color-rgb), 0.1);
+}
+
+.project-urgent .project-next-due {
+  background-color: rgba(var(--warning-color-rgb), 0.1);
+}
+
+.next-due-label {
+  font-weight: 600;
+  color: var(--text-light);
+  margin-right: 4px;
+}
+
+.next-due-date {
+  font-weight: 600;
+  color: var(--primary-color);
+  background-color: rgba(var(--primary-color-rgb), 0.1);
+  padding: 2px 6px;
+  border-radius: 3px;
+  margin-right: 4px;
+}
+
+.project-overdue .next-due-date {
+  color: var(--danger-color);
+  background-color: rgba(var(--danger-color-rgb), 0.1);
+}
+
+.project-urgent .next-due-date {
+  color: var(--warning-color);
+  background-color: rgba(var(--warning-color-rgb), 0.1);
+}
+
+.next-due-task {
+  opacity: 0.8;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.unassigned-task-summary {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 0.8rem;
+}
+
+.unassigned-overdue-count,
+.unassigned-upcoming-count {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.count-circle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  font-weight: 600;
+  font-size: 0.7rem;
+  color: white;
+}
+
+.count-circle.overdue {
+  background-color: var(--danger-color);
+}
+
+.count-circle.upcoming {
+  background-color: var(--warning-color);
 }
 
 .project-task-section {
-  margin-top: var(--space-md);
+  margin-top: 8px;
   width: 100%;
 }
 
 .task-section-title {
-  font-size: var(--font-size-md);
+  font-size: 0.9rem;
   font-weight: 600;
   margin-top: 0;
-  margin-bottom: var(--space-sm);
+  margin-bottom: 6px;
   color: var(--text-color);
+}
+
+.project-task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 4px;
+  max-height: 150px;
+  overflow-y: auto;
+  padding-right: 3px;
+  /* Subtle scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-color) transparent;
+}
+
+.project-task-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.project-task-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.project-task-list::-webkit-scrollbar-thumb {
+  background-color: var(--border-color);
+  border-radius: 3px;
 }
 
 .mini-task-item {
   display: flex;
   align-items: center;
-  gap: var(--space-sm);
-  padding: var(--space-sm) 0;
-  /* Increase text size */
-  font-size: var(--font-size-md);
+  gap: 6px;
+  padding: 4px 0;
+  font-size: 0.85rem;
+  border-bottom: 1px solid rgba(var(--border-color), 0.1);
 }
 
 .mini-task-title {
-  font-size: var(--font-size-md);
+  font-size: 0.85rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -395,19 +579,50 @@ body {
 
 .mini-task-due-date,
 .recent-task-due-date {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   color: var(--text-light);
   white-space: nowrap;
-  padding: 1px 5px;
+  padding: 1px 4px;
   border-radius: 3px;
   background-color: rgba(0, 0, 0, 0.05);
 }
 
-.more-tasks {
-  font-size: var(--font-size-sm);
-  color: var(--text-light);
+.mini-task-due-date.overdue {
+  color: white;
+  background-color: var(--danger-color);
+}
+
+.more-tasks-button {
+  background: none;
+  border: none;
+  font-size: 0.8rem;
+  color: var(--primary-color);
   text-align: center;
-  padding: var(--space-sm) 0;
+  padding: 6px 0;
+  margin-top: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+  border-radius: 4px;
+}
+
+.more-tasks-button:hover {
+  background-color: rgba(var(--primary-color-rgb), 0.1);
+  color: var(--primary-dark);
+}
+
+.task-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  background-color: var(--primary-color);
+  color: white;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0 8px;
 }
 
 .task-count {
