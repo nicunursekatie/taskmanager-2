@@ -29,6 +29,15 @@ type TabType = 'dashboard' | 'all-tasks' | 'projects' | 'categories' | 'calendar
 function App() {
   // Navigation state
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
+
+  // Reset selectedCategoryId when changing tabs
+  useEffect(() => {
+    console.log("Tab changed to:", activeTab);
+    if (activeTab !== 'categories') {
+      console.log("Resetting selectedCategoryId to null");
+      setSelectedCategoryId(null);
+    }
+  }, [activeTab]);
   
   // Form refs for more reliable element access
   const titleInputRef = useRef<HTMLInputElement>(null);
@@ -60,6 +69,7 @@ function App() {
   const [showWizard, setShowWizard] = useState(false);
   const [showCategoryManager, setShowCategoryManager] = useState(false);
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [showProjectManager, setShowProjectManager] = useState(false);
   const [showImportExport, setShowImportExport] = useState(false);
   const [showTaskEditModal, setShowTaskEditModal] = useState(false);
@@ -1150,9 +1160,9 @@ function App() {
             </div>
           )}
           
-          {/* Categories View */}
-          {activeTab === 'categories' && (
-            <div className="categories-view">
+          {/* Categories View - Grid View (All Categories) */}
+          {activeTab === 'categories' && selectedCategoryId === null && (
+            <div className="categories-view" key="all-categories">
               <div className="view-header">
                 <h2 className="view-title">Categories</h2>
                 <button
@@ -1163,135 +1173,106 @@ function App() {
                 </button>
               </div>
 
-              {/* Category Grid - Two layouts, compact grid and detailed list */}
               {categories.length > 0 ? (
-                <>
-                  {/* Compact Category Cards */}
-                  <div className="category-cards-grid">
-                    {categories.map(category => {
-                      // Calculate task counts for this category
-                      const activeTasks = tasks.filter(t => t.categories?.includes(category.id) && t.status !== 'completed').length;
-                      const completedTasks = tasks.filter(t => t.categories?.includes(category.id) && t.status === 'completed').length;
-                      const totalTasks = activeTasks + completedTasks;
+                <div className="category-cards-grid">
+                  {categories.map(category => {
+                    // Calculate task counts for this category
+                    const activeTasks = tasks.filter(t => t.categories?.includes(category.id) && t.status \!== 'completed').length;
+                    const completedTasks = tasks.filter(t => t.categories?.includes(category.id) && t.status === 'completed').length;
+                    const totalTasks = activeTasks + completedTasks;
 
-                      // Generate a lighter version of the category color for the background
-                      const bgColorStyle = {
-                        backgroundColor: `${category.color}15`, // 15 is hex for 8% opacity
-                        borderColor: category.color
-                      };
+                    // Calculate completion percentage
+                    const completionPercentage = totalTasks > 0
+                      ? Math.round((completedTasks / totalTasks) * 100)
+                      : 0;
 
-                      return (
-                        <div
-                          key={category.id}
-                          className="compact-category-card"
-                          style={bgColorStyle}
-                          onClick={() => {
-                            const element = document.getElementById(`category-details-${category.id}`);
-                            if (element) {
-                              element.scrollIntoView({ behavior: 'smooth' });
-                              element.classList.add('highlight');
-                              setTimeout(() => element.classList.remove('highlight'), 2000);
-                            }
-                          }}
-                        >
-                          <div className="category-color-bar" style={{ backgroundColor: category.color }}></div>
-                          <div className="compact-category-content">
-                            <h3 className="compact-category-title">{category.name}</h3>
-                            <div className="compact-category-stats">
-                              <span className="task-count">{totalTasks}</span>
-                              <div className="task-status-breakdown">
-                                {activeTasks > 0 && (
-                                  <span className="active-count">{activeTasks} active</span>
-                                )}
-                                {completedTasks > 0 && (
-                                  <span className="completed-count">{completedTasks} done</span>
-                                )}
-                              </div>
-                            </div>
-                            <div className="category-actions">
-                              <button
-                                className="btn btn-sm btn-outline edit-btn"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  startEditing(category);
-                                }}
-                              >
-                                Edit
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+                    // Get projects associated with this category
+                    const projectsInCategory = projects.filter(project =>
+                      project.categoryIds && project.categoryIds.includes(category.id)
+                    ).length;
 
-                  {/* Detailed Category Sections */}
-                  <div className="detailed-categories-list">
-                    {categories.map(category => (
+                    // Generate a lighter version of the category color for the background
+                    const bgColorStyle = {
+                      backgroundColor: `${category.color}15`, // 15 is hex for 8% opacity
+                      borderColor: category.color
+                    };
+
+                    // Find the most recent active task (if any)
+                    const recentTasks = tasks
+                      .filter(t => t.categories?.includes(category.id) && t.status \!== 'completed')
+                      .sort((a, b) => Number(b.id) - Number(a.id))
+                      .slice(0, 1);
+
+                    return (
                       <div
-                        id={`category-details-${category.id}`}
-                        key={`details-${category.id}`}
-                        className="category-detail-card"
+                        key={category.id}
+                        className="compact-category-card"
+                        style={bgColorStyle}
+                        onClick={() => {
+                          console.log("Setting selected category ID to:", category.id);
+                          setSelectedCategoryId(category.id);
+                        }}
                       >
-                        <div className="category-header" style={{ borderLeft: `5px solid ${category.color}` }}>
-                          <div className="category-title-area">
-                            <span
-                              className="color-dot"
-                              style={{ backgroundColor: category.color }}
-                            />
-                            <h2 className="category-title">{category.name}</h2>
+                        <div className="category-color-bar" style={{ backgroundColor: category.color }}></div>
+                        <div className="compact-category-content">
+                          <h3 className="compact-category-title">{category.name}</h3>
+                          
+                          {/* Task Statistics */}
+                          <div className="compact-category-stats">
+                            <span className="task-count">{totalTasks}</span>
+                            <div className="task-status-breakdown">
+                              {activeTasks > 0 && (
+                                <span className="active-count">{activeTasks} active</span>
+                              )}
+                              {completedTasks > 0 && (
+                                <span className="completed-count">{completedTasks} done</span>
+                              )}
+                              {projectsInCategory > 0 && (
+                                <span className="projects-count">{projectsInCategory} projects</span>
+                              )}
+                            </div>
                           </div>
+                          
+                          {/* Progress bar */}
+                          {totalTasks > 0 && (
+                            <div className="category-progress">
+                              <div className="category-progress-bar">
+                                <div 
+                                  className="category-progress-fill" 
+                                  style={{ 
+                                    width: `${completionPercentage}%`,
+                                    backgroundColor: category.color 
+                                  }}
+                                ></div>
+                              </div>
+                              <span className="category-progress-text">{completionPercentage}% complete</span>
+                            </div>
+                          )}
+                          
+                          {/* Recent task preview */}
+                          {recentTasks.length > 0 && (
+                            <div className="category-recent-task">
+                              <div className="recent-task-label">Recent task:</div>
+                              <div className="recent-task-title">{recentTasks[0].title}</div>
+                            </div>
+                          )}
+                          
                           <div className="category-actions">
                             <button
-                              className="btn btn-sm btn-outline"
-                              onClick={() => startEditing(category)}
+                              className="btn btn-sm btn-outline edit-btn"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                startEditing(category);
+                              }}
                             >
                               Edit
                             </button>
                           </div>
                         </div>
-
-                        <div className="category-task-section">
-                          <div className="task-section-header">
-                            <h3 className="task-section-title">Tasks</h3>
-                            <span className="task-counter">{tasks.filter(t => t.categories?.includes(category.id) && t.status !== 'completed').length}</span>
-                          </div>
-                          {tasks.filter(t => t.categories?.includes(category.id) && t.status !== 'completed').length > 0 ? (
-                            <TaskList
-                              tasks={tasks.filter(t => t.categories?.includes(category.id) && t.status !== 'completed')}
-                              toggleTask={toggleTask}
-                              deleteTask={deleteTask}
-                              updateTask={updateTask}
-                              addSubtask={addSubtask}
-                              categories={categories}
-                              projects={projects}
-                            />
-                          ) : (
-                            <p className="empty-message">No active tasks in this category</p>
-                          )}
-                        </div>
-
-                        {tasks.filter(t => t.categories?.includes(category.id) && t.status === 'completed').length > 0 && (
-                          <div className="category-task-section">
-                            <div className="task-section-header">
-                              <h3 className="task-section-title">Completed</h3>
-                              <span className="task-counter completed">{tasks.filter(t => t.categories?.includes(category.id) && t.status === 'completed').length}</span>
-                            </div>
-                            <TaskList
-                              tasks={tasks.filter(t => t.categories?.includes(category.id) && t.status === 'completed')}
-                              toggleTask={toggleTask}
-                              deleteTask={deleteTask}
-                              updateTask={updateTask}
-                              addSubtask={addSubtask}
-                              categories={categories}
-                              projects={projects}
-                            />
-                          </div>
-                        )}
                       </div>
-                    ))}
-                  </div>
-                </>
+                    );
+                  })}
+                </div>
               ) : (
                 <div className="empty-categories">
                   <p>No categories yet. Create your first category to organize your tasks.</p>
@@ -1305,6 +1286,206 @@ function App() {
               )}
             </div>
           )}
+
+          {/* Categories View - Single Category Detail View */}
+          {activeTab === 'categories' && selectedCategoryId \!== null && (() => {
+            const category = categories.find(c => c.id === selectedCategoryId);
+            if (\!category) return null;
+
+            const activeTasks = tasks.filter(t => t.categories?.includes(category.id) && t.status \!== 'completed');
+            const completedTasks = tasks.filter(t => t.categories?.includes(category.id) && t.status === 'completed');
+            const projectsInCategory = projects.filter(project =>
+              project.categoryIds && project.categoryIds.includes(category.id)
+            );
+
+            return (
+              <div className="categories-view" key={selectedCategoryId}>
+                <div className="single-category-view">
+                  <div className="view-header with-back-button">
+                    <button
+                      className="btn btn-sm btn-outline back-button"
+                      onClick={() => {
+                        console.log("Setting selected category ID back to null");
+                        setSelectedCategoryId(null);
+                      }}
+                    >
+                      <span className="back-icon">←</span> All Categories
+                    </button>
+                    <h2 className="view-title">
+                      <span
+                        className="color-dot large"
+                        style={{ backgroundColor: category.color }}
+                      />
+                      {category.name}
+                    </h2>
+                    <div className="header-actions">
+                      <button
+                        className="btn btn-sm btn-outline"
+                        onClick={() => startEditing(category)}
+                      >
+                        Edit
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Category Summary */}
+                  <div className="category-detail-section" style={{ backgroundColor: `${category.color}10` }}>
+                    <div className="category-summary">
+                      <div className="category-statistics">
+                        <div className="stat-item">
+                          <span className="stat-value">{activeTasks.length + completedTasks.length}</span>
+                          <span className="stat-label">Total Tasks</span>
+                        </div>
+                        <div className="stat-item">
+                          <span className="stat-value">{completedTasks.length}</span>
+                          <span className="stat-label">Completed</span>
+                        </div>
+                        <div className="stat-item">
+                          <span className="stat-value">{projectsInCategory.length}</span>
+                          <span className="stat-label">Projects</span>
+                        </div>
+                      </div>
+                      
+                      {/* Quick Add Task */}
+                      <div className="category-quick-add">
+                        <form onSubmit={(e) => {
+                          e.preventDefault();
+                          const input = e.currentTarget.querySelector('input') as HTMLInputElement;
+                          if (input && input.value.trim()) {
+                            addTask(input.value.trim(), null, undefined, [category.id]);
+                            input.value = '';
+                          }
+                        }}>
+                          <div className="quick-add-form">
+                            <input 
+                              type="text" 
+                              className="form-control"
+                              placeholder={`Add task to ${category.name}...`}
+                            />
+                            <button type="submit" className="btn btn-primary">Add</button>
+                          </div>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Tasks Section */}
+                  <div className="category-detail-section">
+                    <div className="section-header">
+                      <h3 className="section-title">Active Tasks</h3>
+                      <span className="task-counter">{activeTasks.length}</span>
+                    </div>
+
+                    {activeTasks.length > 0 ? (
+                      <TaskList
+                        tasks={activeTasks}
+                        toggleTask={toggleTask}
+                        deleteTask={deleteTask}
+                        updateTask={updateTask}
+                        addSubtask={addSubtask}
+                        categories={categories}
+                        projects={projects}
+                      />
+                    ) : (
+                      <p className="empty-message">No active tasks in this category</p>
+                    )}
+                  </div>
+
+                  {/* Projects Section */}
+                  {projectsInCategory.length > 0 && (
+                    <div className="category-detail-section">
+                      <div className="section-header">
+                        <h3 className="section-title">Projects</h3>
+                        <span className="task-counter">{projectsInCategory.length}</span>
+                      </div>
+
+                      <div className="category-projects-grid">
+                        {projectsInCategory.map(project => {
+                          const projectTasks = tasks.filter(t => t.projectId === project.id);
+                          const completedCount = projectTasks.filter(t => t.status === 'completed').length;
+                          const activeCount = projectTasks.filter(t => t.status \!== 'completed').length;
+                          const progressPercentage = projectTasks.length > 0
+                            ? Math.round((completedCount / projectTasks.length) * 100)
+                            : 0;
+                            
+                          return (
+                            <div
+                              key={project.id}
+                              className="category-project-card"
+                              style={{ borderLeft: `4px solid ${project.color || category.color}` }}
+                              onClick={() => {
+                                setActiveTab('projects');
+                                setTimeout(() => {
+                                  const projectElement = document.getElementById(`project-${project.id}`);
+                                  if (projectElement) {
+                                    projectElement.scrollIntoView({ behavior: 'smooth' });
+                                    projectElement.classList.add('highlight');
+                                    setTimeout(() => projectElement.classList.remove('highlight'), 2000);
+                                  }
+                                }, 100);
+                              }}
+                            >
+                              <h4 className="project-title">{project.name}</h4>
+                              
+                              {/* Progress Bar */}
+                              <div className="project-progress-container">
+                                <div className="project-progress-bar">
+                                  <div 
+                                    className="project-progress-fill" 
+                                    style={{ 
+                                      width: `${progressPercentage}%`,
+                                      backgroundColor: project.color || category.color 
+                                    }}
+                                  ></div>
+                                </div>
+                                <div className="project-progress-text">{progressPercentage}% complete</div>
+                              </div>
+                              
+                              <div className="project-stats">
+                                <span className="task-count">{activeCount} active</span>
+                                {completedCount > 0 && (
+                                  <span className="completed-count">{completedCount} completed</span>
+                                )}
+                                {project.dueDate && (
+                                  <span className="due-date">
+                                    Due: {new Date(project.dueDate).toLocaleDateString(undefined, {
+                                      month: 'short',
+                                      day: 'numeric',
+                                      timeZone: 'UTC'
+                                    })}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Completed Tasks Section */}
+                  {completedTasks.length > 0 && (
+                    <div className="category-detail-section">
+                      <div className="section-header">
+                        <h3 className="section-title">Completed</h3>
+                        <span className="task-counter completed">{completedTasks.length}</span>
+                      </div>
+
+                      <TaskList
+                        tasks={completedTasks}
+                        toggleTask={toggleTask}
+                        deleteTask={deleteTask}
+                        updateTask={updateTask}
+                        addSubtask={addSubtask}
+                        categories={categories}
+                        projects={projects}
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
         </div>
       </main>
       
