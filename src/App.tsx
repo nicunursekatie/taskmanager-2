@@ -19,7 +19,7 @@ import { loadSampleData } from './utils/sampleData';
 import { clearAllData } from './utils/dataUtils';
 
 // Types
-import { Task, Category, Project } from './types';
+import { Task, Category, Project, PriorityLevel } from './types';
 
 // Hooks
 import { useTimeBlocks } from './hooks/useTimeBlocks';
@@ -614,7 +614,7 @@ function App() {
                               setEditTaskTitle(task.title);
                               setEditTaskDueDate(task.dueDate ? task.dueDate.split('T')[0] : '');
                               setEditTaskCategories(task.categories || []);
-                              setEditTaskProjectId(task.projectId);
+                              setEditTaskProjectId(task.projectId ?? null);
                               setShowTaskEditModal(true);
                             }}
                           >
@@ -750,8 +750,8 @@ function App() {
                                   setEditTaskTitle(task.title);
                                   setEditTaskDueDate(task.dueDate ? task.dueDate.split('T')[0] : '');
                                   setEditTaskCategories(task.categories || []);
-                                  setEditTaskProjectId(task.projectId);
-                                  setEditTaskPriority(task.priority);
+                                  setEditTaskProjectId(task.projectId ?? null);
+                                  setEditTaskPriority(task.priority ?? null);
                                   setShowTaskEditModal(true);
                                 }}
                                 style={{ cursor: 'pointer' }}
@@ -872,8 +872,8 @@ function App() {
                                   setEditTaskTitle(task.title);
                                   setEditTaskDueDate(task.dueDate ? task.dueDate.split('T')[0] : '');
                                   setEditTaskCategories(task.categories || []);
-                                  setEditTaskProjectId(task.projectId);
-                                  setEditTaskPriority(task.priority);
+                                  setEditTaskProjectId(task.projectId ?? null);
+                                  setEditTaskPriority(task.priority ?? null);
                                   setShowTaskEditModal(true);
                                 }}
                                 style={{ cursor: 'pointer' }}
@@ -939,8 +939,8 @@ function App() {
                             setEditTaskTitle(task.title);
                             setEditTaskDueDate(task.dueDate ? task.dueDate.split('T')[0] : '');
                             setEditTaskCategories(task.categories || []);
-                            setEditTaskProjectId(task.projectId);
-                            setEditTaskPriority(task.priority);
+                            setEditTaskProjectId(task.projectId ?? null);
+                            setEditTaskPriority(task.priority ?? null);
                             setShowTaskEditModal(true);
                           }}
                           style={{ cursor: 'pointer' }}

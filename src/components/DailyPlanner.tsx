@@ -1,5 +1,5 @@
 // src/components/DailyPlanner.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Task, TimeBlock, ContextTag } from '../types';
 import { syncToCalendar } from '../utils/calendarSync';
 
@@ -47,7 +47,6 @@ const DailyPlanner: React.FC<DailyPlannerProps> = ({
   tasks,
   timeBlocks,
   addTimeBlock,
-  updateTimeBlock,
   deleteTimeBlock,
   assignTaskToBlock,
   date,
@@ -58,7 +57,7 @@ const DailyPlanner: React.FC<DailyPlannerProps> = ({
   const [newBlockEnd, setNewBlockEnd] = useState('10:00');
   const [newBlockTitle, setNewBlockTitle] = useState('');
   const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
+  const [, setIsDragging] = useState(false);
   
   // Get available tasks (not completed and not already in a time block)
   const availableTasks = tasks.filter(task => 
