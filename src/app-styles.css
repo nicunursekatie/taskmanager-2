@@ -2876,7 +2876,7 @@ input[type="checkbox"] {
   transform: translateY(-1px) scale(0.98);
 }
 
-/* Category Summary section */
+/* Category Summary section - for single category view */
 .category-summary {
   display: flex;
   flex-direction: column;
