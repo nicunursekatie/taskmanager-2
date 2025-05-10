@@ -26,6 +26,11 @@ export type Project = {
   id: string;
   name: string;
   description?: string;
+  color?: string;
+  dueDate?: string | null;
+  priority?: PriorityLevel;
+  categoryIds?: string[];
+  status?: 'not-started' | 'in-progress' | 'on-hold' | 'completed';
 };
 
 // Category type

@@ -1255,6 +1255,7 @@ function App() {
       {showProjectManager && (
         <ProjectManager
           projects={projects}
+          categories={categories}
           addProject={addProject}
           updateProject={updateProject}
           deleteProject={deleteProject}
