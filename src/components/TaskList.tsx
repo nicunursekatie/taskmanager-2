@@ -145,7 +145,12 @@ export default function TaskList({
                 <button
                   className="btn btn-primary"
                   onClick={() => {
-                    updateTask(task.id, editTitle, editDueDate || null, editCategories, editProjectId);
+                    // Fix timezone issue by ensuring date is in consistent format
+                    let formattedDueDate = null;
+                    if (editDueDate) {
+                      formattedDueDate = `${editDueDate}T00:00:00Z`;
+                    }
+                    updateTask(task.id, editTitle, formattedDueDate, editCategories, editProjectId);
                     setEditingId(null);
                   }}
                 >
@@ -221,7 +226,13 @@ export default function TaskList({
               <div className="task-meta">
                 {task.dueDate && (
                   <span className="task-date">
-                    {new Date(task.dueDate).toLocaleDateString()}
+                    {/* Apply consistent date formatting with timezone handling */}
+                    {new Date(task.dueDate).toLocaleDateString(undefined, {
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric',
+                      timeZone: 'UTC'  // Use UTC to maintain consistent date
+                    })}
                   </span>
                 )}
                 

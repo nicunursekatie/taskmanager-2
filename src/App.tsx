@@ -275,15 +275,23 @@ function App() {
   // Handle task form submission with refs
   const handleTaskSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (titleInputRef.current && titleInputRef.current.value.trim()) {
       const title = titleInputRef.current.value.trim();
-      const dueDate = dateInputRef.current && dateInputRef.current.value 
-        ? `${dateInputRef.current.value}T${timeInputRef.current?.value || '00:00:00'}` 
-        : null;
-      
+      let dueDate = null;
+
+      // Fix timezone issue by ensuring date is in local timezone
+      if (dateInputRef.current && dateInputRef.current.value) {
+        // Create a date with timezone adjustment to prevent off-by-one day issue
+        const dateValue = dateInputRef.current.value; // YYYY-MM-DD
+        const timeValue = timeInputRef.current?.value || '00:00:00'; // HH:MM:SS
+
+        // Create the date string using T separator with Z to indicate UTC
+        dueDate = `${dateValue}T${timeValue}Z`;
+      }
+
       addTask(title, dueDate, newParent);
-      
+
       // Clear inputs
       titleInputRef.current.value = '';
       if (dateInputRef.current) dateInputRef.current.value = '';
@@ -291,22 +299,40 @@ function App() {
     }
   };
 
-  // Filter tasks by due date for different sections
+  // Filter tasks by due date for different sections with proper timezone handling
   const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
-  const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).toISOString();
-  const nextWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 7).toISOString();
+  // Create date objects without time component to avoid timezone issues
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const tomorrowStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+  const nextWeekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 7);
+
+  // Helper function to compare dates properly, accounting for timezone
+  const isDateBefore = (taskDate: string, compareDate: Date): boolean => {
+    if (!taskDate) return false;
+
+    // Parse the task date and normalize to start of day
+    const date = new Date(taskDate);
+    return date < compareDate;
+  };
+
+  const isDateBetween = (taskDate: string, startDate: Date, endDate: Date): boolean => {
+    if (!taskDate) return false;
+
+    // Parse the task date and normalize to UTC
+    const date = new Date(taskDate);
+    return date >= startDate && date < endDate;
+  };
 
   const overdueTasks = tasks.filter(
-    task => task.dueDate && task.dueDate < today && task.status !== 'completed'
+    task => task.dueDate && isDateBefore(task.dueDate, todayStart) && task.status !== 'completed'
   );
 
   const todayTasks = tasks.filter(
-    task => task.dueDate && task.dueDate >= today && task.dueDate < tomorrow && task.status !== 'completed'
+    task => task.dueDate && isDateBetween(task.dueDate, todayStart, tomorrowStart) && task.status !== 'completed'
   );
 
   const upcomingTasks = tasks.filter(
-    task => task.dueDate && task.dueDate >= tomorrow && task.dueDate < nextWeek && task.status !== 'completed'
+    task => task.dueDate && isDateBetween(task.dueDate, tomorrowStart, nextWeekStart) && task.status !== 'completed'
   );
 
   const completedTasks = tasks.filter(
@@ -616,7 +642,7 @@ function App() {
                             <span className="next-due-label">Next due:</span>
                             <span className="next-due-date">
                               {new Date(nearestDueDate.dueDate).toLocaleDateString('en-US',
-                                { weekday: 'short', month: 'short', day: 'numeric' })}
+                                { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' })}
                             </span>
                             <span className="next-due-task">{nearestDueDate.title}</span>
                           </div>
@@ -646,8 +672,12 @@ function App() {
                               >
                                 <span className="mini-task-title">{task.title}</span>
                                 {task.dueDate && (
-                                  <span className={`mini-task-due-date ${new Date(task.dueDate) < new Date() ? 'overdue' : ''}`}>
-                                    {new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                  <span className={`mini-task-due-date ${new Date(task.dueDate + 'Z') < new Date() ? 'overdue' : ''}`}>
+                                    {new Date(task.dueDate).toLocaleDateString('en-US', {
+                                      month: 'short',
+                                      day: 'numeric',
+                                      timeZone: 'UTC'  // Use UTC to maintain consistent date
+                                    })}
                                   </span>
                                 )}
                               </div>
@@ -763,8 +793,12 @@ function App() {
                               >
                                 <span className="mini-task-title">{task.title}</span>
                                 {task.dueDate && (
-                                  <span className={`mini-task-due-date ${new Date(task.dueDate) < new Date() ? 'overdue' : ''}`}>
-                                    {new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                  <span className={`mini-task-due-date ${new Date(task.dueDate + 'Z') < new Date() ? 'overdue' : ''}`}>
+                                    {new Date(task.dueDate).toLocaleDateString('en-US', {
+                                      month: 'short',
+                                      day: 'numeric',
+                                      timeZone: 'UTC'  // Use UTC to maintain consistent date
+                                    })}
                                   </span>
                                 )}
                               </div>
@@ -1231,7 +1265,13 @@ function App() {
                 className="btn btn-primary"
                 onClick={() => {
                   if (editingTaskId && editTaskTitle.trim()) {
-                    updateTask(editingTaskId, editTaskTitle.trim(), editTaskDueDate || null, editTaskCategories, editTaskProjectId);
+                    // Fix timezone issue by ensuring date is in consistent format
+                    let formattedDueDate = null;
+                    if (editTaskDueDate) {
+                      formattedDueDate = `${editTaskDueDate}T00:00:00Z`;
+                    }
+
+                    updateTask(editingTaskId, editTaskTitle.trim(), formattedDueDate, editTaskCategories, editTaskProjectId);
                     setShowTaskEditModal(false);
                   }
                 }}
