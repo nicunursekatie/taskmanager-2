@@ -69,6 +69,7 @@ function App() {
   const [editTaskDueDate, setEditTaskDueDate] = useState<string>('');
   const [editTaskCategories, setEditTaskCategories] = useState<string[]>([]);
   const [editTaskProjectId, setEditTaskProjectId] = useState<string | null>(null);
+  const [editTaskPriority, setEditTaskPriority] = useState<PriorityLevel | null>(null);
   
   // Time blocks state
   const {
@@ -121,7 +122,8 @@ function App() {
     dueDate: string | null,
     parentId?: string,
     categoryIds?: string[],
-    projectId?: string | null
+    projectId?: string | null,
+    priority?: PriorityLevel
   ) => {
     const id = Date.now().toString();
     const newTask: Task = {
@@ -132,6 +134,7 @@ function App() {
       parentId,
       categories: categoryIds || [],
       projectId: projectId || null,
+      priority: priority || null,
     };
     setTasks(prev => [...prev, newTask]);
   };
@@ -182,7 +185,9 @@ function App() {
     title: string,
     dueDate: string | null,
     categoryIds?: string[],
-    projectId?: string | null
+    projectId?: string | null,
+    dependsOn?: string[],
+    priority?: PriorityLevel
   ) => {
     setTasks(prev =>
       prev.map(task =>
@@ -193,6 +198,7 @@ function App() {
               dueDate,
               categories: categoryIds || task.categories,
               projectId: projectId !== undefined ? projectId : task.projectId,
+              priority: priority !== undefined ? priority : task.priority,
             }
           : task
       )
@@ -342,9 +348,29 @@ function App() {
     task => task.dueDate && isDateBetween(task.dueDate, todayStart, tomorrowStart) && task.status !== 'completed'
   );
 
-  const upcomingTasks = tasks.filter(
-    task => task.dueDate && isDateBetween(task.dueDate, tomorrowStart, nextWeekStart) && task.status !== 'completed'
-  );
+  // Handle upcoming tasks differently to ensure we catch all tasks in the next 7 days
+  const upcomingTasks = tasks.filter(task => {
+    // Skip tasks with no due date or completed tasks
+    if (!task.dueDate || task.status === 'completed') return false;
+
+    // Skip tasks that are due today or overdue
+    if (isDateBefore(task.dueDate, todayStart) || isDateBetween(task.dueDate, todayStart, tomorrowStart)) {
+      return false;
+    }
+
+    // Parse the date with proper timezone handling
+    const dueDate = new Date(task.dueDate + 'Z');
+
+    // Get time in milliseconds for comparison
+    const taskTime = dueDate.getTime();
+    const tomorrowTime = tomorrowStart.getTime();
+
+    // Tasks due in the next 7 days (including the 7th day)
+    // 7 days * 24 hours * 60 minutes * 60 seconds * 1000 milliseconds = 604800000
+    const sevenDaysFromNow = tomorrowTime + (7 * 24 * 60 * 60 * 1000);
+
+    return taskTime >= tomorrowTime && taskTime <= sevenDaysFromNow;
+  });
 
   const completedTasks = tasks.filter(
     task => task.status === 'completed'
@@ -684,6 +710,7 @@ function App() {
                                   setEditTaskDueDate(task.dueDate ? task.dueDate.split('T')[0] : '');
                                   setEditTaskCategories(task.categories || []);
                                   setEditTaskProjectId(task.projectId);
+                                  setEditTaskPriority(task.priority);
                                   setShowTaskEditModal(true);
                                 }}
                                 style={{ cursor: 'pointer' }}
@@ -805,6 +832,7 @@ function App() {
                                   setEditTaskDueDate(task.dueDate ? task.dueDate.split('T')[0] : '');
                                   setEditTaskCategories(task.categories || []);
                                   setEditTaskProjectId(task.projectId);
+                                  setEditTaskPriority(task.priority);
                                   setShowTaskEditModal(true);
                                 }}
                                 style={{ cursor: 'pointer' }}
@@ -871,6 +899,7 @@ function App() {
                             setEditTaskDueDate(task.dueDate ? task.dueDate.split('T')[0] : '');
                             setEditTaskCategories(task.categories || []);
                             setEditTaskProjectId(task.projectId);
+                            setEditTaskPriority(task.priority);
                             setShowTaskEditModal(true);
                           }}
                           style={{ cursor: 'pointer' }}
@@ -1275,6 +1304,20 @@ function App() {
                     ))}
                   </select>
                 </div>
+
+                <div className="input-group">
+                  <label className="form-label">Priority</label>
+                  <select
+                    className="form-control"
+                    value={editTaskPriority || ''}
+                    onChange={(e) => setEditTaskPriority(e.target.value as PriorityLevel || null)}
+                  >
+                    <option value="">No Priority</option>
+                    <option value="must-do">Must Do</option>
+                    <option value="want-to-do">Want To Do</option>
+                    <option value="when-i-can">When I Can</option>
+                  </select>
+                </div>
               </div>
             </div>
 
@@ -1289,7 +1332,15 @@ function App() {
                       formattedDueDate = `${editTaskDueDate}T00:00:00Z`;
                     }
 
-                    updateTask(editingTaskId, editTaskTitle.trim(), formattedDueDate, editTaskCategories, editTaskProjectId);
+                    updateTask(
+                      editingTaskId,
+                      editTaskTitle.trim(),
+                      formattedDueDate,
+                      editTaskCategories,
+                      editTaskProjectId,
+                      undefined, // dependsOn parameter (not used here)
+                      editTaskPriority
+                    );
                     setShowTaskEditModal(false);
                   }
                 }}

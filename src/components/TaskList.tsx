@@ -16,6 +16,7 @@ export default function TaskList({
   const [editDueDate, setEditDueDate] = useState<string>('');
   const [editCategories, setEditCategories] = useState<string[]>([]);
   const [editProjectId, setEditProjectId] = useState<string | null>(null);
+  const [editPriority, setEditPriority] = useState<string | null>(null);
   
   // States for subtask creation
   const [addingSubtaskFor, setAddingSubtaskFor] = useState<string | null>(null);
@@ -65,17 +66,20 @@ export default function TaskList({
     const isCollapsed = collapsedTasks[task.id];
     const taskSubtasks = getSubtasks(task.id);
     const hasChildren = taskSubtasks.length > 0;
-    
+
     // Get the category color for the task's left border
-    const categoryColor = task.categories?.length 
+    const categoryColor = task.categories?.length
       ? categories.find(c => c.id === task.categories![0])?.color || '#666'
       : '#666';
-    
+
+    // Get priority class
+    const priorityClass = task.priority ? `priority-${task.priority}` : '';
+
     return (
       <div key={task.id} style={{ marginLeft: `${depth * 20}px` }}>
         <div
           id={`task-${task.id}`}
-          className={`task-item ${task.status === 'completed' ? 'completed' : ''}`}
+          className={`task-item ${task.status === 'completed' ? 'completed' : ''} ${priorityClass}`}
           style={{
             borderLeft: hasChildren ? `4px solid ${categoryColor}` : undefined
           }}
@@ -127,7 +131,7 @@ export default function TaskList({
               
               <div className="input-group">
                 <label className="form-label">Project</label>
-                <select 
+                <select
                   className="form-control"
                   value={editProjectId || ''}
                   onChange={(e) => setEditProjectId(e.target.value || null)}
@@ -140,6 +144,20 @@ export default function TaskList({
                   ))}
                 </select>
               </div>
+
+              <div className="input-group">
+                <label className="form-label">Priority</label>
+                <select
+                  className="form-control"
+                  value={editPriority || ''}
+                  onChange={(e) => setEditPriority(e.target.value || null)}
+                >
+                  <option value="">No Priority</option>
+                  <option value="must-do">Must Do</option>
+                  <option value="want-to-do">Want To Do</option>
+                  <option value="when-i-can">When I Can</option>
+                </select>
+              </div>
               
               <div className="flex justify-between gap-sm">
                 <button
@@ -150,7 +168,15 @@ export default function TaskList({
                     if (editDueDate) {
                       formattedDueDate = `${editDueDate}T00:00:00Z`;
                     }
-                    updateTask(task.id, editTitle, formattedDueDate, editCategories, editProjectId);
+                    updateTask(
+                      task.id,
+                      editTitle,
+                      formattedDueDate,
+                      editCategories,
+                      editProjectId,
+                      undefined, // dependsOn parameter (not changed)
+                      editPriority as any // pass priority
+                    );
                     setEditingId(null);
                   }}
                 >
@@ -194,6 +220,7 @@ export default function TaskList({
                       setEditDueDate(task.dueDate ? task.dueDate.split('T')[0] : '');
                       setEditCategories(task.categories || []);
                       setEditProjectId(task.projectId ?? null);
+                      setEditPriority(task.priority ?? null);
                     }}
                   >
                     {task.title}
@@ -235,8 +262,17 @@ export default function TaskList({
                     })}
                   </span>
                 )}
-                
-                {task.categories && task.categories.length > 0 && 
+
+                {/* Display priority indicator */}
+                {task.priority && (
+                  <span className={`task-priority ${task.priority}`}>
+                    {task.priority === 'must-do' ? 'Must Do' :
+                     task.priority === 'want-to-do' ? 'Want To Do' :
+                     'When I Can'}
+                  </span>
+                )}
+
+                {task.categories && task.categories.length > 0 &&
                   task.categories.map(categoryId => {
                     const category = categories.find(c => c.id === categoryId);
                     return category ? (
@@ -250,7 +286,7 @@ export default function TaskList({
                     ) : null;
                   })
                 }
-                
+
                 {task.projectId && (
                   <span className="task-project">
                     {projects.find(p => p.id === task.projectId)?.name || 'Unknown Project'}

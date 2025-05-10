@@ -11,12 +11,22 @@
   --warning-color: #f39c12;
   --danger-color: #e74c3c;
 
+  /* Priority colors */
+  --priority-must-do: #e74c3c;
+  --priority-want-to-do: #f39c12;
+  --priority-when-i-can: #3498db;
+
   /* Add color RGB values for transparency effects */
   --primary-color-rgb: 67, 97, 238;
   --accent-color-rgb: 247, 37, 133;
   --success-color-rgb: 46, 204, 113;
   --warning-color-rgb: 243, 156, 18;
   --danger-color-rgb: 231, 76, 60;
+
+  /* Priority RGB values */
+  --priority-must-do-rgb: 231, 76, 60;
+  --priority-want-to-do-rgb: 243, 156, 18;
+  --priority-when-i-can-rgb: 52, 152, 219;
 
   /* Neutral colors - higher contrast */
   --text-color: #222222;
@@ -735,6 +745,31 @@ body {
   background-color: rgba(var(--danger-color-rgb), 0.03);
 }
 
+/* Priority-based task styles */
+.task-item.priority-must-do {
+  border-left-color: var(--priority-must-do);
+  box-shadow: 0 2px 5px rgba(var(--priority-must-do-rgb), 0.15);
+}
+
+.task-item.priority-must-do:hover {
+  box-shadow: 0 4px 8px rgba(var(--priority-must-do-rgb), 0.2);
+}
+
+.task-item.priority-want-to-do {
+  border-left-color: var(--priority-want-to-do);
+}
+
+.task-item.priority-when-i-can {
+  border-left-color: var(--priority-when-i-can);
+}
+
+/* Combine priority with completion state */
+.task-item.completed.priority-must-do,
+.task-item.completed.priority-want-to-do,
+.task-item.completed.priority-when-i-can {
+  border-left-color: var(--success-color);
+}
+
 .task-header {
   display: flex;
   justify-content: space-between;
@@ -799,6 +834,55 @@ body {
   border-radius: 14px;
   background-color: rgba(67, 97, 238, 0.1);
   color: var(--primary-color);
+}
+
+.task-priority {
+  font-size: var(--font-size-xs);
+  padding: 2px 8px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  font-weight: 600;
+  gap: 4px;
+}
+
+.task-priority::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 4px;
+}
+
+.task-priority.must-do {
+  color: var(--priority-must-do);
+  background-color: rgba(var(--priority-must-do-rgb), 0.1);
+  border: 1px solid rgba(var(--priority-must-do-rgb), 0.3);
+}
+
+.task-priority.must-do::before {
+  background-color: var(--priority-must-do);
+}
+
+.task-priority.want-to-do {
+  color: var(--priority-want-to-do);
+  background-color: rgba(var(--priority-want-to-do-rgb), 0.1);
+  border: 1px solid rgba(var(--priority-want-to-do-rgb), 0.3);
+}
+
+.task-priority.want-to-do::before {
+  background-color: var(--priority-want-to-do);
+}
+
+.task-priority.when-i-can {
+  color: var(--priority-when-i-can);
+  background-color: rgba(var(--priority-when-i-can-rgb), 0.1);
+  border: 1px solid rgba(var(--priority-when-i-can-rgb), 0.3);
+}
+
+.task-priority.when-i-can::before {
+  background-color: var(--priority-when-i-can);
 }
 
 .subtasks {

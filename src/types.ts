@@ -79,12 +79,13 @@ export type TaskListProps = {
   toggleTask: (id: string) => void;
   deleteTask: (id: string) => void;
   updateTask: (
-    id: string, 
-    title: string, 
+    id: string,
+    title: string,
     dueDate: string | null,
     categories?: string[],
     projectId?: string | null,
-    dependsOn?: string[]
+    dependsOn?: string[],
+    priority?: PriorityLevel
   ) => void;
   addSubtask: (parentId: string, title: string) => void; // Add this line
   categories: Category[];
