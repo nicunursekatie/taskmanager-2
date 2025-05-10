@@ -295,15 +295,20 @@ function App() {
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
   const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).toISOString();
-  
+  const nextWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 7).toISOString();
+
   const overdueTasks = tasks.filter(
     task => task.dueDate && task.dueDate < today && task.status !== 'completed'
   );
-  
+
   const todayTasks = tasks.filter(
     task => task.dueDate && task.dueDate >= today && task.dueDate < tomorrow && task.status !== 'completed'
   );
-  
+
+  const upcomingTasks = tasks.filter(
+    task => task.dueDate && task.dueDate >= tomorrow && task.dueDate < nextWeek && task.status !== 'completed'
+  );
+
   const completedTasks = tasks.filter(
     task => task.status === 'completed'
   );
@@ -460,9 +465,9 @@ function App() {
           {activeTab === 'dashboard' && (
             <div className="dashboard-view">
               {/* Today's Tasks Section */}
-              {todayTasks.length > 0 && (
-                <div className="section-card today-tasks-card">
-                  <h2 className="section-title">Today's Tasks</h2>
+              <div className="section-card today-tasks-card">
+                <h2 className="section-title">Today's Tasks</h2>
+                {todayTasks.length > 0 ? (
                   <TaskList
                     tasks={todayTasks}
                     toggleTask={toggleTask}
@@ -472,6 +477,55 @@ function App() {
                     categories={categories}
                     projects={projects}
                   />
+                ) : (
+                  <p className="empty-message">No tasks due today.</p>
+                )}
+              </div>
+
+              {/* Upcoming Tasks Section */}
+              {upcomingTasks.length > 0 && (
+                <div className="section-card upcoming-tasks-card">
+                  <h2 className="section-title">Upcoming Tasks</h2>
+                  <div className="upcoming-tasks">
+                    {upcomingTasks.map(task => (
+                      <div key={task.id} className="upcoming-task-item">
+                        <div className="upcoming-task-info">
+                          <h3 className="upcoming-task-title">{task.title}</h3>
+                          <div className="upcoming-task-deadline">
+                            <span className="due-label">
+                              Due: {new Date(task.dueDate || '').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                            </span>
+                            {task.projectId && (
+                              <span className="upcoming-task-project">
+                                {projects.find(p => p.id === task.projectId)?.name}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="upcoming-task-actions">
+                          <button
+                            className="btn btn-sm btn-outline"
+                            onClick={() => {
+                              setEditingTaskId(task.id);
+                              setEditTaskTitle(task.title);
+                              setEditTaskDueDate(task.dueDate ? task.dueDate.split('T')[0] : '');
+                              setEditTaskCategories(task.categories || []);
+                              setEditTaskProjectId(task.projectId);
+                              setShowTaskEditModal(true);
+                            }}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className="btn btn-sm btn-primary"
+                            onClick={() => toggleTask(task.id)}
+                          >
+                            Complete
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
 
