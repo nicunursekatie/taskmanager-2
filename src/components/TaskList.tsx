@@ -1,6 +1,6 @@
 // src/components/TaskList.tsx
 import { useState } from 'react';
-import { Task, Subtask, TaskListProps, Category, Project } from '../types';
+import { Task, Subtask, TaskListProps, Category, Project, PriorityLevel } from '../types';
 
 export default function TaskList({
   tasks,
@@ -195,7 +195,10 @@ export default function TaskList({
                 <select
                   className="form-control"
                   value={editPriority || ''}
-                  onChange={(e) => setEditPriority(e.target.value || null)}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setEditPriority(value ? value as PriorityLevel : null);
+                  }}
                 >
                   <option value="">No Priority</option>
                   <option value="must-do">Must Do</option>
