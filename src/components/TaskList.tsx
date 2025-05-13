@@ -16,7 +16,8 @@ export default function TaskList({
   const [editDueDate, setEditDueDate] = useState<string>('');
   const [editCategories, setEditCategories] = useState<string[]>([]);
   const [editProjectId, setEditProjectId] = useState<string | null>(null);
-  const [editPriority, setEditPriority] = useState<string | null>(null);
+  const [editPriority, setEditPriority] = useState<PriorityLevel>(null);
+
   
   // States for subtask creation
   const [addingSubtaskFor, setAddingSubtaskFor] = useState<string | null>(null);
@@ -219,7 +220,7 @@ export default function TaskList({
                       editCategories,
                       editProjectId,
                       undefined, // dependsOn parameter (not changed)
-                      editPriority as any // pass priority
+                      editPriority // pass priority
                     );
                     setEditingId(null);
                   }}
