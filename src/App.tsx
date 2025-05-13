@@ -310,7 +310,7 @@ function App() {
         const timeValue = timeInputRef.current?.value || '00:00:00'; // HH:MM:SS
 
         // Create the date string using T separator with Z to indicate UTC
-        dueDate = `${dateValue}T${timeValue}Z`;
+        dueDate = `${dateValue}T${timeValue}`;
       }
 
       addTask(title, dueDate, newParent);
@@ -333,8 +333,8 @@ function App() {
   const isDateBefore = (taskDate: string, compareDate: Date): boolean => {
     if (!taskDate) return false;
 
-    // Parse the task date with UTC timezone
-    const date = new Date(taskDate + 'Z');
+    // Parse the task date
+    const date = new Date(taskDate);
 
     // Normalize to start of day for comparison (removing time component)
     const normalizedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
@@ -347,7 +347,8 @@ function App() {
     if (!taskDate) return false;
 
     // Parse the task date with UTC timezone
-    const date = new Date(taskDate + 'Z');
+    // Parse the task date
+    const date = new Date(taskDate);
 
     // Normalize to start of day for comparison (removing time component)
     const normalizedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
@@ -367,20 +368,29 @@ function App() {
 
   // NEW APPROACH: Handle upcoming tasks - directly check dates for May 11 through May 17
   const upcomingTasks = tasks.filter(task => {
-    // Skip tasks with no due date or completed tasks
-    if (!task.dueDate || task.status === 'completed') return false;
+  // Skip tasks with no due date or completed tasks
+  if (!task.dueDate || task.status === 'completed') return false;
 
-    // Skip tasks that are due today or overdue
-    if (isDateBefore(task.dueDate, todayStart) || isDateBetween(task.dueDate, todayStart, tomorrowStart)) {
-      return false;
-    }
+  // Skip tasks that are due today or overdue
+  if (isDateBefore(task.dueDate, todayStart) || isDateBetween(task.dueDate, todayStart, tomorrowStart)) {
+    return false;
+  }
 
-    // Parse the date and extract just the date part (YYYY-MM-DD)
-    const dateStr = task.dueDate.split('T')[0];
+  // Get the current date to calculate the upcoming week
+  const today = new Date();
+  const nextWeek = new Date(today);
+  nextWeek.setDate(today.getDate() + 7);
+  
+  // Convert to YYYY-MM-DD format for comparison
+  const todayStr = today.toISOString().split('T')[0];
+  const nextWeekStr = nextWeek.toISOString().split('T')[0];
+  
+  // Parse the date and extract just the date part (YYYY-MM-DD)
+  const dateStr = task.dueDate.split('T')[0];
 
-    // Today is May 10, 2025, so upcoming dates are May 11-17
-    return dateStr >= '2025-05-11' && dateStr <= '2025-05-17';
-  });
+  // Check if the task falls within the next 7 days
+  return dateStr >= todayStr && dateStr <= nextWeekStr;
+});
 
   const completedTasks = tasks.filter(
     task => task.status === 'completed'
@@ -597,7 +607,7 @@ function App() {
                           <h3 className="upcoming-task-title">{task.title}</h3>
                           <div className="upcoming-task-deadline">
                             <span className="due-label">
-                              Due: {new Date(task.dueDate || '').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' })}
+                              Due: {new Date(task.dueDate || '').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
                             </span>
                             {task.projectId && (
                               <span className="upcoming-task-project">
@@ -727,7 +737,7 @@ function App() {
                             <span className="next-due-label">Next due:</span>
                             <span className="next-due-date">
                               {new Date(nearestDueDate.dueDate).toLocaleDateString('en-US',
-                                { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' })}
+                                { weekday: 'short', month: 'short', day: 'numeric'})}
                             </span>
                             <span className="next-due-task">{nearestDueDate.title}</span>
                           </div>
@@ -761,8 +771,7 @@ function App() {
                                   <span className={`mini-task-due-date ${isDateBefore(task.dueDate, todayStart) ? 'overdue' : ''}`}>
                                     {new Date(task.dueDate).toLocaleDateString('en-US', {
                                       month: 'short',
-                                      day: 'numeric',
-                                      timeZone: 'UTC'  // Use UTC to maintain consistent date
+                                      day: 'numeric',  // Use UTC to maintain consistent date
                                     })}
                                   </span>
                                 )}
