@@ -38,22 +38,21 @@ export default function CaptureBar({
     const trimmed = text.trim();
     if (!trimmed) return;
 
-    // Combine date and time if provided
-    const dateTime = dueDate
-      ? dueTime
-        ? `${dueDate}T${dueTime}`
-        : `${dueDate}T00:00:00`
-      : null;
+    // Prepare the date string without automatically adding a time component if none is provided
+    let dateValue = null;
+    if (dueDate) {
+      // Only add the time component if a time is actually provided
+      dateValue = dueTime ? `${dueDate}T${dueTime}` : dueDate;
+    }
 
     // Add the task
     addTask(
       trimmed,
-      dateTime,
+      dateValue,
       newParent,
-      selectedCategories.length > 0 ? selectedCategories : undefined,  // <-- array of IDs
-      /* (optional) projectId here if you added it */
+      selectedCategories.length > 0 ? selectedCategories : undefined,
+      projectId, // Include the project ID
     );
-    
 
     // Reset form fields
     setText('');

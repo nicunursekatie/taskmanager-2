@@ -78,6 +78,7 @@ function App() {
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [editTaskTitle, setEditTaskTitle] = useState('');
   const [editTaskDueDate, setEditTaskDueDate] = useState<string>('');
+  const [editTaskDueTime, setEditTaskDueTime] = useState<string>('');
   const [editTaskCategories, setEditTaskCategories] = useState<string[]>([]);
   const [editTaskProjectId, setEditTaskProjectId] = useState<string | null>(null);
   const [editTaskPriority, setEditTaskPriority] = useState<PriorityLevel | null>(null);
@@ -137,10 +138,23 @@ function App() {
     priority?: PriorityLevel
   ) => {
     const id = Date.now().toString();
+
+    // Extract time if it's included in the date string
+    let dueTime = null;
+    let dateOnly = dueDate;
+
+    if (dueDate && dueDate.includes('T')) {
+      // If there's a "T" separator, extract the time part
+      const [datePart, timePart] = dueDate.split('T');
+      dateOnly = datePart;
+      dueTime = timePart;
+    }
+
     const newTask: Task = {
       id,
       title,
-      dueDate,
+      dueDate: dateOnly,
+      dueTime,
       status: 'pending',
       parentId,
       categories: categoryIds || [],
@@ -154,12 +168,12 @@ function App() {
   const addSubtask = (parentId: string, title: string) => {
     // Get parent task to inherit properties
     const parentTask = tasks.find(t => t.id === parentId);
-    
+
     if (!parentTask) {
       console.error("Parent task not found");
       return;
     }
-    
+
     const newSubtask: Task = {
       id: Date.now().toString(),
       title,
@@ -167,10 +181,11 @@ function App() {
       parentId, // Set the parent ID
       // Inherit properties from parent
       dueDate: parentTask.dueDate, // Inherit due date from parent
+      dueTime: parentTask.dueTime, // Inherit due time from parent
       projectId: parentTask.projectId, // Inherit project from parent
       categories: parentTask.categories, // Inherit categories from parent
     };
-    
+
     setTasks(prev => [...prev, newSubtask]);
   };
 
@@ -200,13 +215,25 @@ function App() {
     dependsOn?: string[],
     priority?: PriorityLevel
   ) => {
+    // Extract time if it's included in the date string
+    let dueTime = null;
+    let dateOnly = dueDate;
+
+    if (dueDate && dueDate.includes('T')) {
+      // If there's a "T" separator, extract the time part
+      const [datePart, timePart] = dueDate.split('T');
+      dateOnly = datePart;
+      dueTime = timePart;
+    }
+
     setTasks(prev =>
       prev.map(task =>
         task.id === id
           ? {
               ...task,
               title,
-              dueDate,
+              dueDate: dateOnly,
+              dueTime,
               categories: categoryIds || task.categories,
               projectId: projectId !== undefined ? projectId : task.projectId,
               priority: priority !== undefined ? priority : task.priority,
@@ -612,7 +639,8 @@ function App() {
                             onClick={() => {
                               setEditingTaskId(task.id);
                               setEditTaskTitle(task.title);
-                              setEditTaskDueDate(task.dueDate ? task.dueDate.split('T')[0] : '');
+                              setEditTaskDueDate(task.dueDate || '');
+                              setEditTaskDueTime(task.dueTime || '');
                               setEditTaskCategories(task.categories || []);
                               setEditTaskProjectId(task.projectId);
                               setShowTaskEditModal(true);
@@ -748,7 +776,8 @@ function App() {
                                   // Set up task edit modal
                                   setEditingTaskId(task.id);
                                   setEditTaskTitle(task.title);
-                                  setEditTaskDueDate(task.dueDate ? task.dueDate.split('T')[0] : '');
+                                  setEditTaskDueDate(task.dueDate || '');
+                                  setEditTaskDueTime(task.dueTime || '');
                                   setEditTaskCategories(task.categories || []);
                                   setEditTaskProjectId(task.projectId);
                                   setEditTaskPriority(task.priority);
@@ -870,7 +899,8 @@ function App() {
                                   // Set up task edit modal
                                   setEditingTaskId(task.id);
                                   setEditTaskTitle(task.title);
-                                  setEditTaskDueDate(task.dueDate ? task.dueDate.split('T')[0] : '');
+                                  setEditTaskDueDate(task.dueDate || '');
+                                  setEditTaskDueTime(task.dueTime || '');
                                   setEditTaskCategories(task.categories || []);
                                   setEditTaskProjectId(task.projectId);
                                   setEditTaskPriority(task.priority);
@@ -937,7 +967,8 @@ function App() {
                             // Set up task edit modal
                             setEditingTaskId(task.id);
                             setEditTaskTitle(task.title);
-                            setEditTaskDueDate(task.dueDate ? task.dueDate.split('T')[0] : '');
+                            setEditTaskDueDate(task.dueDate || '');
+                            setEditTaskDueTime(task.dueTime || '');
                             setEditTaskCategories(task.categories || []);
                             setEditTaskProjectId(task.projectId);
                             setEditTaskPriority(task.priority);
@@ -1560,13 +1591,22 @@ function App() {
                 </div>
 
                 <div className="input-group">
-                  <label className="form-label">Due Date</label>
-                  <input
-                    type="date"
-                    className="form-control"
-                    value={editTaskDueDate}
-                    onChange={e => setEditTaskDueDate(e.target.value)}
-                  />
+                  <label className="form-label">Due Date & Time</label>
+                  <div className="date-time-flex">
+                    <input
+                      type="date"
+                      className="form-control"
+                      value={editTaskDueDate}
+                      onChange={e => setEditTaskDueDate(e.target.value)}
+                    />
+                    <input
+                      type="time"
+                      className="form-control"
+                      value={editTaskDueTime}
+                      onChange={e => setEditTaskDueTime(e.target.value)}
+                      placeholder="Optional time"
+                    />
+                  </div>
                   <div className="date-shortcuts">
                     <button
                       type="button"
@@ -1606,7 +1646,10 @@ function App() {
                     <button
                       type="button"
                       className="date-shortcut-btn"
-                      onClick={() => setEditTaskDueDate('')}
+                      onClick={() => {
+                        setEditTaskDueDate('');
+                        setEditTaskDueTime('');
+                      }}
                     >
                       No Date
                     </button>
@@ -1675,10 +1718,12 @@ function App() {
                 className="btn btn-primary"
                 onClick={() => {
                   if (editingTaskId && editTaskTitle.trim()) {
-                    // Fix timezone issue by ensuring date is in consistent format
+                    // Format date based on whether time is provided
                     let formattedDueDate = null;
                     if (editTaskDueDate) {
-                      formattedDueDate = `${editTaskDueDate}T00:00:00Z`;
+                      formattedDueDate = editTaskDueTime
+                        ? `${editTaskDueDate}T${editTaskDueTime}`
+                        : editTaskDueDate;
                     }
 
                     updateTask(

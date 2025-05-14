@@ -46,7 +46,8 @@ export type PriorityLevel = 'must-do' | 'want-to-do' | 'when-i-can' | null;
 export type Task = {
   id: string;
   title: string;
-  dueDate?: string | null;
+  dueDate?: string | null; // ISO date string with or without time: "YYYY-MM-DD" or "YYYY-MM-DDTHH:MM:SS"
+  dueTime?: string | null; // Optional time component: "HH:MM"
   status: 'pending' | 'completed';
   parentId?: string | null;
   projectId?: string | null;

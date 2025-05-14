@@ -14,6 +14,7 @@ export default function TaskList({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
   const [editDueDate, setEditDueDate] = useState<string>('');
+  const [editDueTime, setEditDueTime] = useState<string>('');
   const [editCategories, setEditCategories] = useState<string[]>([]);
   const [editProjectId, setEditProjectId] = useState<string | null>(null);
   const [editPriority, setEditPriority] = useState<string | null>(null);
@@ -96,12 +97,21 @@ export default function TaskList({
               
               <div className="input-group">
                 <label className="form-label">Due Date</label>
-                <input
-                  type="date"
-                  className="form-control"
-                  value={editDueDate}
-                  onChange={e => setEditDueDate(e.target.value)}
-                />
+                <div className="date-time-inputs">
+                  <input
+                    type="date"
+                    className="form-control"
+                    value={editDueDate}
+                    onChange={e => setEditDueDate(e.target.value)}
+                  />
+                  <input
+                    type="time"
+                    className="form-control"
+                    value={editDueTime}
+                    onChange={e => setEditDueTime(e.target.value)}
+                    placeholder="Optional time"
+                  />
+                </div>
                 <div className="date-shortcuts">
                   <button
                     type="button"
@@ -141,7 +151,10 @@ export default function TaskList({
                   <button
                     type="button"
                     className="date-shortcut-btn"
-                    onClick={() => setEditDueDate('')}
+                    onClick={() => {
+                      setEditDueDate('');
+                      setEditDueTime('');
+                    }}
                   >
                     No Date
                   </button>
@@ -207,10 +220,13 @@ export default function TaskList({
                 <button
                   className="btn btn-primary"
                   onClick={() => {
-                    // Fix timezone issue by ensuring date is in consistent format
+                    // Format the date based on whether time is provided
                     let formattedDueDate = null;
                     if (editDueDate) {
-                      formattedDueDate = `${editDueDate}T00:00:00Z`;
+                      // Only add time if it's provided
+                      formattedDueDate = editDueTime
+                        ? `${editDueDate}T${editDueTime}`
+                        : editDueDate;
                     }
                     updateTask(
                       task.id,
@@ -261,7 +277,8 @@ export default function TaskList({
                     onClick={() => {
                       setEditingId(task.id);
                       setEditTitle(task.title);
-                      setEditDueDate(task.dueDate ? task.dueDate.split('T')[0] : '');
+                      setEditDueDate(task.dueDate || '');
+                      setEditDueTime(task.dueTime || '');
                       setEditCategories(task.categories || []);
                       setEditProjectId(task.projectId ?? null);
                       setEditPriority(task.priority ?? null);
@@ -301,9 +318,14 @@ export default function TaskList({
                     {new Date(task.dueDate).toLocaleDateString(undefined, {
                       year: 'numeric',
                       month: 'short',
-                      day: 'numeric',
-                      timeZone: 'UTC'  // Use UTC to maintain consistent date
+                      day: 'numeric'
                     })}
+                    {task.dueTime && (
+                      <span className="task-time">
+                        {" at "}
+                        {task.dueTime.substring(0, 5)}
+                      </span>
+                    )}
                   </span>
                 )}
 

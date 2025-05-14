@@ -2999,3 +2999,25 @@ input[type="checkbox"] {
     min-height: 180px;
   }
 }
+
+/* Date-time inputs styling */
+.date-time-inputs, .date-time-flex {
+  display: flex;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-sm);
+}
+
+.date-time-inputs input[type="date"],
+.date-time-flex input[type="date"] {
+  flex: 2;
+}
+
+.date-time-inputs input[type="time"],
+.date-time-flex input[type="time"] {
+  flex: 1;
+}
+
+.task-time {
+  color: var(--text-light);
+  font-size: 0.9em;
+}
