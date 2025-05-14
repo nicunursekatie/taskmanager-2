@@ -1,6 +1,6 @@
 // src/components/TaskList.tsx
 import { useState } from 'react';
-import { Task, Subtask, TaskListProps, Category, Project } from '../types';
+import { Task, Subtask, TaskListProps, Category, Project, PriorityLevel } from '../types';
 
 export default function TaskList({
   tasks,
@@ -17,7 +17,8 @@ export default function TaskList({
   const [editDueTime, setEditDueTime] = useState<string>('');
   const [editCategories, setEditCategories] = useState<string[]>([]);
   const [editProjectId, setEditProjectId] = useState<string | null>(null);
-  const [editPriority, setEditPriority] = useState<string | null>(null);
+  const [editPriority, setEditPriority] = useState<PriorityLevel>(null);
+
   
   // States for subtask creation
   const [addingSubtaskFor, setAddingSubtaskFor] = useState<string | null>(null);
@@ -207,7 +208,10 @@ export default function TaskList({
                 <select
                   className="form-control"
                   value={editPriority || ''}
-                  onChange={(e) => setEditPriority(e.target.value || null)}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setEditPriority(value ? value as PriorityLevel : null);
+                  }}
                 >
                   <option value="">No Priority</option>
                   <option value="must-do">Must Do</option>
@@ -235,7 +239,7 @@ export default function TaskList({
                       editCategories,
                       editProjectId,
                       undefined, // dependsOn parameter (not changed)
-                      editPriority as any // pass priority
+                      editPriority // pass priority
                     );
                     setEditingId(null);
                   }}

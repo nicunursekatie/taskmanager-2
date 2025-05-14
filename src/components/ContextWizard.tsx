@@ -46,7 +46,7 @@ const ContextWizard: React.FC<ContextWizardProps> = ({ tasks, onClose, generalTa
     if (!timeSelected || !energySelected) return [];
     
     let filteredTasks = [...pendingTasks];
-    let availableTime = parseInt(timeSelected);
+    const availableTime = parseInt(timeSelected);
     
     // Filter by time available
     if (availableTime <= 10) {

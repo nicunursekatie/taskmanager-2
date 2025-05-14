@@ -19,7 +19,7 @@ import { loadSampleData } from './utils/sampleData';
 import { clearAllData } from './utils/dataUtils';
 
 // Types
-import { Task, Category, Project } from './types';
+import { Task, Category, Project, PriorityLevel } from './types';
 
 // Hooks
 import { useTimeBlocks } from './hooks/useTimeBlocks';
@@ -337,7 +337,7 @@ function App() {
         const timeValue = timeInputRef.current?.value || '00:00:00'; // HH:MM:SS
 
         // Create the date string using T separator with Z to indicate UTC
-        dueDate = `${dateValue}T${timeValue}Z`;
+        dueDate = `${dateValue}T${timeValue}`;
       }
 
       addTask(title, dueDate, newParent);
@@ -360,8 +360,8 @@ function App() {
   const isDateBefore = (taskDate: string, compareDate: Date): boolean => {
     if (!taskDate) return false;
 
-    // Parse the task date with UTC timezone
-    const date = new Date(taskDate + 'Z');
+    // Parse the task date
+    const date = new Date(taskDate);
 
     // Normalize to start of day for comparison (removing time component)
     const normalizedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
@@ -374,7 +374,8 @@ function App() {
     if (!taskDate) return false;
 
     // Parse the task date with UTC timezone
-    const date = new Date(taskDate + 'Z');
+    // Parse the task date
+    const date = new Date(taskDate);
 
     // Normalize to start of day for comparison (removing time component)
     const normalizedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
@@ -394,20 +395,29 @@ function App() {
 
   // NEW APPROACH: Handle upcoming tasks - directly check dates for May 11 through May 17
   const upcomingTasks = tasks.filter(task => {
-    // Skip tasks with no due date or completed tasks
-    if (!task.dueDate || task.status === 'completed') return false;
+  // Skip tasks with no due date or completed tasks
+  if (!task.dueDate || task.status === 'completed') return false;
 
-    // Skip tasks that are due today or overdue
-    if (isDateBefore(task.dueDate, todayStart) || isDateBetween(task.dueDate, todayStart, tomorrowStart)) {
-      return false;
-    }
+  // Skip tasks that are due today or overdue
+  if (isDateBefore(task.dueDate, todayStart) || isDateBetween(task.dueDate, todayStart, tomorrowStart)) {
+    return false;
+  }
 
-    // Parse the date and extract just the date part (YYYY-MM-DD)
-    const dateStr = task.dueDate.split('T')[0];
+  // Get the current date to calculate the upcoming week
+  const today = new Date();
+  const nextWeek = new Date(today);
+  nextWeek.setDate(today.getDate() + 7);
+  
+  // Convert to YYYY-MM-DD format for comparison
+  const todayStr = today.toISOString().split('T')[0];
+  const nextWeekStr = nextWeek.toISOString().split('T')[0];
+  
+  // Parse the date and extract just the date part (YYYY-MM-DD)
+  const dateStr = task.dueDate.split('T')[0];
 
-    // Today is May 10, 2025, so upcoming dates are May 11-17
-    return dateStr >= '2025-05-11' && dateStr <= '2025-05-17';
-  });
+  // Check if the task falls within the next 7 days
+  return dateStr >= todayStr && dateStr <= nextWeekStr;
+});
 
   const completedTasks = tasks.filter(
     task => task.status === 'completed'
@@ -624,7 +634,7 @@ function App() {
                           <h3 className="upcoming-task-title">{task.title}</h3>
                           <div className="upcoming-task-deadline">
                             <span className="due-label">
-                              Due: {new Date(task.dueDate || '').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' })}
+                              Due: {new Date(task.dueDate || '').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
                             </span>
                             {task.projectId && (
                               <span className="upcoming-task-project">
@@ -642,7 +652,7 @@ function App() {
                               setEditTaskDueDate(task.dueDate || '');
                               setEditTaskDueTime(task.dueTime || '');
                               setEditTaskCategories(task.categories || []);
-                              setEditTaskProjectId(task.projectId);
+                              setEditTaskProjectId(task.projectId ?? null);
                               setShowTaskEditModal(true);
                             }}
                           >
@@ -755,7 +765,7 @@ function App() {
                             <span className="next-due-label">Next due:</span>
                             <span className="next-due-date">
                               {new Date(nearestDueDate.dueDate).toLocaleDateString('en-US',
-                                { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' })}
+                                { weekday: 'short', month: 'short', day: 'numeric'})}
                             </span>
                             <span className="next-due-task">{nearestDueDate.title}</span>
                           </div>
@@ -779,8 +789,8 @@ function App() {
                                   setEditTaskDueDate(task.dueDate || '');
                                   setEditTaskDueTime(task.dueTime || '');
                                   setEditTaskCategories(task.categories || []);
-                                  setEditTaskProjectId(task.projectId);
-                                  setEditTaskPriority(task.priority);
+                                  setEditTaskProjectId(task.projectId ?? null);
+                                  setEditTaskPriority(task.priority ?? null);
                                   setShowTaskEditModal(true);
                                 }}
                                 style={{ cursor: 'pointer' }}
@@ -790,8 +800,7 @@ function App() {
                                   <span className={`mini-task-due-date ${isDateBefore(task.dueDate, todayStart) ? 'overdue' : ''}`}>
                                     {new Date(task.dueDate).toLocaleDateString('en-US', {
                                       month: 'short',
-                                      day: 'numeric',
-                                      timeZone: 'UTC'  // Use UTC to maintain consistent date
+                                      day: 'numeric',  // Use UTC to maintain consistent date
                                     })}
                                   </span>
                                 )}
@@ -902,8 +911,8 @@ function App() {
                                   setEditTaskDueDate(task.dueDate || '');
                                   setEditTaskDueTime(task.dueTime || '');
                                   setEditTaskCategories(task.categories || []);
-                                  setEditTaskProjectId(task.projectId);
-                                  setEditTaskPriority(task.priority);
+                                  setEditTaskProjectId(task.projectId ?? null);
+                                  setEditTaskPriority(task.priority ?? null);
                                   setShowTaskEditModal(true);
                                 }}
                                 style={{ cursor: 'pointer' }}
@@ -970,8 +979,8 @@ function App() {
                             setEditTaskDueDate(task.dueDate || '');
                             setEditTaskDueTime(task.dueTime || '');
                             setEditTaskCategories(task.categories || []);
-                            setEditTaskProjectId(task.projectId);
-                            setEditTaskPriority(task.priority);
+                            setEditTaskProjectId(task.projectId ?? null);
+                            setEditTaskPriority(task.priority ?? null);
                             setShowTaskEditModal(true);
                           }}
                           style={{ cursor: 'pointer' }}
@@ -1208,7 +1217,7 @@ function App() {
                 <div className="category-cards-grid">
                   {categories.map(category => {
                     // Calculate task counts for this category
-                    const activeTasks = tasks.filter(t => t.categories?.includes(category.id) && t.status \!== 'completed').length;
+                    const activeTasks = tasks.filter(t => t.categories?.includes(category.id) && t.status !== 'completed').length;
                     const completedTasks = tasks.filter(t => t.categories?.includes(category.id) && t.status === 'completed').length;
                     const totalTasks = activeTasks + completedTasks;
 
@@ -1230,7 +1239,7 @@ function App() {
 
                     // Find the most recent active task (if any)
                     const recentTasks = tasks
-                      .filter(t => t.categories?.includes(category.id) && t.status \!== 'completed')
+                      .filter(t => t.categories?.includes(category.id) && t.status !== 'completed')
                       .sort((a, b) => Number(b.id) - Number(a.id))
                       .slice(0, 1);
 
@@ -1319,11 +1328,11 @@ function App() {
           )}
 
           {/* Categories View - Single Category Detail View */}
-          {activeTab === 'categories' && selectedCategoryId \!== null && (() => {
+          {activeTab === 'categories' && selectedCategoryId !== null && (() => {
             const category = categories.find(c => c.id === selectedCategoryId);
-            if (\!category) return null;
+            if (!category) return null;
 
-            const activeTasks = tasks.filter(t => t.categories?.includes(category.id) && t.status \!== 'completed');
+            const activeTasks = tasks.filter(t => t.categories?.includes(category.id) && t.status !== 'completed');
             const completedTasks = tasks.filter(t => t.categories?.includes(category.id) && t.status === 'completed');
             const projectsInCategory = projects.filter(project =>
               project.categoryIds && project.categoryIds.includes(category.id)
@@ -1434,7 +1443,7 @@ function App() {
                         {projectsInCategory.map(project => {
                           const projectTasks = tasks.filter(t => t.projectId === project.id);
                           const completedCount = projectTasks.filter(t => t.status === 'completed').length;
-                          const activeCount = projectTasks.filter(t => t.status \!== 'completed').length;
+                          const activeCount = projectTasks.filter(t => t.status !== 'completed').length;
                           const progressPercentage = projectTasks.length > 0
                             ? Math.round((completedCount / projectTasks.length) * 100)
                             : 0;
