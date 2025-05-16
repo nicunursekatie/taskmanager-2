@@ -3,6 +3,8 @@ import { useState, useEffect, useRef } from 'react';
 import './styles/calendar-view.css';
 import './compact-styles.css';
 import './app-styles.css';
+import './styles/delete-btn.css';
+import './styles/calendar-dark-mode.css';
 
 // Component imports
 import TaskList from './components/TaskList';
