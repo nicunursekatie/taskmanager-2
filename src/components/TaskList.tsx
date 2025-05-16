@@ -1,6 +1,8 @@
 // src/components/TaskList.tsx
 import { useState } from 'react';
 import { Task, Subtask, TaskListProps, Category, Project, PriorityLevel } from '../types';
+import TaskBreakdown from './TaskBreakdown';
+import TimeEstimator from './TimeEstimator';
 
 export default function TaskList({
   tasks,
@@ -8,6 +10,9 @@ export default function TaskList({
   deleteTask,
   updateTask,
   addSubtask,
+  updateTaskEstimate,
+  startTaskTimer,
+  completeTaskTimer,
   categories,
   projects,
 }: TaskListProps) {
@@ -81,9 +86,9 @@ export default function TaskList({
       <div key={task.id} style={{ marginLeft: `${depth * 20}px` }}>
         <div
           id={`task-${task.id}`}
-          className={`task-item ${task.status === 'completed' ? 'completed' : ''} ${priorityClass}`}
+          className={`task-item ${task.status === 'completed' ? 'completed' : ''} ${task.priority ? `priority-${task.priority}` : ''}`}
           style={{
-            borderLeft: hasChildren ? `4px solid ${categoryColor}` : undefined
+            borderLeft: !task.priority && hasChildren ? `4px solid ${categoryColor}` : undefined
           }}
         >
           {editingId === task.id ? (
@@ -205,19 +210,38 @@ export default function TaskList({
 
               <div className="input-group">
                 <label className="form-label">Priority</label>
-                <select
-                  className="form-control"
-                  value={editPriority || ''}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    setEditPriority(value ? value as PriorityLevel : null);
-                  }}
-                >
-                  <option value="">No Priority</option>
-                  <option value="must-do">Must Do</option>
-                  <option value="want-to-do">Want To Do</option>
-                  <option value="when-i-can">When I Can</option>
-                </select>
+                <div className="priority-selector">
+                  <div 
+                    className={`priority-option critical ${editPriority === 'critical' ? 'selected' : ''}`}
+                    onClick={() => setEditPriority('critical')}
+                  >
+                    Critical
+                  </div>
+                  <div 
+                    className={`priority-option high ${editPriority === 'high' ? 'selected' : ''}`}
+                    onClick={() => setEditPriority('high')}
+                  >
+                    High
+                  </div>
+                  <div 
+                    className={`priority-option medium ${editPriority === 'medium' ? 'selected' : ''}`}
+                    onClick={() => setEditPriority('medium')}
+                  >
+                    Medium
+                  </div>
+                  <div 
+                    className={`priority-option low ${editPriority === 'low' ? 'selected' : ''}`}
+                    onClick={() => setEditPriority('low')}
+                  >
+                    Low
+                  </div>
+                  <div 
+                    className={`priority-option ${!editPriority ? 'selected' : ''}`}
+                    onClick={() => setEditPriority(null)}
+                  >
+                    None
+                  </div>
+                </div>
               </div>
               
               <div className="flex justify-between gap-sm">
@@ -335,11 +359,19 @@ export default function TaskList({
 
                 {/* Display priority indicator */}
                 {task.priority && (
-                  <span className={`task-priority ${task.priority}`}>
-                    {task.priority === 'must-do' ? 'Must Do' :
-                     task.priority === 'want-to-do' ? 'Want To Do' :
-                     'When I Can'}
+                  <span className={`priority-badge ${task.priority}`}>
+                    {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
                   </span>
+                )}
+                
+                {/* Add time estimator component */}
+                {updateTaskEstimate && startTaskTimer && completeTaskTimer && (
+                  <TimeEstimator
+                    task={task}
+                    updateTaskEstimate={updateTaskEstimate}
+                    startTaskTimer={startTaskTimer}
+                    completeTaskTimer={completeTaskTimer}
+                  />
                 )}
 
                 {task.categories && task.categories.length > 0 &&
@@ -392,6 +424,15 @@ export default function TaskList({
                     </button>
                   </div>
                 </div>
+              )}
+              {/* Add TaskBreakdown for top-level tasks only */}
+              {depth === 0 && !task.parentId && (
+                <TaskBreakdown 
+                  task={task} 
+                  subtasks={getSubtasks(task.id)} 
+                  addSubtask={addSubtask}
+                  toggleTask={toggleTask}
+                />
               )}
             </>
           )}

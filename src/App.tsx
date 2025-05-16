@@ -5,10 +5,15 @@ import './compact-styles.css';
 import './app-styles.css';
 import './styles/delete-btn.css';
 import './styles/calendar-dark-mode.css';
+import './styles/adhd-friendly.css';
+import './styles/task-breakdown.css';
+import './styles/focus-mode.css';
+import './styles/time-estimator.css';
 
 // Component imports
 import TaskList from './components/TaskList';
 import ContextWizard from './components/ContextWizard';
+import FocusMode from './components/FocusMode';
 import CategoryManager from './components/CategoryManager';
 import ProjectManager from './components/ProjectManager';
 import ImportExport from './components/ImportExport';
@@ -31,6 +36,7 @@ type TabType = 'dashboard' | 'all-tasks' | 'projects' | 'categories' | 'calendar
 function App() {
   // Navigation state
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
+  const [focusModeActive, setFocusModeActive] = useState(false);
 
   // Reset selectedCategoryId when changing tabs
   useEffect(() => {
@@ -476,12 +482,20 @@ function App() {
         </nav>
 
         <div className="top-actions">
-          <button 
-            className="btn btn-primary" 
-            onClick={() => setShowWizard(true)}
-          >
-            What now?
-          </button>
+          <div className="top-action-buttons">
+            <button 
+              className="btn btn-primary" 
+              onClick={() => setShowWizard(true)}
+            >
+              What now?
+            </button>
+            <button 
+              className="btn btn-accent focus-mode-btn" 
+              onClick={() => setFocusModeActive(true)}
+            >
+              <span className="focus-icon">🎯</span> Focus Mode
+            </button>
+          </div>
           <MoreOptionsMenu
             onManageCategories={() => setShowCategoryManager(true)}
             onImportExport={() => setShowImportExport(true)}
@@ -492,6 +506,20 @@ function App() {
       </header>
       
       <main className="main-content full-width">
+        {/* Render Focus Mode when active, otherwise show normal UI */}
+        {focusModeActive ? (
+          <FocusMode
+            tasks={tasks}
+            toggleTask={toggleTask}
+            deleteTask={deleteTask}
+            updateTask={updateTask}
+            addSubtask={addSubtask}
+            categories={categories}
+            projects={projects}
+            onExitFocusMode={() => setFocusModeActive(false)}
+          />
+        ) : (
+          <>
         {/* Capture Bar */}
         <div className="capture-container">
           <form className="capture-form" onSubmit={handleTaskSubmit}>
@@ -617,6 +645,9 @@ function App() {
                     deleteTask={deleteTask}
                     updateTask={updateTask}
                     addSubtask={addSubtask}
+                    updateTaskEstimate={updateTaskEstimate}
+                    startTaskTimer={startTaskTimer}
+                    completeTaskTimer={completeTaskTimer}
                     categories={categories}
                     projects={projects}
                   />
@@ -1015,6 +1046,9 @@ function App() {
                     deleteTask={deleteTask}
                     updateTask={updateTask}
                     addSubtask={addSubtask}
+                    updateTaskEstimate={updateTaskEstimate}
+                    startTaskTimer={startTaskTimer}
+                    completeTaskTimer={completeTaskTimer}
                     categories={categories}
                     projects={projects}
                   />
@@ -1529,6 +1563,8 @@ function App() {
             );
           })()}
         </div>
+          </>
+        )}
       </main>
       
       {/* Context Wizard Modal */}
@@ -1710,16 +1746,38 @@ function App() {
 
                 <div className="input-group">
                   <label className="form-label">Priority</label>
-                  <select
-                    className="form-control"
-                    value={editTaskPriority || ''}
-                    onChange={(e) => setEditTaskPriority(e.target.value as PriorityLevel || null)}
-                  >
-                    <option value="">No Priority</option>
-                    <option value="must-do">Must Do</option>
-                    <option value="want-to-do">Want To Do</option>
-                    <option value="when-i-can">When I Can</option>
-                  </select>
+                  <div className="priority-selector">
+                    <div 
+                      className={`priority-option critical ${editTaskPriority === 'critical' ? 'selected' : ''}`}
+                      onClick={() => setEditTaskPriority('critical')}
+                    >
+                      Critical
+                    </div>
+                    <div 
+                      className={`priority-option high ${editTaskPriority === 'high' ? 'selected' : ''}`}
+                      onClick={() => setEditTaskPriority('high')}
+                    >
+                      High
+                    </div>
+                    <div 
+                      className={`priority-option medium ${editTaskPriority === 'medium' ? 'selected' : ''}`}
+                      onClick={() => setEditTaskPriority('medium')}
+                    >
+                      Medium
+                    </div>
+                    <div 
+                      className={`priority-option low ${editTaskPriority === 'low' ? 'selected' : ''}`}
+                      onClick={() => setEditTaskPriority('low')}
+                    >
+                      Low
+                    </div>
+                    <div 
+                      className={`priority-option ${!editTaskPriority ? 'selected' : ''}`}
+                      onClick={() => setEditTaskPriority(null)}
+                    >
+                      None
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

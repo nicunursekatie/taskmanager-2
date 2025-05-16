@@ -105,6 +105,42 @@ export function useTasks() {
     );
   };
   
+  // Start task timer
+  const startTaskTimer = (id: string) => {
+    const now = new Date().toISOString();
+    setTasks(prev =>
+      prev.map(task =>
+        task.id === id
+          ? {
+              ...task,
+              timeStarted: now
+            }
+          : task
+      )
+    );
+  };
+  
+  // Complete task timer
+  const completeTaskTimer = (id: string) => {
+    const now = new Date();
+    setTasks(prev =>
+      prev.map(task => {
+        if (task.id === id && task.timeStarted) {
+          const startTime = new Date(task.timeStarted);
+          const diffMs = now.getTime() - startTime.getTime();
+          const diffMinutes = Math.ceil(diffMs / (1000 * 60)); // Round up to nearest minute
+          
+          return {
+            ...task,
+            timeCompleted: now.toISOString(),
+            actualMinutes: diffMinutes
+          };
+        }
+        return task;
+      })
+    );
+  };
+  
   // Add new function for subtasks
   const addSubtask = (parentId: string, title: string) => {
     // Get parent task to inherit properties
@@ -141,6 +177,8 @@ export function useTasks() {
     addSubtask,
     updateTaskContext,
     updateTaskPriority,
-    updateTaskEstimate
+    updateTaskEstimate,
+    startTaskTimer,
+    completeTaskTimer
   };
 }

@@ -40,7 +40,7 @@ export type Category = {
   color: string;
 };
 // Context type for task categorization
-export type PriorityLevel = 'must-do' | 'want-to-do' | 'when-i-can' | null;
+export type PriorityLevel = 'critical' | 'high' | 'medium' | 'low' | null;
 
 // Task type with context support
 export type Task = {
@@ -54,6 +54,9 @@ export type Task = {
   categories?: string[];
   context?: ContextTag | null; // Allow null
   estimatedMinutes?: number | null; // Can be number, null, or undefined
+  actualMinutes?: number | null; // Actual time spent
+  timeStarted?: string | null; // ISO timestamp when task was started
+  timeCompleted?: string | null; // ISO timestamp when task was completed
   priority?: PriorityLevel; // Optional priority level
 };
 
@@ -93,7 +96,10 @@ export type TaskListProps = {
     dependsOn?: string[],
     priority?: PriorityLevel
   ) => void;
-  addSubtask: (parentId: string, title: string) => void; // Add this line
+  addSubtask: (parentId: string, title: string) => void;
+  updateTaskEstimate?: (id: string, estimatedMinutes: number | null) => void;
+  startTaskTimer?: (id: string) => void;
+  completeTaskTimer?: (id: string) => void;
   categories: Category[];
   projects: Project[];
 };
