@@ -9,11 +9,13 @@ import './styles/adhd-friendly.css';
 import './styles/task-breakdown.css';
 import './styles/focus-mode.css';
 import './styles/time-estimator.css';
+import './styles/reminders.css';
 
 // Component imports
 import TaskList from './components/TaskList';
 import ContextWizard from './components/ContextWizard';
 import FocusMode from './components/FocusMode';
+import ReminderSystem from './components/ReminderSystem';
 import CategoryManager from './components/CategoryManager';
 import ProjectManager from './components/ProjectManager';
 import ImportExport from './components/ImportExport';
@@ -37,6 +39,7 @@ function App() {
   // Navigation state
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
   const [focusModeActive, setFocusModeActive] = useState(false);
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
 
   // Reset selectedCategoryId when changing tabs
   useEffect(() => {
@@ -213,6 +216,56 @@ function App() {
     setTasks(prev => prev.filter(task => task.id !== id && task.parentId !== id));
   };
   
+  // Update task estimate
+  const updateTaskEstimate = (id: string, estimatedMinutes: number | null) => {
+    setTasks(prev =>
+      prev.map(task =>
+        task.id === id
+          ? {
+              ...task,
+              estimatedMinutes: estimatedMinutes
+            }
+          : task
+      )
+    );
+  };
+  
+  // Start task timer
+  const startTaskTimer = (id: string) => {
+    const now = new Date().toISOString();
+    setTasks(prev =>
+      prev.map(task =>
+        task.id === id
+          ? {
+              ...task,
+              timeStarted: now
+            }
+          : task
+      )
+    );
+  };
+  
+  // Complete task timer
+  const completeTaskTimer = (id: string) => {
+    const now = new Date();
+    setTasks(prev =>
+      prev.map(task => {
+        if (task.id === id && task.timeStarted) {
+          const startTime = new Date(task.timeStarted);
+          const diffMs = now.getTime() - startTime.getTime();
+          const diffMinutes = Math.ceil(diffMs / (1000 * 60)); // Round up to nearest minute
+          
+          return {
+            ...task,
+            timeCompleted: now.toISOString(),
+            actualMinutes: diffMinutes
+          };
+        }
+        return task;
+      })
+    );
+  };
+
   // Update a task
   const updateTask = (
     id: string,
@@ -1566,6 +1619,26 @@ function App() {
           </>
         )}
       </main>
+      
+      {/* Reminder System - always visible regardless of focus mode */}
+      <ReminderSystem 
+        tasks={tasks} 
+        openTask={(taskId) => {
+          setEditingTaskId(taskId);
+          setEditTaskTitle(tasks.find(t => t.id === taskId)?.title || '');
+          setEditTaskDueDate(tasks.find(t => t.id === taskId)?.dueDate || '');
+          setEditTaskDueTime(tasks.find(t => t.id === taskId)?.dueTime || '');
+          setEditTaskCategories(tasks.find(t => t.id === taskId)?.categories || []);
+          setEditTaskProjectId(tasks.find(t => t.id === taskId)?.projectId ?? null);
+          setEditTaskPriority(tasks.find(t => t.id === taskId)?.priority ?? null);
+          setShowTaskEditModal(true);
+          
+          // Exit focus mode if it's active
+          if (focusModeActive) {
+            setFocusModeActive(false);
+          }
+        }}
+      />
       
       {/* Context Wizard Modal */}
       {showWizard && (
