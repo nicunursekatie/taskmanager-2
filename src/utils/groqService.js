@@ -28,7 +28,7 @@ Please format your response as a numbered list of subtasks only. Each subtask sh
       {
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.REACT_APP_GROQ_API_KEY}`
+          'Authorization': `Bearer ${import.meta.env.VITE_GROQ_API_KEY}`
         }
       }
     );
