@@ -86,7 +86,6 @@ function App() {
   const [showTaskEditModal, setShowTaskEditModal] = useState(false);
 
   // State for editing tasks in the modal
-  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [editTaskTitle, setEditTaskTitle] = useState('');
   const [editTaskDueDate, setEditTaskDueDate] = useState<string>('');
   const [editTaskDueTime, setEditTaskDueTime] = useState<string>('');
