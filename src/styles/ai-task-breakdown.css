@@ -1,0 +1,248 @@
+/* AI Task Breakdown Component Styles */
+
+.ai-task-breakdown {
+  padding: 10px 0;
+  margin-top: 15px;
+  border-top: 1px dashed var(--border-color);
+}
+
+.ai-breakdown-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 10px 15px;
+  background-color: #f0f7ff;
+  border: 1px solid #c0d8f0;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #2a4365;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ai-breakdown-btn:hover {
+  background-color: #e0f0ff;
+  transform: translateY(-1px);
+}
+
+.ai-breakdown-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ai-icon {
+  margin-right: 8px;
+  font-size: 16px;
+}
+
+.ai-breakdown-results {
+  padding: 15px;
+  margin-top: 10px;
+  background-color: #f8faff;
+  border: 1px solid #e0ebf5;
+  border-radius: 8px;
+}
+
+.ai-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px 0;
+}
+
+.ai-spinner {
+  width: 30px;
+  height: 30px;
+  border: 3px solid #e0e0e0;
+  border-top: 3px solid #4299e1;
+  border-radius: 50%;
+  animation: ai-spin 1s linear infinite;
+  margin-bottom: 15px;
+}
+
+@keyframes ai-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.ai-error {
+  padding: 15px;
+  background-color: #fff5f5;
+  border: 1px solid #fed7d7;
+  border-radius: 6px;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.ai-error p {
+  color: #c53030;
+  margin-bottom: 10px;
+}
+
+.retry-btn {
+  padding: 6px 12px;
+  background-color: #e53e3e;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.ai-subtasks-heading {
+  display: flex;
+  align-items: center;
+  margin: 0 0 15px 0;
+  font-size: 16px;
+  color: #2d3748;
+}
+
+.ai-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  margin-left: 8px;
+  background-color: #4299e1;
+  color: white;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: bold;
+}
+
+.ai-subtasks-list {
+  margin-bottom: 20px;
+}
+
+.ai-subtask-item {
+  margin-bottom: 10px;
+}
+
+/* Custom checkbox styling */
+.ai-checkbox-container {
+  display: flex;
+  align-items: flex-start;
+  position: relative;
+  padding-left: 30px;
+  cursor: pointer;
+  font-size: 14px;
+  user-select: none;
+}
+
+.ai-checkbox-container input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+.ai-checkmark {
+  position: absolute;
+  top: 2px;
+  left: 0;
+  height: 20px;
+  width: 20px;
+  background-color: #f0f7ff;
+  border: 1px solid #c0d8f0;
+  border-radius: 4px;
+}
+
+.ai-checkbox-container:hover .ai-checkmark {
+  background-color: #e0f0ff;
+}
+
+.ai-checkbox-container input:checked ~ .ai-checkmark {
+  background-color: #4299e1;
+  border-color: #4299e1;
+}
+
+.ai-checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+
+.ai-checkbox-container input:checked ~ .ai-checkmark:after {
+  display: block;
+}
+
+.ai-checkbox-container .ai-checkmark:after {
+  left: 7px;
+  top: 3px;
+  width: 6px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.ai-subtask-text {
+  line-height: 1.5;
+  flex: 1;
+}
+
+.ai-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.ai-cancel-btn {
+  padding: 8px 15px;
+  background-color: transparent;
+  border: 1px solid #cbd5e0;
+  color: #4a5568;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.ai-add-btn {
+  padding: 8px 15px;
+  background-color: #4299e1;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ai-add-btn:hover {
+  background-color: #3182ce;
+}
+
+.ai-add-btn:disabled {
+  background-color: #90cdf4;
+  cursor: not-allowed;
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  .ai-breakdown-btn {
+    background-color: rgba(56, 161, 255, 0.1);
+    border-color: rgba(56, 161, 255, 0.3);
+    color: #90cdf4;
+  }
+  
+  .ai-breakdown-btn:hover {
+    background-color: rgba(56, 161, 255, 0.2);
+  }
+  
+  .ai-breakdown-results {
+    background-color: rgba(45, 55, 72, 0.5);
+    border-color: rgba(56, 161, 255, 0.2);
+  }
+  
+  .ai-error {
+    background-color: rgba(229, 62, 62, 0.1);
+    border-color: rgba(229, 62, 62, 0.3);
+  }
+  
+  .ai-checkmark {
+    background-color: rgba(56, 161, 255, 0.1);
+    border-color: rgba(56, 161, 255, 0.3);
+  }
+  
+  .ai-checkbox-container:hover .ai-checkmark {
+    background-color: rgba(56, 161, 255, 0.2);
+  }
+}

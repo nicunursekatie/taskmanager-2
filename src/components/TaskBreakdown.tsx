@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Task } from '../types';
+import AITaskBreakdown from './AITaskBreakdown';
+import '../styles/ai-task-breakdown.css';
 
 interface TaskBreakdownProps {
   task: Task;
@@ -99,6 +101,14 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
             <div className="completion-message">
               🎉 All steps complete! You're doing great!
             </div>
+          )}
+          
+          {/* Add the AI Task Breakdown component */}
+          {subtasks.length === 0 && (
+            <AITaskBreakdown 
+              task={task} 
+              addSubtask={addSubtask} 
+            />
           )}
         </>
       )}
