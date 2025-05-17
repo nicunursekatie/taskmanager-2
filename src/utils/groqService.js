@@ -6,16 +6,29 @@
  * @param {string} taskDescription - Optional additional description of the task
  * @returns {Promise<Array<string>>} - Array of subtask titles
  */
+// Import environment variables and utilities
+import { ENV, logEnvironment, FALLBACK_GROQ_API_KEY } from './env';
+
+// Export the check function for use elsewhere
+export const checkApiKeyStatus = logEnvironment;
+
 export async function breakdownTask(taskTitle, taskDescription = '') {
-  const GROQ_API_KEY = process.env.VITE_GROQ_API_KEY || '';
+  // Log environment info for debugging
+  logEnvironment();
   
-  // If no API key is available, fall back to template-based breakdown
+  // Try to use the environment variable, or fall back to the hardcoded value if needed
+  const GROQ_API_KEY = ENV.GROQ_API_KEY || FALLBACK_GROQ_API_KEY;
+  
+  // If still no API key is available, fall back to template-based breakdown
   if (!GROQ_API_KEY) {
     console.warn('No Groq API key found, using fallback template breakdown');
     return fallbackBreakdownTask(taskTitle, taskDescription);
   }
   
   try {
+    // Log when we're making the API call
+    console.log('Making Groq API call with valid API key');
+    
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {

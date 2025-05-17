@@ -26,6 +26,7 @@ import MoreOptionsMenu from './components/MoreOptionsMenu';
 // Utilities
 import { loadSampleData } from './utils/sampleData';
 import { clearAllData } from './utils/dataUtils';
+import { checkApiKeyStatus } from './utils/groqService';
 
 // Types
 import { Task, Category, Project, PriorityLevel } from './types';
@@ -40,6 +41,13 @@ function App() {
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
   const [focusModeActive, setFocusModeActive] = useState(false);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+  
+  // Check API key status on component mount
+  useEffect(() => {
+    const keyStatus = checkApiKeyStatus();
+    console.log('App initialized with environment mode:', keyStatus.mode);
+    console.log('GROQ API key available:', keyStatus.available);
+  }, []);
 
   // Reset selectedCategoryId when changing tabs
   useEffect(() => {
