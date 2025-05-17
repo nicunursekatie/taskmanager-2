@@ -27,15 +27,47 @@ export async function breakdownTask(taskTitle, taskDescription = '') {
         messages: [
           {
             role: 'system',
-            content: `You are a reasoning assistant that breaks real-world tasks into subtasks. Do not rely on generic productivity templates. Instead, use context clues from the task itself to infer realistic, specific steps a person would actually take. For vague or domestic tasks, think practically—what physical actions or decisions would need to happen? Skip generic steps like "create Google Doc" or "notify team" unless they clearly apply.`
+            content: `You are a reasoning assistant that breaks tasks into HIGHLY SPECIFIC and CONCRETE subtasks based on realistic, physical actions a person would need to take.
+
+ABSOLUTELY CRITICAL RULES:
+1. NEVER use generic productivity language ("plan", "research", "review", "gather")
+2. NEVER suggest creating documents, spreadsheets, or sending emails unless the task SPECIFICALLY involves office work
+3. For personal or domestic tasks, focus on physical objects and actual locations
+4. Include specific tools, materials, or websites when appropriate
+5. Every subtask MUST include at least one concrete noun or specific detail
+6. Use numbers for quantities when appropriate (e.g., "fold 6 towels" not "fold towels")
+7. For household tasks, mention specific rooms or locations
+8. For work tasks, mention actual apps or tools, not generic concepts
+9. Always think about what the NEXT physical action would actually be
+
+EXAMPLES OF BAD (GENERIC) SUBTASKS:
+- "Research options" (Too vague)
+- "Plan the approach" (Too abstract)
+- "Gather materials" (Too generic)
+- "Create document" (Too generic)
+- "Execute task" (Meaningless)
+- "Review progress" (Too vague)
+
+EXAMPLES OF GOOD (SPECIFIC) SUBTASKS:
+- "Search on Amazon for shower curtain liners under $15"
+- "Fill pot with 4 cups water and set to boil"
+- "Call Dr. Thompson's office at 555-1234"
+- "Check refrigerator for remaining eggs and milk"
+- "Print return label from USPS website"
+- "Measure kitchen window width with tape measure"
+
+FORMAT: Return ONLY 3-5 numbered subtasks with NO introduction or commentary.
+1. [first subtask]
+2. [second subtask]
+etc.`
           },
           {
             role: 'user',
-            content: `Break down the task: "${taskTitle}" into 3–5 real-world subtasks. Be concrete and context-aware. Avoid generic or vague language.${taskDescription ? `\nAdditional context: ${taskDescription}` : ''}`
+            content: `Task: "${taskTitle}"${taskDescription ? `\nAdditional context: ${taskDescription}` : ''}`
           }
         ],
-        temperature: 0.1,  // Very low temperature for consistent, deterministic results
-        max_tokens: 250
+        temperature: 0.2,  // Slight increase in variability for more creative, specific responses
+        max_tokens: 300
       })
     });
 
@@ -48,29 +80,40 @@ export async function breakdownTask(taskTitle, taskDescription = '') {
     // Extract subtasks from the AI response
     const subtasksText = data.choices[0].message.content.trim();
     
-    // Parse the response based on the requested comma-separated format
+    // Parse the response based on the expected numbered list format
     let subtasks = [];
     
-    // First, try to parse as a comma-separated list (our intended format)
-    if (subtasksText.includes(',')) {
+    // Main approach: Handle numbered list (requested format)
+    if (subtasksText.includes('\n')) {
+      subtasks = subtasksText
+        .split('\n')
+        .map(line => {
+          // Remove numbering like "1. " or "1) " and any brackets
+          return line.replace(/^\d+[\.\)]\s*|\[|\]/g, '').trim();
+        })
+        .filter(line => line.length > 0 && line.length < 200); // Reasonable length for a subtask
+    }
+    // Alternative: Handle single line with multiple numbered items
+    else if (/\d+[.)]/.test(subtasksText)) {
+      subtasks = subtasksText
+        .split(/\d+[.)]/)
+        .map(s => s.trim())
+        .filter(s => s.length > 0 && s.length < 200);
+    }
+    // Fallback: comma-separated list
+    else if (subtasksText.includes(',')) {
       subtasks = subtasksText
         .split(',')
         .map(s => s.trim())
-        .filter(s => s.length > 0 && s.length < 100); // Reasonable length for a subtask
-    }
-    // Fallback: handle newline-separated list
-    else if (subtasksText.includes('\n')) {
-      subtasks = subtasksText
-        .split('\n')
-        .map(line => line.replace(/^[-*•]|\d+[.)]|\[\s?\]|\s*-\s*/, '').trim())
-        .filter(line => line.length > 0 && line.length < 100);
+        .filter(s => s.length > 0 && s.length < 200);
     }
     // Fallback: handle array-like formatting
     else if (subtasksText.startsWith('[') && subtasksText.endsWith(']')) {
       try {
         const parsed = JSON.parse(subtasksText);
         if (Array.isArray(parsed)) {
-          subtasks = parsed.filter(s => typeof s === 'string' && s.length > 0 && s.length < 100);
+          subtasks = parsed
+            .filter(s => typeof s === 'string' && s.length > 0 && s.length < 200);
         }
       } catch (e) {
         // If JSON parsing fails, try a simple bracket removal and comma split
@@ -78,13 +121,21 @@ export async function breakdownTask(taskTitle, taskDescription = '') {
           .replace(/^\[|\]$/g, '')
           .split(',')
           .map(s => s.replace(/^["']|["']$/g, '').trim())
-          .filter(s => s.length > 0 && s.length < 100);
+          .filter(s => s.length > 0 && s.length < 200);
       }
     }
-    // Fallback: just use the whole string if nothing else works
-    else if (subtasksText.length > 0 && subtasksText.length < 100) {
+    // Last resort: just use the whole string if nothing else works
+    else if (subtasksText.length > 0 && subtasksText.length < 200) {
       subtasks = [subtasksText];
     }
+    
+    // Clean up any remaining formatting and normalize spacing
+    subtasks = subtasks.map(task => {
+      return task
+        .replace(/^[-*•]|\[\s?\]|\s*-\s*/, '') // Remove bullets, brackets, etc.
+        .replace(/\s+/g, ' ')                 // Normalize spacing
+        .trim();                              // Trim whitespace
+    });
     
     // Ensure we have at least some subtasks, or return fallback
     if (subtasks.length === 0) {
@@ -115,147 +166,214 @@ function fallbackBreakdownTask(taskTitle, taskDescription = '') {
   // Select appropriate template based on task keywords
   if (lowercaseTitle.includes('presentation') || lowercaseTitle.includes('slideshow') || lowercaseTitle.includes('slides')) {
     subtasks = [
-      'Draft bullet points on paper',
-      'Find relevant images online',
-      'Create 5-7 key slides',
-      'Time your speech aloud',
-      'Email draft to colleague'
+      'Write 10 bullet points on index cards',
+      'Search Unsplash.com for 5 high-resolution images',
+      'Create title slide with Arial 28pt font',
+      'Practice presentation with kitchen timer for 15 minutes',
+      'Ask Sarah for feedback via Microsoft Teams'
     ];
   } else if (lowercaseTitle.includes('report') || lowercaseTitle.includes('research') || lowercaseTitle.includes('paper')) {
     subtasks = [
-      'Download 3-5 key papers',
-      'Create section headers document',
-      'Write introduction paragraph',
-      'Create data visualization charts',
-      'Run spelling check'
+      'Download PDFs from Google Scholar search results',
+      'Create outline in Word with 4 main sections',
+      'Write 250-word introduction with thesis statement',
+      'Make bar chart in Excel showing quarterly results',
+      'Ask roommate to proofread for spelling errors'
     ];
   } else if (lowercaseTitle.includes('project') || lowercaseTitle.includes('develop') || lowercaseTitle.includes('implement')) {
     subtasks = [
-      'Sketch database schema diagram',
-      'Create GitHub repository',
-      'Code login screen',
-      'Write unit tests',
-      'Deploy to staging server'
+      'Draw database schema on whiteboard with 5 tables',
+      'Create new private repository on GitHub.com',
+      'Code authentication.js with password hashing',
+      'Write tests for edge cases in Jest',
+      'Deploy to staging server using terminal'
+    ];
+  } else if (lowercaseTitle.includes('clean') || lowercaseTitle.includes('tidy') || lowercaseTitle.includes('organize home')) {
+    subtasks = [
+      'Gather dirty dishes from bedroom and living room',
+      'Vacuum carpet in hallway and living room',
+      'Wipe bathroom sink with Clorox wipes',
+      'Take out kitchen trash bag to dumpster',
+      'Change sheets on bed with clean blue set'
     ];
   } else if (lowercaseTitle.includes('meeting') || lowercaseTitle.includes('interview') || lowercaseTitle.includes('call')) {
     subtasks = [
-      'Book conference room 3B',
-      'Print handouts for attendees',
-      'Send calendar invites',
-      'Prepare three discussion questions',
-      'Email minutes afterward'
+      'Reserve conference room 3B for Wednesday 2pm',
+      'Print 12 copies of agenda on office printer',
+      'Send calendar invites with Zoom link to team',
+      'Write 3 discussion questions on notepad',
+      'Set up laptop and projector 15 minutes early'
     ];
   } else if (lowercaseTitle.includes('email') || lowercaseTitle.includes('write') || lowercaseTitle.includes('draft')) {
     subtasks = [
-      'Bullet point three key messages',
-      'Find recipient email address',
-      'Draft in Google Docs',
-      'Proofread for tone',
-      'Attach PDF report'
+      'Write 3 bullet points on sticky note',
+      'Look up client email in Contacts app',
+      'Draft email in Gmail with clear subject line',
+      'Read draft aloud to check for tone',
+      'Attach quarterly report PDF file'
     ];
-  } else if (lowercaseTitle.includes('plan') || lowercaseTitle.includes('organize') || lowercaseTitle.includes('schedule')) {
+  } else if (lowercaseTitle.includes('plan') || lowercaseTitle.includes('schedule')) {
     subtasks = [
-      'Create Excel spreadsheet template',
-      'List stakeholder email addresses',
-      'Book meeting rooms in Outlook',
-      'Set up Slack channel',
-      'Email timeline to team'
+      'Check Google Calendar for conflicts next week',
+      'Text Jessica about dinner availability',
+      'Make reservation at Olive Garden for 7pm',
+      'Set reminder on phone for 6:30pm',
+      'Map driving route on Google Maps'
     ];
   } else if (lowercaseTitle.includes('buy') || lowercaseTitle.includes('purchase') || lowercaseTitle.includes('shopping')) {
     subtasks = [
-      'Compare prices on Amazon',
-      'Read reviews on Wirecutter',
-      'Check credit card balance',
-      'Place order online',
-      'Save receipt for taxes'
+      'Check Amazon for price under $50',
+      'Read 3 most recent customer reviews',
+      'Check Chase credit card available balance',
+      'Add item to cart and complete checkout',
+      'File email receipt in Gmail "Purchases" folder'
+    ];
+  } else if (lowercaseTitle.includes('cook') || lowercaseTitle.includes('bake') || lowercaseTitle.includes('recipe')) {
+    subtasks = [
+      'Check refrigerator for milk and eggs',
+      'Preheat oven to 375 degrees',
+      'Mix dry ingredients in blue mixing bowl',
+      'Set kitchen timer for 25 minutes',
+      'Wash mixing bowls and measuring cups'
     ];
   } else if (lowercaseTitle.includes('code') || lowercaseTitle.includes('program') || lowercaseTitle.includes('app')) {
     subtasks = [
-      'Create Git branch',
-      'Write API endpoint function',
-      'Update database schema',
-      'Fix error handling bugs',
-      'Submit pull request'
+      'Create feature-login branch in terminal',
+      'Write login.js function with error handling',
+      'Update users table with new password field',
+      'Test with 3 fake user accounts',
+      'Push changes to GitHub and create PR'
     ];
   } else if (lowercaseTitle.includes('learn') || lowercaseTitle.includes('study') || lowercaseTitle.includes('course')) {
     subtasks = [
-      'Sign up for Coursera class',
-      'Download lecture notes',
-      'Create Anki flashcards',
-      'Book study room at library',
-      'Schedule practice exam'
+      'Sign up for Udemy Python course with credit card',
+      'Download lecture 3 PDF from course website',
+      'Create 20 flashcards in Anki app',
+      'Reserve study room 4B in library website',
+      'Set up practice test on kitchen table'
     ];
   } else if (lowercaseTitle.includes('doctor') || lowercaseTitle.includes('medical') || lowercaseTitle.includes('health')) {
     subtasks = [
-      'Call clinic for appointment',
-      'Update insurance information',
-      'Print medical history form',
-      'Refill prescription',
-      'Set reminder on phone'
+      'Call Dr. Miller at 555-2323 for appointment',
+      'Take photo of insurance card with phone',
+      'Print medical history form from patient portal',
+      'Drive to CVS on Oak Street for prescription',
+      'Set calendar reminder with alarm for appointment'
     ];
   } else if (lowercaseTitle.includes('blog') || lowercaseTitle.includes('post') || lowercaseTitle.includes('article')) {
     subtasks = [
-      'Research trending keywords',
-      'Create article outline',
-      'Write opening paragraph',
-      'Find Creative Commons images',
-      'Schedule in WordPress'
+      'Search Google Trends for popular keywords',
+      'Create outline with 5 subheadings in Notes app',
+      'Write 100-word opening paragraph',
+      'Download 3 relevant images from Pexels.com',
+      'Draft headline with 60 characters maximum'
+    ];
+  } else if (lowercaseTitle.includes('repair') || lowercaseTitle.includes('fix') || lowercaseTitle.includes('install')) {
+    subtasks = [
+      'Search YouTube for tutorial video',
+      'Find phillips screwdriver in garage toolbox',
+      'Take close-up photo of broken part',
+      'Purchase replacement part at Home Depot',
+      'Turn off power at breaker box'
+    ];
+  } else if (lowercaseTitle.includes('exercise') || lowercaseTitle.includes('workout') || lowercaseTitle.includes('gym')) {
+    subtasks = [
+      'Pack gym bag with sneakers and water bottle',
+      'Drive to Planet Fitness on Main Street',
+      'Do 3 sets of 10 squats with 15lb weights',
+      'Run on treadmill for 20 minutes',
+      'Stretch hamstrings for 5 minutes after workout'
     ];
   } else {
-    // More specific generic template
+    // More specific generic template for personal tasks
     subtasks = [
-      'Schedule 30 minutes tomorrow',
-      'Email relevant team members',
-      'Create Google Doc draft',
-      'Set phone reminder',
-      'Update task status afterward'
+      'Check calendar app for available time slots',
+      'Text roommate about dinner plans',
+      'Set phone reminder for tomorrow at 9am',
+      'Make list of needed items on kitchen notepad',
+      'Check weather forecast on phone app'
     ];
   }
   
-  // Add task-specific customization based on the task title
+  // Add much more specific customization based on the task title
   if (taskTitle.length > 3) {
     // Extract key terms from the task title
     const words = taskTitle.toLowerCase().split(/\s+/);
     
     // Get meaningful words (longer words likely have more semantic value)
     const keyTerms = words
-      .filter(word => word.length > 3 && !['with', 'for', 'the', 'and', 'that', 'this'].includes(word))
+      .filter(word => word.length > 3 && !['with', 'for', 'the', 'and', 'that', 'this', 'from', 'about'].includes(word))
       .map(word => word.trim().replace(/[,.!?]$/, ''));
     
     if (keyTerms.length > 0) {
-      // Replace 2-3 subtasks with more contextual ones
-      const numToCustomize = Math.min(subtasks.length, Math.floor(Math.random() * 2) + 2);
+      // Replace specific elements in the subtasks with contextual details
       
-      // Generate non-repeating random indices to modify
-      const indices = [];
-      while (indices.length < numToCustomize) {
-        const index = Math.floor(Math.random() * subtasks.length);
-        if (!indices.includes(index)) {
-          indices.push(index);
-        }
-      }
+      // Extract main topics from the task title - these are likely the most important objects/subjects
+      const mainTopic = keyTerms[0]; // First key term is often the main subject
+      const secondaryTopic = keyTerms.length > 1 ? keyTerms[1] : keyTerms[0];
       
-      // Extract a noun or main topic from the task title
-      const mainTopic = keyTerms[Math.floor(Math.random() * keyTerms.length)];
-      
-      // Modify selected subtasks to be more specific to the task
-      indices.forEach((index, i) => {
-        const term = keyTerms[i % keyTerms.length]; // Cycle through key terms
+      // Customize all subtasks with task-specific information
+      subtasks = subtasks.map((subtask, index) => {
+        // Different strategies based on position in the list and content
+        const lowerSubtask = subtask.toLowerCase();
         
-        // Different customization strategies
-        if (i === 0 && subtasks[index].toLowerCase().includes('email')) {
-          // If it's an email task, specify the subject
-          subtasks[index] = subtasks[index].replace('email', `email about ${taskTitle.trim()}`);
-        } else if (i === 1 && subtasks[index].toLowerCase().includes('create')) {
-          // If it's a creation task, specify what to create
-          subtasks[index] = subtasks[index].replace('create', `create ${term}`);
-        } else if (subtasks[index].includes('Google Doc')) {
-          // Name the document more specifically
-          subtasks[index] = subtasks[index].replace('Google Doc', `${mainTopic} document`);
-        } else {
-          // Add the term to the end of the subtask
-          const verb = subtasks[index].split(' ')[0];
-          subtasks[index] = `${verb} ${term} ${subtasks[index].substring(verb.length).trim()}`;
+        // For search-related subtasks (often first steps)
+        if (lowerSubtask.includes('search') || lowerSubtask.includes('check') || lowerSubtask.includes('find')) {
+          return subtask.replace(/for .+?(?= on| in| under| with|$)/, `for ${mainTopic}`);
+        }
+        
+        // For tasks mentioning documents, notes, or drafts
+        else if (lowerSubtask.includes('doc') || lowerSubtask.includes('draft') || lowerSubtask.includes('outline')) {
+          return subtask.replace(/outline|document|draft/, `${mainTopic} ${subtask.includes('outline') ? 'outline' : subtask.includes('draft') ? 'draft' : 'document'}`);
+        }
+        
+        // For reminder or scheduling tasks
+        else if (lowerSubtask.includes('reminder') || lowerSubtask.includes('calendar')) {
+          return subtask.replace(/reminder|appointment/, `${mainTopic} ${subtask.includes('reminder') ? 'reminder' : 'appointment'}`);
+        }
+        
+        // For tasks involving calling, emailing or texting
+        else if (lowerSubtask.includes('call') || lowerSubtask.includes('email') || lowerSubtask.includes('text')) {
+          // If there's a generic recipient, replace it
+          if (lowerSubtask.includes('colleague') || lowerSubtask.includes('team') || lowerSubtask.includes('roommate')) {
+            return subtask.replace(/colleague|team|roommate|client|jessica|sarah/, `${taskTitle.length > 12 ? 'Alex' : 'Sam'} about ${mainTopic}`);
+          } else {
+            return subtask + ` about ${mainTopic}`;
+          }
+        }
+        
+        // For writing or coding tasks
+        else if (lowerSubtask.includes('write') || lowerSubtask.includes('code')) {
+          if (lowerSubtask.includes('.js') || lowerSubtask.includes('function')) {
+            return subtask.replace(/login\.js|function|endpoint/, `${mainTopic.slice(0, 10)}.js function`);
+          } else {
+            return subtask.replace(/paragraph|introduction|bullet points/, `${mainTopic} ${subtask.includes('paragraph') ? 'paragraph' : subtask.includes('introduction') ? 'introduction' : 'notes'}`);
+          }
+        }
+        
+        // For the last subtask (often completion or verification)
+        else if (index === subtasks.length - 1) {
+          if (lowerSubtask.includes('check') || lowerSubtask.includes('review') || lowerSubtask.includes('test')) {
+            return `Verify ${mainTopic} is complete and working`;
+          } else {
+            return subtask;
+          }
+        }
+        
+        // Default: Try to replace generic nouns with specific terms from the task
+        else {
+          // Find nouns in the subtask (often after verbs or prepositions)
+          const parts = subtask.split(' ');
+          if (parts.length > 2) {
+            // Look for common nouns to replace
+            const commonNouns = ['items', 'things', 'materials', 'tools', 'resources', 'content'];
+            for (const noun of commonNouns) {
+              if (lowerSubtask.includes(noun)) {
+                return subtask.replace(new RegExp(noun, 'i'), mainTopic);
+              }
+            }
+          }
+          return subtask;
         }
       });
     }
