@@ -51,7 +51,8 @@ export async function breakdownTask(taskTitle, taskDescription = '') {
 
 CRITICAL INSTRUCTIONS:
 1. First, ANALYZE the task to determine if it's vague or ambiguous
-2. If the task is too vague (like "get labs drawn" with no context), respond with ONLY: "NEEDS_CLARIFICATION: Please provide more details about this task."
+2. If the task seems vague, try generating helpful subtasks based on what is provided. 
+   If absolutely necessary, you may return: "NEEDS_CLARIFICATION: [your clarification request here]"
 3. Do NOT generate subtasks for vague tasks - only for clear, specific tasks
 4. Do NOT assume context that isn't explicitly in the task description
 5. Do NOT add generic steps like "check weather," "text roommate," or "make a plan" unless specifically mentioned
