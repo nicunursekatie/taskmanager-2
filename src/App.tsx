@@ -1123,6 +1123,7 @@ function App() {
                     toggleTask={toggleTask}
                     deleteTask={deleteTask}
                     updateTask={updateTask}
+                    updateTaskDescription={updateTaskDescription}
                     addSubtask={addSubtask}
                     updateTaskEstimate={updateTaskEstimate}
                     startTaskTimer={startTaskTimer}
@@ -1146,6 +1147,7 @@ function App() {
                     toggleTask={toggleTask} 
                     deleteTask={deleteTask} 
                     updateTask={updateTask}
+                    updateTaskDescription={updateTaskDescription}
                     addSubtask={addSubtask}
                     categories={categories}
                     projects={projects}
@@ -1163,6 +1165,7 @@ function App() {
                     toggleTask={toggleTask} 
                     deleteTask={deleteTask} 
                     updateTask={updateTask}
+                    updateTaskDescription={updateTaskDescription}
                     addSubtask={addSubtask}
                     categories={categories}
                     projects={projects}
@@ -1215,6 +1218,7 @@ function App() {
                             toggleTask={toggleTask} 
                             deleteTask={deleteTask} 
                             updateTask={updateTask}
+                            updateTaskDescription={updateTaskDescription}
                             addSubtask={addSubtask}
                             categories={categories}
                             projects={projects}
@@ -1232,6 +1236,7 @@ function App() {
                             toggleTask={toggleTask} 
                             deleteTask={deleteTask} 
                             updateTask={updateTask}
+                            updateTaskDescription={updateTaskDescription}
                             addSubtask={addSubtask}
                             categories={categories}
                             projects={projects}
@@ -1285,6 +1290,7 @@ function App() {
                           toggleTask={toggleTask} 
                           deleteTask={deleteTask} 
                           updateTask={updateTask}
+                          updateTaskDescription={updateTaskDescription}
                           addSubtask={addSubtask}
                           categories={categories}
                           projects={projects}
@@ -1302,6 +1308,7 @@ function App() {
                           toggleTask={toggleTask} 
                           deleteTask={deleteTask} 
                           updateTask={updateTask}
+                          updateTaskDescription={updateTaskDescription}
                           addSubtask={addSubtask}
                           categories={categories}
                           projects={projects}
@@ -1536,6 +1543,7 @@ function App() {
                         toggleTask={toggleTask}
                         deleteTask={deleteTask}
                         updateTask={updateTask}
+                        updateTaskDescription={updateTaskDescription}
                         addSubtask={addSubtask}
                         categories={categories}
                         projects={projects}
@@ -1630,6 +1638,7 @@ function App() {
                         toggleTask={toggleTask}
                         deleteTask={deleteTask}
                         updateTask={updateTask}
+                        updateTaskDescription={updateTaskDescription}
                         addSubtask={addSubtask}
                         categories={categories}
                         projects={projects}

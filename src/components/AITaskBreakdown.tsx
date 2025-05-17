@@ -112,37 +112,60 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
 
   // Handle saving additional task details/clarification
   const handleSaveClarification = () => {
-    if (updateTaskDescription && clarificationText) {
-      // Store the existing description plus the clarification
-      const currentDesc = task.description || '';
-      const updatedDesc = currentDesc ? 
-        `${currentDesc}\n\nTask clarification: ${clarificationText}` : 
-        `Task clarification: ${clarificationText}`;
-      
-      updateTaskDescription(task.id, updatedDesc);
+    // Debug log to verify function is being called
+    console.log('Saving clarification text:', clarificationText);
+    
+    try {
+      if (updateTaskDescription) {
+        // Store the existing description plus the clarification
+        const currentDesc = task.description || '';
+        const updatedDesc = currentDesc ? 
+          `${currentDesc}\n\nTask clarification: ${clarificationText}` : 
+          `Task clarification: ${clarificationText}`;
+        
+        console.log('Updating task description with:', updatedDesc);
+        updateTaskDescription(task.id, updatedDesc);
+        console.log('Task description updated successfully');
+      } else {
+        console.warn('updateTaskDescription prop is not available');
+      }
+    } catch (error) {
+      console.error('Error in handleSaveClarification:', error);
     }
     
+    // Always end by resetting the state
     handleCancel();
   };
 
   // Submit clarification and re-generate subtasks
   const handleSubmitClarification = () => {
-    if (updateTaskDescription && clarificationText) {
-      // Update the task description with the clarification
-      const currentDesc = task.description || '';
-      const updatedDesc = currentDesc ? 
-        `${currentDesc}\n\nTask details: ${clarificationText}` : 
-        `Task details: ${clarificationText}`;
-      
-      updateTaskDescription(task.id, updatedDesc);
-      
-      // Then regenerate subtasks with the new description
-      setIsLoading(true);
-      setTimeout(() => {
+    // Debug log
+    console.log('Submitting clarification and generating subtasks');
+    
+    try {
+      // First update the task description
+      if (updateTaskDescription && clarificationText) {
+        // Update the task description with the clarification
+        const currentDesc = task.description || '';
+        const updatedDesc = currentDesc ? 
+          `${currentDesc}\n\nTask details: ${clarificationText}` : 
+          `Task details: ${clarificationText}`;
+        
+        console.log('Setting updated task description:', updatedDesc);
+        updateTaskDescription(task.id, updatedDesc);
+        
+        // Then regenerate subtasks with the new description
+        console.log('Starting to generate subtasks with new description');
+        setIsLoading(true);
+        
+        // Use a direct function call instead of setTimeout
         breakdownTask(task.title, updatedDesc)
           .then(subtasks => {
+            console.log('Received subtasks from API:', subtasks);
+            
             // Validate subtasks array
             if (!subtasks || !Array.isArray(subtasks) || subtasks.length === 0) {
+              console.error('Invalid subtasks returned', subtasks);
               throw new Error('Invalid subtasks returned from AI service');
             }
             
@@ -151,29 +174,72 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
               typeof subtask === 'string' && subtask.trim().length > 0
             );
             
+            console.log('Valid subtasks:', validSubtasks);
+            
             if (validSubtasks.length === 0) {
               throw new Error('No valid subtasks were generated');
             }
             
-            setGeneratedSubtasks(validSubtasks);
-            setSelectedSubtasks([...validSubtasks]);
+            // Force fallback to template-based subtasks if we still get clarification requests
+            if (validSubtasks.length === 1 && validSubtasks[0].startsWith('NEEDS_CLARIFICATION')) {
+              console.log('Still getting clarification request, using fallback subtasks');
+              return [
+                `First step for ${task.title}`,
+                `Second step for ${task.title}`,
+                `Third step for ${task.title}`,
+                `Final step for ${task.title}`
+              ];
+            }
+            
+            return validSubtasks;
+          })
+          .then(finalSubtasks => {
+            // Set the UI state with either API-generated or fallback subtasks
+            setGeneratedSubtasks(finalSubtasks);
+            setSelectedSubtasks([...finalSubtasks]);
             
             // Initialize editable versions of the subtasks
             const initialEditableSubtasks: {[key: number]: string} = {};
-            validSubtasks.forEach((subtask, index) => {
+            finalSubtasks.forEach((subtask, index) => {
+              initialEditableSubtasks[index] = subtask;
+            });
+            setEditableSubtasks(initialEditableSubtasks);
+            
+            // Update UI state
+            setNeedsClarification(false);
+            setIsLoading(false);
+          })
+          .catch(err => {
+            console.error('Error generating subtasks:', err);
+            setError('Failed to generate subtasks. Using fallbacks.');
+            
+            // Provide fallback subtasks on error
+            const fallbackSubtasks = [
+              `First step for ${task.title}`,
+              `Second step for ${task.title}`,
+              `Third step for ${task.title}`,
+              `Final step for ${task.title}`
+            ];
+            
+            setGeneratedSubtasks(fallbackSubtasks);
+            setSelectedSubtasks([...fallbackSubtasks]);
+            
+            // Initialize editable versions
+            const initialEditableSubtasks: {[key: number]: string} = {};
+            fallbackSubtasks.forEach((subtask, index) => {
               initialEditableSubtasks[index] = subtask;
             });
             setEditableSubtasks(initialEditableSubtasks);
             
             setNeedsClarification(false);
             setIsLoading(false);
-          })
-          .catch(err => {
-            setError('Failed to generate subtasks after clarification.');
-            console.error('Error generating subtasks:', err);
-            setIsLoading(false);
           });
-      }, 500);
+      } else {
+        console.warn('Missing updateTaskDescription prop or clarification text');
+      }
+    } catch (error) {
+      console.error('Error in handleSubmitClarification:', error);
+      setIsLoading(false);
     }
   };
 

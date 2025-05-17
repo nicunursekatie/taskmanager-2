@@ -9,6 +9,7 @@ export default function TaskList({
   toggleTask,
   deleteTask,
   updateTask,
+  updateTaskDescription,
   addSubtask,
   updateTaskEstimate,
   startTaskTimer,
@@ -432,6 +433,7 @@ export default function TaskList({
                   subtasks={getSubtasks(task.id)} 
                   addSubtask={addSubtask}
                   toggleTask={toggleTask}
+                  updateTaskDescription={updateTaskDescription}
                 />
               )}
             </>
