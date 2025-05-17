@@ -42,11 +42,14 @@ function App() {
   const [focusModeActive, setFocusModeActive] = useState(false);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   
-  // Check API key status on component mount
+  // Check API key status on component mount (with error handling)
   useEffect(() => {
-    const keyStatus = checkApiKeyStatus();
-    console.log('App initialized with environment mode:', keyStatus.mode);
-    console.log('GROQ API key available:', keyStatus.available);
+    try {
+      checkApiKeyStatus();
+      console.log('App initialized successfully');
+    } catch (e) {
+      console.error('Error checking API key status:', e);
+    }
   }, []);
 
   // Reset selectedCategoryId when changing tabs
