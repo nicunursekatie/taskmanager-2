@@ -39,19 +39,33 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
         task.description || ''
       );
       
+      // Validate subtasks array
+      if (!subtasks || !Array.isArray(subtasks) || subtasks.length === 0) {
+        throw new Error('Invalid subtasks returned from AI service');
+      }
+      
+      // Make sure all subtasks are valid strings
+      const validSubtasks = subtasks.filter(subtask => 
+        typeof subtask === 'string' && subtask.trim().length > 0
+      );
+      
+      if (validSubtasks.length === 0) {
+        throw new Error('No valid subtasks were generated');
+      }
+      
       // Check if the AI is requesting clarification
-      if (subtasks.length === 1 && subtasks[0].startsWith('NEEDS_CLARIFICATION')) {
+      if (validSubtasks.length === 1 && validSubtasks[0].startsWith('NEEDS_CLARIFICATION')) {
         setNeedsClarification(true);
-        setClarificationText(subtasks[0].replace('NEEDS_CLARIFICATION:', '').trim());
+        setClarificationText(validSubtasks[0].replace('NEEDS_CLARIFICATION:', '').trim());
         setGeneratedSubtasks([]);
         setSelectedSubtasks([]);
       } else {
-        setGeneratedSubtasks(subtasks);
-        setSelectedSubtasks([...subtasks]); // Select all by default
+        setGeneratedSubtasks(validSubtasks);
+        setSelectedSubtasks([...validSubtasks]); // Select all by default
         
         // Initialize editable versions of the subtasks
         const initialEditableSubtasks: {[key: number]: string} = {};
-        subtasks.forEach((subtask, index) => {
+        validSubtasks.forEach((subtask, index) => {
           initialEditableSubtasks[index] = subtask;
         });
         setEditableSubtasks(initialEditableSubtasks);
@@ -127,12 +141,26 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
       setTimeout(() => {
         breakdownTask(task.title, updatedDesc)
           .then(subtasks => {
-            setGeneratedSubtasks(subtasks);
-            setSelectedSubtasks([...subtasks]);
+            // Validate subtasks array
+            if (!subtasks || !Array.isArray(subtasks) || subtasks.length === 0) {
+              throw new Error('Invalid subtasks returned from AI service');
+            }
+            
+            // Make sure all subtasks are valid strings
+            const validSubtasks = subtasks.filter(subtask => 
+              typeof subtask === 'string' && subtask.trim().length > 0
+            );
+            
+            if (validSubtasks.length === 0) {
+              throw new Error('No valid subtasks were generated');
+            }
+            
+            setGeneratedSubtasks(validSubtasks);
+            setSelectedSubtasks([...validSubtasks]);
             
             // Initialize editable versions of the subtasks
             const initialEditableSubtasks: {[key: number]: string} = {};
-            subtasks.forEach((subtask, index) => {
+            validSubtasks.forEach((subtask, index) => {
               initialEditableSubtasks[index] = subtask;
             });
             setEditableSubtasks(initialEditableSubtasks);

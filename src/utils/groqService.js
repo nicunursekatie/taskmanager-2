@@ -130,11 +130,15 @@ FORMAT:
     
     // Clean up any remaining formatting and normalize spacing
     subtasks = subtasks.map(task => {
+      if (!task) return ''; // Handle null or undefined
       return task
         .replace(/^[-*•]|\[\s?\]|\s*-\s*/, '') // Remove bullets, brackets, etc.
         .replace(/\s+/g, ' ')                 // Normalize spacing
         .trim();                              // Trim whitespace
     });
+    
+    // Filter out any empty subtasks
+    subtasks = subtasks.filter(task => task && task.trim().length > 0);
     
     // Ensure we have at least some subtasks, or return fallback
     if (subtasks.length === 0) {
@@ -305,76 +309,60 @@ function fallbackBreakdownTask(taskTitle, taskDescription = '') {
       .map(word => word.trim().replace(/[,.!?]$/, ''));
     
     if (keyTerms.length > 0) {
-      // Replace specific elements in the subtasks with contextual details
-      
       // Extract main topics from the task title - these are likely the most important objects/subjects
-      const mainTopic = keyTerms[0]; // First key term is often the main subject
-      const secondaryTopic = keyTerms.length > 1 ? keyTerms[1] : keyTerms[0];
+      const mainTopic = keyTerms[0] || "task"; // First key term is often the main subject, fallback to "task"
+      const secondaryTopic = keyTerms.length > 1 ? keyTerms[1] : mainTopic;
       
-      // Customize all subtasks with task-specific information
+      // Customize all subtasks with task-specific information - but use a simpler approach
       subtasks = subtasks.map((subtask, index) => {
-        // Different strategies based on position in the list and content
-        const lowerSubtask = subtask.toLowerCase();
-        
-        // For search-related subtasks (often first steps)
-        if (lowerSubtask.includes('search') || lowerSubtask.includes('check') || lowerSubtask.includes('find')) {
-          return subtask.replace(/for .+?(?= on| in| under| with|$)/, `for ${mainTopic}`);
-        }
-        
-        // For tasks mentioning documents, notes, or drafts
-        else if (lowerSubtask.includes('doc') || lowerSubtask.includes('draft') || lowerSubtask.includes('outline')) {
-          return subtask.replace(/outline|document|draft/, `${mainTopic} ${subtask.includes('outline') ? 'outline' : subtask.includes('draft') ? 'draft' : 'document'}`);
-        }
-        
-        // For reminder or scheduling tasks
-        else if (lowerSubtask.includes('reminder') || lowerSubtask.includes('calendar')) {
-          return subtask.replace(/reminder|appointment/, `${mainTopic} ${subtask.includes('reminder') ? 'reminder' : 'appointment'}`);
-        }
-        
-        // For tasks involving calling, emailing or texting
-        else if (lowerSubtask.includes('call') || lowerSubtask.includes('email') || lowerSubtask.includes('text')) {
-          // If there's a generic recipient, replace it
-          if (lowerSubtask.includes('colleague') || lowerSubtask.includes('team') || lowerSubtask.includes('roommate')) {
-            return subtask.replace(/colleague|team|roommate|client|jessica|sarah/, `${taskTitle.length > 12 ? 'Alex' : 'Sam'} about ${mainTopic}`);
-          } else {
-            return subtask + ` about ${mainTopic}`;
+        try {
+          const lowerSubtask = subtask.toLowerCase();
+          
+          // For search-related subtasks 
+          if (lowerSubtask.includes('search') || lowerSubtask.includes('check') || lowerSubtask.includes('find')) {
+            const replaced = subtask.replace(/for\s+[^,\s]+(?=\s+on|\s+in|\s+under|\s+with|$)/, `for ${mainTopic}`);
+            // If replacement didn't work or resulted in invalid text, return the original
+            return replaced && replaced.trim().length > 5 ? replaced : subtask;
           }
-        }
-        
-        // For writing or coding tasks
-        else if (lowerSubtask.includes('write') || lowerSubtask.includes('code')) {
-          if (lowerSubtask.includes('.js') || lowerSubtask.includes('function')) {
-            return subtask.replace(/login\.js|function|endpoint/, `${mainTopic.slice(0, 10)}.js function`);
-          } else {
-            return subtask.replace(/paragraph|introduction|bullet points/, `${mainTopic} ${subtask.includes('paragraph') ? 'paragraph' : subtask.includes('introduction') ? 'introduction' : 'notes'}`);
+          
+          // For tasks mentioning documents, notes, or drafts
+          else if (lowerSubtask.includes('doc') || lowerSubtask.includes('draft') || lowerSubtask.includes('outline')) {
+            // Just append the main topic rather than trying to do a specific replacement
+            return `Create ${mainTopic} ${lowerSubtask.includes('outline') ? 'outline' : 'document'}`;
           }
-        }
-        
-        // For the last subtask (often completion or verification)
-        else if (index === subtasks.length - 1) {
-          if (lowerSubtask.includes('check') || lowerSubtask.includes('review') || lowerSubtask.includes('test')) {
-            return `Verify ${mainTopic} is complete and working`;
-          } else {
-            return subtask;
+          
+          // For reminder or scheduling tasks
+          else if (lowerSubtask.includes('reminder') || lowerSubtask.includes('calendar')) {
+            return `Set ${mainTopic} reminder in calendar`;
           }
-        }
-        
-        // Default: Try to replace generic nouns with specific terms from the task
-        else {
-          // Find nouns in the subtask (often after verbs or prepositions)
-          const parts = subtask.split(' ');
-          if (parts.length > 2) {
-            // Look for common nouns to replace
-            const commonNouns = ['items', 'things', 'materials', 'tools', 'resources', 'content'];
-            for (const noun of commonNouns) {
-              if (lowerSubtask.includes(noun)) {
-                return subtask.replace(new RegExp(noun, 'i'), mainTopic);
-              }
-            }
+          
+          // For tasks involving calling, emailing or texting
+          else if (lowerSubtask.includes('call') || lowerSubtask.includes('email') || lowerSubtask.includes('text')) {
+            return `Contact team member about ${mainTopic}`;
           }
+          
+          // For writing or coding tasks
+          else if (lowerSubtask.includes('write') || lowerSubtask.includes('code')) {
+            return `Write ${mainTopic} documentation`;
+          }
+          
+          // For the last subtask (often completion or verification)
+          else if (index === subtasks.length - 1) {
+            return `Verify ${mainTopic} is complete`;
+          }
+          
+          // If all else fails, just return the original subtask
           return subtask;
+        } catch (error) {
+          console.error("Error customizing subtask:", error);
+          return subtask || `Step ${index + 1} for ${mainTopic}`;
         }
       });
+      
+      // Ensure we don't have any empty subtasks
+      subtasks = subtasks.map((subtask, index) => 
+        subtask && subtask.trim().length > 0 ? subtask : `Step ${index + 1} for ${mainTopic}`
+      );
     }
   }
   
