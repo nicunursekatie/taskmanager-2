@@ -43,7 +43,7 @@ export async function breakdownTask(taskTitle, taskDescription = '') {
         'Authorization': `Bearer ${GROQ_API_KEY}`
       },
       body: JSON.stringify({
-        model: 'claude-3-opus-20240229',
+        model: 'llama3-8b-8192',
         messages: [
           {
             role: 'system',
