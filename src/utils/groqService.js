@@ -23,38 +23,15 @@ export async function breakdownTask(taskTitle, taskDescription = '') {
         'Authorization': `Bearer ${GROQ_API_KEY}`
       },
       body: JSON.stringify({
-        model: 'claude-3-opus-20240229',  // Using Claude model
+        model: 'claude-3-opus-20240229',
         messages: [
           {
             role: 'system',
-            content: `You generate practical, concrete subtasks for a given task. Your subtasks must be:
-
-1. SPECIFIC AND REAL-WORLD: Never use generic phrases like "gather resources" or "review progress" - instead name the exact physical actions or objects involved
-2. DOMAIN-APPROPRIATE: Use terminology and steps that match the domain (medical, software, home repair, etc.)
-3. IMMEDIATELY ACTIONABLE: Each subtask should be something the user can do right now, not abstract planning
-4. CONCRETE: Include specific nouns and context details ("email Sarah about budget approval" not "contact stakeholders")
-5. PRACTICAL: Focus on necessary real steps, not conceptual or motivational elements
-
-SPECIFIC EXAMPLES:
-Instead of "Define project requirements" → "List exact fields needed in database"
-Instead of "Gather materials" → "Buy 2x4 lumber and wood screws from Home Depot"
-Instead of "Execute core work" → "Write authentication function in auth.js"
-Instead of "Complete preparation" → "Print patient intake forms"
-
-CRITICAL INSTRUCTIONS:
-- Generate exactly 3-5 subtasks
-- Each subtask must be 3-8 words maximum
-- Start each with a specific action verb
-- DO NOT include generic productivity language
-- DO NOT include planning or review steps unless absolutely necessary
-- DO NOT include vague language like "work on" or "handle"
-- DO NOT repeat key terms from the main task in every subtask
-- DO NOT include serialized formatting (numbers, bullets, etc.)
-- Return ONLY a comma-separated list of subtasks, nothing else`
+            content: `You are a reasoning assistant that breaks real-world tasks into subtasks. Do not rely on generic productivity templates. Instead, use context clues from the task itself to infer realistic, specific steps a person would actually take. For vague or domestic tasks, think practically—what physical actions or decisions would need to happen? Skip generic steps like "create Google Doc" or "notify team" unless they clearly apply.`
           },
           {
             role: 'user',
-            content: `Task: "${taskTitle}"${taskDescription ? `\nContext: ${taskDescription}` : ''}`
+            content: `Break down the task: "${taskTitle}" into 3–5 real-world subtasks. Be concrete and context-aware. Avoid generic or vague language.${taskDescription ? `\nAdditional context: ${taskDescription}` : ''}`
           }
         ],
         temperature: 0.1,  // Very low temperature for consistent, deterministic results
