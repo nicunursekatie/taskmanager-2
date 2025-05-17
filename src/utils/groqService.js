@@ -23,35 +23,42 @@ export async function breakdownTask(taskTitle, taskDescription = '') {
         'Authorization': `Bearer ${GROQ_API_KEY}`
       },
       body: JSON.stringify({
-        model: 'llama3-70b-8192',  // Or another supported model
+        model: 'claude-3-opus-20240229',  // Using Claude model
         messages: [
           {
             role: 'system',
-            content: `You are a task breakdown assistant that helps users break down their tasks into clear, specific, and actionable subtasks.
+            content: `You generate practical, concrete subtasks for a given task. Your subtasks must be:
 
-IMPORTANT GUIDELINES:
-1. Generate 4-6 concrete, specific subtasks that directly relate to completing the main task
-2. Each subtask must be directly actionable - something the user can immediately work on
-3. Tailor subtasks to the specific domain and context of the main task
-4. Use clear, concise language with specific verbs that indicate exactly what action to take
-5. Avoid generic productivity terms like "define success criteria" or "execute core work"
-6. Skip motivational language, focus only on specific actions
-7. Each subtask should represent a distinct step toward completing the overall task
-8. Consider the natural sequence of steps needed to complete the task
+1. SPECIFIC AND REAL-WORLD: Never use generic phrases like "gather resources" or "review progress" - instead name the exact physical actions or objects involved
+2. DOMAIN-APPROPRIATE: Use terminology and steps that match the domain (medical, software, home repair, etc.)
+3. IMMEDIATELY ACTIONABLE: Each subtask should be something the user can do right now, not abstract planning
+4. CONCRETE: Include specific nouns and context details ("email Sarah about budget approval" not "contact stakeholders")
+5. PRACTICAL: Focus on necessary real steps, not conceptual or motivational elements
 
-FORMATTING INSTRUCTIONS:
-- Return ONLY an array of subtask strings, with no additional text, explanations, or JSON
-- Each subtask should be 3-10 words, focused on clarity and specificity
-- Start each subtask with a specific action verb
-- Do not number or bullet the subtasks`
+SPECIFIC EXAMPLES:
+Instead of "Define project requirements" → "List exact fields needed in database"
+Instead of "Gather materials" → "Buy 2x4 lumber and wood screws from Home Depot"
+Instead of "Execute core work" → "Write authentication function in auth.js"
+Instead of "Complete preparation" → "Print patient intake forms"
+
+CRITICAL INSTRUCTIONS:
+- Generate exactly 3-5 subtasks
+- Each subtask must be 3-8 words maximum
+- Start each with a specific action verb
+- DO NOT include generic productivity language
+- DO NOT include planning or review steps unless absolutely necessary
+- DO NOT include vague language like "work on" or "handle"
+- DO NOT repeat key terms from the main task in every subtask
+- DO NOT include serialized formatting (numbers, bullets, etc.)
+- Return ONLY a comma-separated list of subtasks, nothing else`
           },
           {
             role: 'user',
-            content: `Break down this task into specific, actionable subtasks: "${taskTitle}" ${taskDescription ? `\nAdditional context: ${taskDescription}` : ''}`
+            content: `Task: "${taskTitle}"${taskDescription ? `\nContext: ${taskDescription}` : ''}`
           }
         ],
-        temperature: 0.2,  // Low temperature for more focused, consistent results
-        max_tokens: 500
+        temperature: 0.1,  // Very low temperature for consistent, deterministic results
+        max_tokens: 250
       })
     });
 
@@ -62,41 +69,50 @@ FORMATTING INSTRUCTIONS:
     const data = await response.json();
     
     // Extract subtasks from the AI response
-    let subtasksText = data.choices[0].message.content.trim();
+    const subtasksText = data.choices[0].message.content.trim();
     
-    // Handle different response formats
+    // Parse the response based on the requested comma-separated format
     let subtasks = [];
     
-    // If response is formatted as a list with dashes, newlines, etc.
-    if (subtasksText.includes('\n')) {
+    // First, try to parse as a comma-separated list (our intended format)
+    if (subtasksText.includes(',')) {
+      subtasks = subtasksText
+        .split(',')
+        .map(s => s.trim())
+        .filter(s => s.length > 0 && s.length < 100); // Reasonable length for a subtask
+    }
+    // Fallback: handle newline-separated list
+    else if (subtasksText.includes('\n')) {
       subtasks = subtasksText
         .split('\n')
         .map(line => line.replace(/^[-*•]|\d+[.)]|\[\s?\]|\s*-\s*/, '').trim())
-        .filter(line => line.length > 0);
-    } 
-    // If response is formatted as an array-like string
+        .filter(line => line.length > 0 && line.length < 100);
+    }
+    // Fallback: handle array-like formatting
     else if (subtasksText.startsWith('[') && subtasksText.endsWith(']')) {
       try {
-        subtasks = JSON.parse(subtasksText);
+        const parsed = JSON.parse(subtasksText);
+        if (Array.isArray(parsed)) {
+          subtasks = parsed.filter(s => typeof s === 'string' && s.length > 0 && s.length < 100);
+        }
       } catch (e) {
-        // If parsing fails, try a simple split by quotes
+        // If JSON parsing fails, try a simple bracket removal and comma split
         subtasks = subtasksText
           .replace(/^\[|\]$/g, '')
           .split(',')
           .map(s => s.replace(/^["']|["']$/g, '').trim())
-          .filter(s => s.length > 0);
+          .filter(s => s.length > 0 && s.length < 100);
       }
-    } 
-    // If it's just a comma-separated list
-    else if (subtasksText.includes(',')) {
-      subtasks = subtasksText
-        .split(',')
-        .map(s => s.trim())
-        .filter(s => s.length > 0);
     }
-    // If we can't parse it properly, just return the whole thing as one task
-    else {
+    // Fallback: just use the whole string if nothing else works
+    else if (subtasksText.length > 0 && subtasksText.length < 100) {
       subtasks = [subtasksText];
+    }
+    
+    // Ensure we have at least some subtasks, or return fallback
+    if (subtasks.length === 0) {
+      console.warn('Failed to extract subtasks from AI response, using fallback');
+      return fallbackBreakdownTask(taskTitle, taskDescription);
     }
     
     return subtasks;
@@ -122,114 +138,150 @@ function fallbackBreakdownTask(taskTitle, taskDescription = '') {
   // Select appropriate template based on task keywords
   if (lowercaseTitle.includes('presentation') || lowercaseTitle.includes('slideshow') || lowercaseTitle.includes('slides')) {
     subtasks = [
-      'Outline key points and structure',
-      'Create slides with visual elements',
-      'Add speaker notes and talking points',
-      'Practice delivery and time presentation',
-      'Gather feedback and revise'
+      'Draft bullet points on paper',
+      'Find relevant images online',
+      'Create 5-7 key slides',
+      'Time your speech aloud',
+      'Email draft to colleague'
     ];
   } else if (lowercaseTitle.includes('report') || lowercaseTitle.includes('research') || lowercaseTitle.includes('paper')) {
     subtasks = [
-      'Gather and organize research sources',
-      'Create outline with main sections',
-      'Write first draft of content',
-      'Edit for clarity and accuracy',
-      'Finalize formatting and citations'
+      'Download 3-5 key papers',
+      'Create section headers document',
+      'Write introduction paragraph',
+      'Create data visualization charts',
+      'Run spelling check'
     ];
   } else if (lowercaseTitle.includes('project') || lowercaseTitle.includes('develop') || lowercaseTitle.includes('implement')) {
     subtasks = [
-      'Document specific requirements',
-      'Create detailed task breakdown',
-      'Code the core functionality',
-      'Test specific components',
-      'Write implementation documentation'
+      'Sketch database schema diagram',
+      'Create GitHub repository',
+      'Code login screen',
+      'Write unit tests',
+      'Deploy to staging server'
     ];
   } else if (lowercaseTitle.includes('meeting') || lowercaseTitle.includes('interview') || lowercaseTitle.includes('call')) {
     subtasks = [
-      'Draft specific agenda items',
-      'Prepare presentation materials',
-      'Send invites with agenda attached',
-      'Take notes during meeting',
-      'Distribute action items to participants'
+      'Book conference room 3B',
+      'Print handouts for attendees',
+      'Send calendar invites',
+      'Prepare three discussion questions',
+      'Email minutes afterward'
     ];
   } else if (lowercaseTitle.includes('email') || lowercaseTitle.includes('write') || lowercaseTitle.includes('draft')) {
     subtasks = [
-      'List key points to cover',
-      'Write initial draft',
-      'Edit for clarity and brevity',
-      'Proofread for spelling and grammar',
-      'Attach necessary documents'
+      'Bullet point three key messages',
+      'Find recipient email address',
+      'Draft in Google Docs',
+      'Proofread for tone',
+      'Attach PDF report'
     ];
   } else if (lowercaseTitle.includes('plan') || lowercaseTitle.includes('organize') || lowercaseTitle.includes('schedule')) {
     subtasks = [
-      'List specific goals with metrics',
-      'Document available resources',
-      'Create detailed timeline',
-      'Assign team member responsibilities',
-      'Set up progress tracking method'
+      'Create Excel spreadsheet template',
+      'List stakeholder email addresses',
+      'Book meeting rooms in Outlook',
+      'Set up Slack channel',
+      'Email timeline to team'
     ];
   } else if (lowercaseTitle.includes('buy') || lowercaseTitle.includes('purchase') || lowercaseTitle.includes('shopping')) {
     subtasks = [
-      'Research product specifications',
-      'Compare prices from different vendors',
-      'Check reviews from recent buyers',
-      'Make the purchase',
-      'Track shipping and delivery'
+      'Compare prices on Amazon',
+      'Read reviews on Wirecutter',
+      'Check credit card balance',
+      'Place order online',
+      'Save receipt for taxes'
     ];
   } else if (lowercaseTitle.includes('code') || lowercaseTitle.includes('program') || lowercaseTitle.includes('app')) {
     subtasks = [
-      'Sketch the solution architecture',
-      'Write pseudocode for key algorithms',
-      'Implement the core functionality',
-      'Write tests for edge cases',
-      'Refactor for readability and performance'
+      'Create Git branch',
+      'Write API endpoint function',
+      'Update database schema',
+      'Fix error handling bugs',
+      'Submit pull request'
     ];
   } else if (lowercaseTitle.includes('learn') || lowercaseTitle.includes('study') || lowercaseTitle.includes('course')) {
     subtasks = [
-      'Find specific learning resources',
-      'Schedule dedicated study sessions',
-      'Take notes on key concepts',
-      'Practice with hands-on exercises',
-      'Review and test understanding'
+      'Sign up for Coursera class',
+      'Download lecture notes',
+      'Create Anki flashcards',
+      'Book study room at library',
+      'Schedule practice exam'
+    ];
+  } else if (lowercaseTitle.includes('doctor') || lowercaseTitle.includes('medical') || lowercaseTitle.includes('health')) {
+    subtasks = [
+      'Call clinic for appointment',
+      'Update insurance information',
+      'Print medical history form',
+      'Refill prescription',
+      'Set reminder on phone'
+    ];
+  } else if (lowercaseTitle.includes('blog') || lowercaseTitle.includes('post') || lowercaseTitle.includes('article')) {
+    subtasks = [
+      'Research trending keywords',
+      'Create article outline',
+      'Write opening paragraph',
+      'Find Creative Commons images',
+      'Schedule in WordPress'
     ];
   } else {
     // More specific generic template
     subtasks = [
-      'Define exact end deliverables',
-      'List required resources and tools',
-      'Complete the initial preparation step',
-      'Execute the main task component',
-      'Verify results against requirements'
+      'Schedule 30 minutes tomorrow',
+      'Email relevant team members',
+      'Create Google Doc draft',
+      'Set phone reminder',
+      'Update task status afterward'
     ];
   }
   
-  // Add task-specific customization to multiple subtasks
-  if (taskTitle.length > 5) {
-    // Add specificity to 2-3 subtasks
-    const numToCustomize = Math.min(subtasks.length, Math.floor(Math.random() * 2) + 2);
-    const indices = [];
+  // Add task-specific customization based on the task title
+  if (taskTitle.length > 3) {
+    // Extract key terms from the task title
+    const words = taskTitle.toLowerCase().split(/\s+/);
     
-    // Generate unique random indices
-    while (indices.length < numToCustomize) {
-      const index = Math.floor(Math.random() * subtasks.length);
-      if (!indices.includes(index)) {
-        indices.push(index);
-      }
-    }
+    // Get meaningful words (longer words likely have more semantic value)
+    const keyTerms = words
+      .filter(word => word.length > 3 && !['with', 'for', 'the', 'and', 'that', 'this'].includes(word))
+      .map(word => word.trim().replace(/[,.!?]$/, ''));
     
-    // Customize the selected subtasks
-    indices.forEach(index => {
-      // Extract key terms from the task title
-      const words = taskTitle.split(' ');
-      const keyTerms = words.filter(word => word.length > 3).slice(0, 2);
+    if (keyTerms.length > 0) {
+      // Replace 2-3 subtasks with more contextual ones
+      const numToCustomize = Math.min(subtasks.length, Math.floor(Math.random() * 2) + 2);
       
-      if (keyTerms.length > 0) {
-        const term = keyTerms[Math.floor(Math.random() * keyTerms.length)];
-        subtasks[index] = subtasks[index] + ` for ${term.trim()}`;
-      } else {
-        subtasks[index] = subtasks[index] + ` for "${taskTitle.trim()}"`;
+      // Generate non-repeating random indices to modify
+      const indices = [];
+      while (indices.length < numToCustomize) {
+        const index = Math.floor(Math.random() * subtasks.length);
+        if (!indices.includes(index)) {
+          indices.push(index);
+        }
       }
-    });
+      
+      // Extract a noun or main topic from the task title
+      const mainTopic = keyTerms[Math.floor(Math.random() * keyTerms.length)];
+      
+      // Modify selected subtasks to be more specific to the task
+      indices.forEach((index, i) => {
+        const term = keyTerms[i % keyTerms.length]; // Cycle through key terms
+        
+        // Different customization strategies
+        if (i === 0 && subtasks[index].toLowerCase().includes('email')) {
+          // If it's an email task, specify the subject
+          subtasks[index] = subtasks[index].replace('email', `email about ${taskTitle.trim()}`);
+        } else if (i === 1 && subtasks[index].toLowerCase().includes('create')) {
+          // If it's a creation task, specify what to create
+          subtasks[index] = subtasks[index].replace('create', `create ${term}`);
+        } else if (subtasks[index].includes('Google Doc')) {
+          // Name the document more specifically
+          subtasks[index] = subtasks[index].replace('Google Doc', `${mainTopic} document`);
+        } else {
+          // Add the term to the end of the subtask
+          const verb = subtasks[index].split(' ')[0];
+          subtasks[index] = `${verb} ${term} ${subtasks[index].substring(verb.length).trim()}`;
+        }
+      });
+    }
   }
   
   return subtasks;
