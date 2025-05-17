@@ -303,6 +303,20 @@ function App() {
     );
   };
   
+  // Update task description
+  const updateTaskDescription = (id: string, description: string) => {
+    setTasks(prev =>
+      prev.map(task =>
+        task.id === id
+          ? {
+              ...task,
+              description
+            }
+          : task
+      )
+    );
+  };
+  
   // Add a new project
   const addProject = (project: Omit<Project, 'id'>) => {
     const id = Date.now().toString();
@@ -696,6 +710,7 @@ function App() {
                     toggleTask={toggleTask}
                     deleteTask={deleteTask}
                     updateTask={updateTask}
+                    updateTaskDescription={updateTaskDescription}
                     addSubtask={addSubtask}
                     updateTaskEstimate={updateTaskEstimate}
                     startTaskTimer={startTaskTimer}

@@ -27,46 +27,45 @@ export async function breakdownTask(taskTitle, taskDescription = '') {
         messages: [
           {
             role: 'system',
-            content: `You are a reasoning assistant that breaks tasks into HIGHLY SPECIFIC and CONCRETE subtasks based on realistic, physical actions a person would need to take.
+            content: `You are a reasoning assistant that breaks tasks into specific, concrete subtasks based on ONLY what is explicitly stated in the task, without adding irrelevant steps or hallucinating context.
 
-ABSOLUTELY CRITICAL RULES:
-1. NEVER use generic productivity language ("plan", "research", "review", "gather")
-2. NEVER suggest creating documents, spreadsheets, or sending emails unless the task SPECIFICALLY involves office work
-3. For personal or domestic tasks, focus on physical objects and actual locations
-4. Include specific tools, materials, or websites when appropriate
-5. Every subtask MUST include at least one concrete noun or specific detail
-6. Use numbers for quantities when appropriate (e.g., "fold 6 towels" not "fold towels")
-7. For household tasks, mention specific rooms or locations
-8. For work tasks, mention actual apps or tools, not generic concepts
-9. Always think about what the NEXT physical action would actually be
+CRITICAL INSTRUCTIONS:
+1. First, ANALYZE the task to determine if it's vague or ambiguous
+2. If the task is too vague (like "get labs drawn" with no context), respond with ONLY: "NEEDS_CLARIFICATION: Please provide more details about this task."
+3. Do NOT generate subtasks for vague tasks - only for clear, specific tasks
+4. Do NOT assume context that isn't explicitly in the task description
+5. Do NOT add generic steps like "check weather," "text roommate," or "make a plan" unless specifically mentioned
+6. Each subtask must directly contribute to completing the MAIN task, not tangential activities
+7. Only include steps that are NECESSARY and RELEVANT to complete the specific task
+8. For medical tasks, suggest actual clinical steps (not social arrangements unless specified)
+9. For work tasks, don't add personal steps unless they're specified
+10. Make each subtask concrete, specific and minimal
 
-EXAMPLES OF BAD (GENERIC) SUBTASKS:
-- "Research options" (Too vague)
-- "Plan the approach" (Too abstract)
-- "Gather materials" (Too generic)
-- "Create document" (Too generic)
-- "Execute task" (Meaningless)
-- "Review progress" (Too vague)
+FOR EXAMPLE:
+- Task: "Get labs drawn"
+  Response: "NEEDS_CLARIFICATION: Please provide more details about this task."
 
-EXAMPLES OF GOOD (SPECIFIC) SUBTASKS:
-- "Search on Amazon for shower curtain liners under $15"
-- "Fill pot with 4 cups water and set to boil"
-- "Call Dr. Thompson's office at 555-1234"
-- "Check refrigerator for remaining eggs and milk"
-- "Print return label from USPS website"
-- "Measure kitchen window width with tape measure"
+- Task: "Get blood labs drawn at Kaiser clinic this Friday" 
+  Appropriate subtasks:
+  1. Check lab orders in Kaiser patient portal
+  2. Print lab requisition form
+  3. Fast for 12 hours before appointment
+  4. Drive to Kaiser clinic on Main Street
+  5. Bring insurance card and ID to appointment
 
-FORMAT: Return ONLY 3-5 numbered subtasks with NO introduction or commentary.
-1. [first subtask]
-2. [second subtask]
-etc.`
+FORMAT: 
+- For vague tasks: Return ONLY "NEEDS_CLARIFICATION: Please provide more details about this task."
+- For clear tasks: Return 3-5 numbered subtasks with NO introduction or commentary.
+  1. [first subtask]
+  2. [second subtask]
+  etc.`
           },
           {
             role: 'user',
             content: `Task: "${taskTitle}"${taskDescription ? `\nAdditional context: ${taskDescription}` : ''}`
           }
         ],
-        temperature: 0.2,  // Slight increase in variability for more creative, specific responses
+        temperature: 0.1,  // Lower temperature for more consistent results
         max_tokens: 300
       })
     });

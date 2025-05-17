@@ -97,6 +97,7 @@ export type TaskListProps = {
     dependsOn?: string[],
     priority?: PriorityLevel
   ) => void;
+  updateTaskDescription?: (id: string, description: string) => void;
   addSubtask: (parentId: string, title: string) => void;
   updateTaskEstimate?: (id: string, estimatedMinutes: number | null) => void;
   startTaskTimer?: (id: string) => void;

@@ -8,13 +8,15 @@ interface TaskBreakdownProps {
   subtasks: Task[];
   addSubtask: (parentId: string, title: string) => void;
   toggleTask: (id: string) => void;
+  updateTaskDescription?: (id: string, description: string) => void;
 }
 
 const TaskBreakdown: React.FC<TaskBreakdownProps> = ({ 
   task, 
   subtasks, 
   addSubtask, 
-  toggleTask 
+  toggleTask,
+  updateTaskDescription 
 }) => {
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
   const [isExpanded, setIsExpanded] = useState(true);
@@ -107,7 +109,8 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
           {subtasks.length === 0 && (
             <AITaskBreakdown 
               task={task} 
-              addSubtask={addSubtask} 
+              addSubtask={addSubtask}
+              updateTaskDescription={updateTaskDescription}
             />
           )}
         </>

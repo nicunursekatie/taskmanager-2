@@ -181,6 +181,21 @@
   flex: 1;
 }
 
+.ai-subtask-edit {
+  flex: 1;
+  padding: 6px 8px;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  font-size: 14px;
+  width: calc(100% - 36px);
+  background-color: white;
+}
+
+.ai-subtask-edit:disabled {
+  background-color: #f7fafc;
+  color: #a0aec0;
+}
+
 .ai-actions {
   display: flex;
   justify-content: flex-end;
@@ -210,9 +225,59 @@
   background-color: #3182ce;
 }
 
-.ai-add-btn:disabled {
+.ai-add-btn:disabled, .ai-generate-btn:disabled {
   background-color: #90cdf4;
   cursor: not-allowed;
+}
+
+.ai-clarification {
+  padding: 12px;
+}
+
+.ai-clarification-heading {
+  display: flex;
+  align-items: center;
+  margin: 0 0 15px 0;
+  font-size: 16px;
+  color: #2d3748;
+}
+
+.ai-clarification p {
+  margin-bottom: 12px;
+  color: #4a5568;
+}
+
+.ai-clarification-input {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  resize: vertical;
+  background-color: white;
+}
+
+.ai-save-btn, .ai-generate-btn {
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ai-save-btn {
+  background-color: #48bb78;
+  color: white;
+  border: none;
+}
+
+.ai-save-btn:hover {
+  background-color: #38a169;
+}
+
+.ai-generate-btn {
+  background-color: #4299e1;
+  color: white;
+  border: none;
 }
 
 /* Dark mode adjustments */
