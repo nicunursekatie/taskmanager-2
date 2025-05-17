@@ -46,6 +46,7 @@ export type PriorityLevel = 'critical' | 'high' | 'medium' | 'low' | null;
 export type Task = {
   id: string;
   title: string;
+  description?: string; // Description provides more context for AI task breakdown
   dueDate?: string | null; // ISO date string with or without time: "YYYY-MM-DD" or "YYYY-MM-DDTHH:MM:SS"
   dueTime?: string | null; // Optional time component: "HH:MM"
   status: 'pending' | 'completed';

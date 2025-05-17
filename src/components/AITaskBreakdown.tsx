@@ -23,7 +23,11 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({ task, addSubtask }) =
     setError(null);
     
     try {
-      const subtasks = await breakdownTask(task.title);
+      // Pass both title and description (if available) to the breakdown function
+      const subtasks = await breakdownTask(
+        task.title, 
+        task.description || ''
+      );
       setGeneratedSubtasks(subtasks);
       setSelectedSubtasks([...subtasks]); // Select all by default
     } catch (err) {
