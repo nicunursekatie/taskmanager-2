@@ -74,12 +74,24 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
         });
         setEditableSubtasks(initialEditableSubtasks);
         
-        // Automatically add all valid subtasks to the task
-        validSubtasks.forEach(subtask => {
-          if (subtask.trim()) {
-            addSubtask(task.id, subtask.trim());
-          }
-        });
+        // Automatically add all valid subtasks to the task - with a short delay between each
+        // to ensure they're processed sequentially and don't conflict
+        console.log('Adding subtasks:', validSubtasks);
+        
+        // Use a promise chain to add subtasks one by one with a small delay
+        validSubtasks.reduce((promise, subtask, index) => {
+          return promise.then(() => {
+            return new Promise<void>(resolve => {
+              setTimeout(() => {
+                if (subtask.trim()) {
+                  console.log(`Adding subtask ${index + 1}/${validSubtasks.length}:`, subtask);
+                  addSubtask(task.id, subtask.trim());
+                }
+                resolve();
+              }, 50 * index); // Stagger with small delay
+            });
+          });
+        }, Promise.resolve());
         
         // Don't reset the UI state immediately - keep showing the subtasks to the user
         // This gives users time to see what subtasks were added
@@ -110,19 +122,10 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
     });
   };
 
-  // Add selected subtasks to the task (kept for UI interaction, but subtasks are already added automatically)
+  // Only handles UI closure - subtasks are already added automatically
   const handleAddSubtasks = () => {
-    // Use the edited versions of the subtasks
-    Object.entries(editableSubtasks).forEach(([indexStr, subtask]) => {
-      const index = parseInt(indexStr);
-      // Only add if the subtask is selected and not empty
-      if (selectedSubtasks.includes(generatedSubtasks[index]) && subtask.trim()) {
-        // Add subtask if it wasn't already added automatically
-        addSubtask(task.id, subtask.trim());
-      }
-    });
-    
-    // Reset after adding
+    // Don't add subtasks again, just close the UI
+    // This prevents duplicate subtasks
     handleCancel();
   };
 
@@ -221,12 +224,24 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
             });
             setEditableSubtasks(initialEditableSubtasks);
             
-            // Automatically add all subtasks to the task
-            finalSubtasks.forEach(subtask => {
-              if (subtask.trim()) {
-                addSubtask(task.id, subtask.trim());
-              }
-            });
+            // Automatically add all subtasks to the task - with a short delay between each
+            // to ensure they're processed sequentially and don't conflict
+            console.log('Adding clarification-based subtasks:', finalSubtasks);
+            
+            // Use a promise chain to add subtasks one by one with a small delay
+            finalSubtasks.reduce((promise, subtask, index) => {
+              return promise.then(() => {
+                return new Promise<void>(resolve => {
+                  setTimeout(() => {
+                    if (subtask.trim()) {
+                      console.log(`Adding clarification subtask ${index + 1}/${finalSubtasks.length}:`, subtask);
+                      addSubtask(task.id, subtask.trim());
+                    }
+                    resolve();
+                  }, 50 * index); // Stagger with small delay
+                });
+              });
+            }, Promise.resolve());
             
             // Update UI state
             setNeedsClarification(false);
@@ -257,12 +272,24 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
             });
             setEditableSubtasks(initialEditableSubtasks);
             
-            // Automatically add all fallback subtasks to the task
-            fallbackSubtasks.forEach(subtask => {
-              if (subtask.trim()) {
-                addSubtask(task.id, subtask.trim());
-              }
-            });
+            // Automatically add all fallback subtasks to the task - with a short delay between each
+            // to ensure they're processed sequentially and don't conflict
+            console.log('Adding fallback subtasks:', fallbackSubtasks);
+            
+            // Use a promise chain to add subtasks one by one with a small delay
+            fallbackSubtasks.reduce((promise, subtask, index) => {
+              return promise.then(() => {
+                return new Promise<void>(resolve => {
+                  setTimeout(() => {
+                    if (subtask.trim()) {
+                      console.log(`Adding fallback subtask ${index + 1}/${fallbackSubtasks.length}:`, subtask);
+                      addSubtask(task.id, subtask.trim());
+                    }
+                    resolve();
+                  }, 50 * index); // Stagger with small delay
+                });
+              });
+            }, Promise.resolve());
             
             setNeedsClarification(false);
             setIsLoading(false);

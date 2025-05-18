@@ -922,6 +922,21 @@ body {
   margin-top: var(--space-md);
 }
 
+.subtask-count-display {
+  background-color: rgba(66, 153, 225, 0.1);
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-top: -8px;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.subtask-count {
+  color: #4299e1;
+  font-weight: 500;
+  font-size: 14px;
+}
+
 /* Buttons */
 .btn {
   display: inline-flex;

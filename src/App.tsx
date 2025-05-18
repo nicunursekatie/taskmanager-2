@@ -1743,6 +1743,21 @@ function App() {
                     onChange={e => setEditTaskTitle(e.target.value)}
                   />
                 </div>
+                
+                {/* Display subtask count */}
+                {(() => {
+                  const subtaskCount = tasks.filter(t => t.parentId === editingTaskId).length;
+                  if (subtaskCount > 0) {
+                    return (
+                      <div className="subtask-count-display">
+                        <span className="subtask-count">
+                          {subtaskCount} subtask{subtaskCount !== 1 ? 's' : ''}
+                        </span>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
 
                 <div className="input-group">
                   <label className="form-label">Due Date & Time</label>
