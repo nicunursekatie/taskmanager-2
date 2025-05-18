@@ -94,10 +94,8 @@ const ReminderSystem: React.FC<ReminderSystemProps> = ({ tasks, openTask }) => {
       });
     }
     
-    // Automatically show reminders panel if there are due tasks
-    if (dueTasks.length > 0 && !showReminders) {
-      setShowReminders(true);
-    }
+    // Don't automatically show reminders panel - let user click the notification icon
+    // This fixes the issue of reminders automatically popping up and blocking the screen
   };
   
   // Request notification permission
