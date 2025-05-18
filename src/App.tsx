@@ -195,8 +195,12 @@ function App() {
       return;
     }
 
+    // Create a unique ID with microsecond precision to avoid collisions
+    const uniqueId = `${Date.now()}-${Math.floor(Math.random() * 1000000)}`;
+    console.log('Creating new subtask with ID:', uniqueId, 'title:', title, 'for parent:', parentId);
+    
     const newSubtask: Task = {
-      id: Date.now().toString(),
+      id: uniqueId,
       title,
       status: 'pending',
       parentId, // Set the parent ID

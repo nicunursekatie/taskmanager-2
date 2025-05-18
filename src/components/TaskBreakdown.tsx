@@ -25,11 +25,29 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
   // Reset state when subtasks change
   useEffect(() => {
     console.log('Subtasks updated, count:', subtasks.length);
+    
+    // Print out any subtasks for debugging
+    if (subtasks.length > 0) {
+      console.log('Current subtasks:');
+      subtasks.forEach((st, i) => {
+        console.log(`  ${i+1}. ID: ${st.id}, Title: "${st.title}", ParentID: ${st.parentId}`);
+      });
+    }
+    
     // If we now have subtasks but the AI breakdown is still showing, hide it
+    // Use a much longer delay to ensure all operations have completed
     if (subtasks.length > 0 && showAIBreakdown) {
       console.log('Auto-hiding AI breakdown after subtasks added');
-      // Add a small delay to let UI update first
-      setTimeout(() => setShowAIBreakdown(false), 1000);
+      // Add a longer delay to let UI update first and all operations complete
+      setTimeout(() => {
+        // Double check subtasks still exist before hiding
+        if (subtasks.length > 0) {
+          console.log('Confirmed subtasks still exist, hiding AI breakdown');
+          setShowAIBreakdown(false);
+        } else {
+          console.log('Subtasks disappeared, not hiding AI breakdown');
+        }
+      }, 2500);
     }
   }, [subtasks]);
   
@@ -124,10 +142,19 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
             <AITaskBreakdown 
               task={task} 
               addSubtask={(parentId, title) => {
-                console.log('Adding subtask:', title);
+                console.log('Adding subtask from TaskBreakdown:', title);
+                
+                // Call parent component's addSubtask function
                 addSubtask(parentId, title);
-                // Don't hide immediately - let the component finish adding all subtasks
-                // The AI component will call its own handleAddSubtasks when done
+                
+                // Force a re-render of subtasks after each addition to ensure they're visible
+                setTimeout(() => {
+                  // This is a hack to force React to re-evaluate the subtasks prop
+                  setShowAIBreakdown(true);  // This doesn't actually change the value, just triggers a re-render
+                }, 50);
+                
+                // Don't auto-hide - let the AI component handle that
+                // The verification will happen based on subtask count changes
               }}
               updateTaskDescription={updateTaskDescription}
               existingSubtasks={subtasks}

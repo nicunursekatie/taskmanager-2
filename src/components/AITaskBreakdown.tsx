@@ -92,9 +92,28 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
         
         // Create a final callback to trigger after all subtasks are added
         const afterAllSubtasksAdded = () => {
-          console.log('All subtasks added, notifying parent');
-          // Manually trigger the done handler after adding all subtasks
-          setTimeout(() => handleAddSubtasks(), 500);
+          console.log('All subtasks added, verifying before notifying parent');
+          
+          // Verify that the subtasks were actually added before proceeding
+          setTimeout(() => {
+            console.log('Current existingSubtasks:', existingSubtasks.length);
+            // Only proceed if we can confirm subtasks were added or after 2 attempts
+            let checks = 0;
+            const maxChecks = 3;
+            
+            const checkSubtasks = () => {
+              if (existingSubtasks.length > 0 || checks >= maxChecks) {
+                console.log(`Subtasks verified (${existingSubtasks.length}) or max checks reached (${checks}/${maxChecks})`);
+                handleAddSubtasks();
+              } else {
+                checks++;
+                console.log(`Waiting for subtasks to appear... (${checks}/${maxChecks})`);
+                setTimeout(checkSubtasks, 500);
+              }
+            };
+            
+            checkSubtasks();
+          }, 500);
         };
         
         // Use a promise chain to add subtasks one by one with a small delay
@@ -144,9 +163,28 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
       
       // Create a final callback to trigger after all subtasks are added
       const afterAllSubtasksAdded = () => {
-        console.log('All fallback subtasks added, notifying parent');
-        // Manually trigger the done handler after adding all subtasks
-        setTimeout(() => handleAddSubtasks(), 500);
+        console.log('All fallback subtasks added, verifying before notifying parent');
+        
+        // Verify that the subtasks were actually added before proceeding
+        setTimeout(() => {
+          console.log('Current existingSubtasks:', existingSubtasks.length);
+          // Only proceed if we can confirm subtasks were added or after max attempts
+          let checks = 0;
+          const maxChecks = 3;
+          
+          const checkSubtasks = () => {
+            if (existingSubtasks.length > 0 || checks >= maxChecks) {
+              console.log(`Fallback subtasks verified (${existingSubtasks.length}) or max checks reached (${checks}/${maxChecks})`);
+              handleAddSubtasks();
+            } else {
+              checks++;
+              console.log(`Waiting for fallback subtasks to appear... (${checks}/${maxChecks})`);
+              setTimeout(checkSubtasks, 500);
+            }
+          };
+          
+          checkSubtasks();
+        }, 500);
       };
       
       // Add subtasks automatically
@@ -189,11 +227,14 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
     handleCancel();
     
     // Signal to parent component that we're done adding subtasks
-    // This will hide the AI component in the parent
-    if (existingSubtasks.length === 0 && generatedSubtasks.length > 0) {
-      // Only update if we actually added something
+    // But add a significant delay to make sure all subtasks have been processed
+    // and the parent component has had time to update its state
+    console.log('Preparing to hide AI breakdown component, waiting for all operations to complete');
+    setTimeout(() => {
+      console.log('Existing subtasks at hide time:', existingSubtasks.length);
+      console.log('Ready to hide AI breakdown component');
       setShowAIBreakdown?.(false);
-    }
+    }, 3000);  // Use a longer 3-second delay
   };
 
   // Handle saving additional task details/clarification
