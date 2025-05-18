@@ -135,10 +135,18 @@ FORMAT:
     }
     // Fallback: comma-separated list
     else if (subtasksText.includes(',')) {
+      console.log('Handling comma-separated list:', subtasksText);
       subtasks = subtasksText
         .split(',')
         .map(s => s.trim())
-        .filter(s => s.length > 0 && s.length < 200);
+        .filter(s => {
+          // Filter out items that are too short or too long
+          const isValidLength = s.length > 2 && s.length < 200;
+          // Filter out items that are just punctuation
+          const isNotJustPunctuation = !/^[\s,.;:!?]+$/.test(s);
+          return isValidLength && isNotJustPunctuation;
+        });
+      console.log('Processed comma-separated items:', subtasks);
     }
     // Fallback: handle array-like formatting
     else if (subtasksText.startsWith('[') && subtasksText.endsWith(']')) {
@@ -177,8 +185,12 @@ FORMAT:
         .trim();                              // Trim whitespace
     });
     
-    // Filter out any empty subtasks
-    subtasks = subtasks.filter(task => task && task.trim().length > 0);
+    // Filter out any empty subtasks or single punctuation characters
+    subtasks = subtasks.filter(task => {
+      const trimmed = task && task.trim();
+      // Ensure task is not empty and not just a single punctuation character
+      return trimmed && trimmed.length > 0 && !(trimmed.length === 1 && /[,.;:!?]/.test(trimmed));
+    });
     
     // Ensure we have at least some subtasks, or return fallback
     if (subtasks.length === 0) {
