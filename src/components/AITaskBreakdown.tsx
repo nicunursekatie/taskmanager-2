@@ -73,6 +73,17 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
           initialEditableSubtasks[index] = subtask;
         });
         setEditableSubtasks(initialEditableSubtasks);
+        
+        // Automatically add all valid subtasks to the task
+        validSubtasks.forEach(subtask => {
+          if (subtask.trim()) {
+            addSubtask(task.id, subtask.trim());
+          }
+        });
+        
+        // Don't reset the UI state immediately - keep showing the subtasks to the user
+        // This gives users time to see what subtasks were added
+        // They can click "Add Subtasks" again if they want specific subtasks or cancel manually
       }
     } catch (err) {
       setError('Failed to generate subtasks. Please try again.');
@@ -99,13 +110,14 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
     });
   };
 
-  // Add selected subtasks to the task
+  // Add selected subtasks to the task (kept for UI interaction, but subtasks are already added automatically)
   const handleAddSubtasks = () => {
     // Use the edited versions of the subtasks
     Object.entries(editableSubtasks).forEach(([indexStr, subtask]) => {
       const index = parseInt(indexStr);
       // Only add if the subtask is selected and not empty
       if (selectedSubtasks.includes(generatedSubtasks[index]) && subtask.trim()) {
+        // Add subtask if it wasn't already added automatically
         addSubtask(task.id, subtask.trim());
       }
     });
@@ -209,9 +221,19 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
             });
             setEditableSubtasks(initialEditableSubtasks);
             
+            // Automatically add all subtasks to the task
+            finalSubtasks.forEach(subtask => {
+              if (subtask.trim()) {
+                addSubtask(task.id, subtask.trim());
+              }
+            });
+            
             // Update UI state
             setNeedsClarification(false);
             setIsLoading(false);
+            
+            // Keep subtasks visible to the user
+            // Don't reset UI state, so they can see what's being added
           })
           .catch(err => {
             console.error('Error generating subtasks:', err);
@@ -235,8 +257,18 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
             });
             setEditableSubtasks(initialEditableSubtasks);
             
+            // Automatically add all fallback subtasks to the task
+            fallbackSubtasks.forEach(subtask => {
+              if (subtask.trim()) {
+                addSubtask(task.id, subtask.trim());
+              }
+            });
+            
             setNeedsClarification(false);
             setIsLoading(false);
+            
+            // Keep subtasks visible to the user
+            // Don't reset UI state, so they can see what's being added
           });
       } else {
         console.warn('Missing updateTaskDescription prop or clarification text');
@@ -283,16 +315,28 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
           ) : needsClarification ? (
             <div className="ai-clarification">
               <h4 className="ai-clarification-heading">
-                Task Needs Clarification
+                Task Needs More Details
                 <span className="ai-badge">AI</span>
               </h4>
-              <p>{clarificationText}</p>
+              <div className="ai-clarification-questions">
+                <p className="ai-clarification-text">{clarificationText}</p>
+                <div className="ai-clarification-tips">
+                  <p className="clarification-tip">Consider adding details about:</p>
+                  <ul>
+                    <li>Specific context or environment</li>
+                    <li>Desired outcome or success criteria</li>
+                    <li>Available resources or tools</li>
+                    <li>Constraints (time, budget, etc.)</li>
+                    <li>Steps you've already taken</li>
+                  </ul>
+                </div>
+              </div>
               <textarea
                 className="ai-clarification-input"
-                placeholder="Add details about this task..."
+                placeholder="Add additional details about this task..."
                 value={clarificationText}
                 onChange={(e) => setClarificationText(e.target.value)}
-                rows={3}
+                rows={4}
               />
               <div className="ai-actions">
                 <button 
@@ -305,14 +349,14 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
                   className="ai-save-btn"
                   onClick={handleSaveClarification}
                 >
-                  Save Details
+                  Save Details Only
                 </button>
                 <button 
                   className="ai-generate-btn"
                   onClick={handleSubmitClarification}
                   disabled={!clarificationText.trim()}
                 >
-                  Generate Subtasks
+                  Save & Generate Subtasks
                 </button>
               </div>
             </div>
@@ -322,6 +366,9 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
                 AI-Suggested Subtasks
                 <span className="ai-badge">{generatedSubtasks.length}</span>
               </h4>
+              <div className="ai-subtasks-notification">
+                ✅ These subtasks have been automatically added
+              </div>
               
               <div className="ai-subtasks-header">
                 <div className="ai-select-all">
@@ -380,7 +427,7 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
                   onClick={handleAddSubtasks}
                   disabled={selectedSubtasks.length === 0}
                 >
-                  Add {selectedSubtasks.length} Subtask{selectedSubtasks.length !== 1 ? 's' : ''}
+                  Done with Subtasks
                 </button>
               </div>
             </>

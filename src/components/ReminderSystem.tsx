@@ -11,6 +11,23 @@ const ReminderSystem: React.FC<ReminderSystemProps> = ({ tasks, openTask }) => {
   const [reminders, setReminders] = useState<Task[]>([]);
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission | 'default'>('default');
   
+  // Track dismissal state in localStorage
+  const [dismissedReminders, setDismissedReminders] = useState<{[key: string]: boolean}>(() => {
+    try {
+      const stored = localStorage.getItem('dismissedReminders');
+      return stored ? JSON.parse(stored) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  // Save dismissed state to localStorage
+  useEffect(() => {
+    if (Object.keys(dismissedReminders).length > 0) {
+      localStorage.setItem('dismissedReminders', JSON.stringify(dismissedReminders));
+    }
+  }, [dismissedReminders]);
+
   // Check for due tasks when component mounts or tasks change
   useEffect(() => {
     checkDueTasks();
@@ -33,9 +50,33 @@ const ReminderSystem: React.FC<ReminderSystemProps> = ({ tasks, openTask }) => {
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const tomorrowStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
     
+    // Clear outdated dismissals (older than 2 hours)
+    const twoDaysAgo = new Date(now.getTime() - (48 * 60 * 60 * 1000));
+    const cleanedDismissals: {[key: string]: boolean} = {};
+    Object.entries(dismissedReminders).forEach(([id, dismissed]) => {
+      // Keep only recent dismissals
+      const task = tasks.find(t => t.id === id);
+      if (task && task.dueDate) {
+        const dueDate = new Date(task.dueDate);
+        // Only keep dismissals for future or recent tasks
+        if (dueDate > twoDaysAgo) {
+          cleanedDismissals[id] = dismissed;
+        }
+      }
+    });
+    
+    // Update if anything was cleaned
+    if (Object.keys(cleanedDismissals).length !== Object.keys(dismissedReminders).length) {
+      setDismissedReminders(cleanedDismissals);
+    }
+    
     // Find tasks due within the next 2 hours, today, or already overdue
     const dueTasks = tasks.filter(task => {
+      // Skip completed tasks or tasks without due dates
       if (!task.dueDate || task.status === 'completed') return false;
+      
+      // Skip dismissed reminders
+      if (dismissedReminders[task.id]) return false;
       
       const dueDate = new Date(task.dueDate);
       
@@ -196,7 +237,16 @@ const ReminderSystem: React.FC<ReminderSystemProps> = ({ tasks, openTask }) => {
             <h3>Upcoming Tasks & Reminders</h3>
             <button 
               className="btn btn-sm btn-outline close-reminders"
-              onClick={() => setShowReminders(false)}
+              onClick={() => {
+                setShowReminders(false);
+                
+                // Save dismissal state for current reminders
+                const newDismissed = { ...dismissedReminders };
+                reminders.forEach(reminder => {
+                  newDismissed[reminder.id] = true;
+                });
+                setDismissedReminders(newDismissed);
+              }}
             >
               ×
             </button>
