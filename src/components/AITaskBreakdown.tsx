@@ -27,6 +27,7 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [needsClarification, setNeedsClarification] = useState(false);
   const [clarificationText, setClarificationText] = useState('');
+  const [aiClarificationRequest, setAiClarificationRequest] = useState('');
 
   // Generate subtasks using AI
   const handleGenerateSubtasks = async () => {
@@ -62,9 +63,15 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
       if (validSubtasks.length === 1 && validSubtasks[0].startsWith('NEEDS_CLARIFICATION')) {
         console.log('Detected clarification request in component:', validSubtasks[0]);
         setNeedsClarification(true);
-        setClarificationText(validSubtasks[0].replace('NEEDS_CLARIFICATION:', '').trim());
+        // Store the clarification request but don't set it as the text content
+        const clarificationRequest = validSubtasks[0].replace('NEEDS_CLARIFICATION:', '').trim();
+        // Just set clarification text to empty - we'll display the request separately
+        setClarificationText('');
         setGeneratedSubtasks([]);
         setSelectedSubtasks([]);
+        
+        // Store the request for display purposes only
+        setAiClarificationRequest(clarificationRequest);
       } else {
         setGeneratedSubtasks(validSubtasks);
         setSelectedSubtasks([...validSubtasks]); // Select all by default
@@ -316,6 +323,7 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
     setError(null);
     setNeedsClarification(false);
     setClarificationText('');
+    setAiClarificationRequest('');
     setIsLoading(false);
   };
 
@@ -357,19 +365,18 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
           ) : needsClarification ? (
             <div className="ai-clarification">
               <h4 className="ai-clarification-heading">
-                Task Needs More Details
+                Quick Task Context
                 <span className="ai-badge">AI</span>
               </h4>
               <div className="ai-clarification-questions">
-                <p className="ai-clarification-text">{clarificationText}</p>
+                <p className="ai-clarification-text">{aiClarificationRequest}</p>
                 <div className="ai-clarification-tips">
-                  <p className="clarification-tip">Consider adding details about:</p>
+                  <p className="clarification-tip">Add a bit more context:</p>
                   <ul>
-                    <li>Specific context or environment</li>
-                    <li>Desired outcome or success criteria</li>
-                    <li>Available resources or tools</li>
-                    <li>Constraints (time, budget, etc.)</li>
-                    <li>Steps you've already taken</li>
+                    <li>General purpose (why or what for)</li>
+                    <li>Rough timeframe (is this urgent?)</li>
+                    <li>Your role (personal, work, etc.)</li>
+                    <li>Optional: any key constraints</li>
                   </ul>
                 </div>
               </div>
@@ -391,14 +398,14 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
                   className="ai-save-btn"
                   onClick={handleSaveClarification}
                 >
-                  Save Details Only
+                  Skip & Save Note
                 </button>
                 <button 
                   className="ai-generate-btn"
                   onClick={handleSubmitClarification}
                   disabled={!clarificationText.trim()}
                 >
-                  Save & Generate Subtasks
+                  Generate Subtasks
                 </button>
               </div>
             </div>
