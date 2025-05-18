@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Task } from '../types';
 import AITaskBreakdown from './AITaskBreakdown';
 import '../styles/ai-task-breakdown.css';
@@ -21,6 +21,17 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
   const [isExpanded, setIsExpanded] = useState(true);
   const [showAIBreakdown, setShowAIBreakdown] = useState(subtasks.length === 0);
+  
+  // Reset state when subtasks change
+  useEffect(() => {
+    console.log('Subtasks updated, count:', subtasks.length);
+    // If we now have subtasks but the AI breakdown is still showing, hide it
+    if (subtasks.length > 0 && showAIBreakdown) {
+      console.log('Auto-hiding AI breakdown after subtasks added');
+      // Add a small delay to let UI update first
+      setTimeout(() => setShowAIBreakdown(false), 1000);
+    }
+  }, [subtasks]);
   
   // Calculate progress percentage
   const totalSubtasks = subtasks.length;
@@ -113,12 +124,14 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
             <AITaskBreakdown 
               task={task} 
               addSubtask={(parentId, title) => {
+                console.log('Adding subtask:', title);
                 addSubtask(parentId, title);
-                // Hide the AI breakdown once subtasks are added
-                setShowAIBreakdown(false);
+                // Don't hide immediately - let the component finish adding all subtasks
+                // The AI component will call its own handleAddSubtasks when done
               }}
               updateTaskDescription={updateTaskDescription}
               existingSubtasks={subtasks}
+              setShowAIBreakdown={setShowAIBreakdown}
             />
           ) : (
             <button 

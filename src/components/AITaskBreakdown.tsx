@@ -8,6 +8,7 @@ interface AITaskBreakdownProps {
   addSubtask: (parentId: string, title: string) => void;
   updateTaskDescription?: (id: string, description: string) => void;
   existingSubtasks: Task[];
+  setShowAIBreakdown?: (show: boolean) => void;
 }
 
 /**
@@ -18,7 +19,8 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
   task, 
   addSubtask,
   updateTaskDescription,
-  existingSubtasks
+  existingSubtasks,
+  setShowAIBreakdown
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [generatedSubtasks, setGeneratedSubtasks] = useState<string[]>([]);
@@ -88,6 +90,13 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
         // to ensure they're processed sequentially and don't conflict
         console.log('Adding subtasks:', validSubtasks);
         
+        // Create a final callback to trigger after all subtasks are added
+        const afterAllSubtasksAdded = () => {
+          console.log('All subtasks added, notifying parent');
+          // Manually trigger the done handler after adding all subtasks
+          setTimeout(() => handleAddSubtasks(), 500);
+        };
+        
         // Use a promise chain to add subtasks one by one with a small delay
         validSubtasks.reduce((promise, subtask, index) => {
           return promise.then(() => {
@@ -96,6 +105,10 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
                 if (subtask.trim()) {
                   console.log(`Adding subtask ${index + 1}/${validSubtasks.length}:`, subtask);
                   addSubtask(task.id, subtask.trim());
+                }
+                // If this is the last subtask, call the final callback
+                if (index === validSubtasks.length - 1) {
+                  afterAllSubtasksAdded();
                 }
                 resolve();
               }, 50 * index); // Stagger with small delay
@@ -129,10 +142,21 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
       });
       setEditableSubtasks(initialEditableSubtasks);
       
+      // Create a final callback to trigger after all subtasks are added
+      const afterAllSubtasksAdded = () => {
+        console.log('All fallback subtasks added, notifying parent');
+        // Manually trigger the done handler after adding all subtasks
+        setTimeout(() => handleAddSubtasks(), 500);
+      };
+      
       // Add subtasks automatically
       fallbackSubtasks.forEach((subtask, index) => {
         setTimeout(() => {
           addSubtask(task.id, subtask);
+          // If this is the last subtask, call the final callback
+          if (index === fallbackSubtasks.length - 1) {
+            afterAllSubtasksAdded();
+          }
         }, 50 * index);
       });
     } finally {
@@ -159,9 +183,17 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
 
   // Only handles UI closure - subtasks are already added automatically
   const handleAddSubtasks = () => {
+    console.log('handleAddSubtasks called, closing UI and notifying parent');
     // Reset all UI state to completely hide the component
     // This ensures the UI disappears after subtasks are added
     handleCancel();
+    
+    // Signal to parent component that we're done adding subtasks
+    // This will hide the AI component in the parent
+    if (existingSubtasks.length === 0 && generatedSubtasks.length > 0) {
+      // Only update if we actually added something
+      setShowAIBreakdown?.(false);
+    }
   };
 
   // Handle saving additional task details/clarification
