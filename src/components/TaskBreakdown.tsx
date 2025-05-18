@@ -123,7 +123,15 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
           ) : (
             <button 
               className="ai-breakdown-again-btn"
-              onClick={() => setShowAIBreakdown(true)}
+              onClick={() => {
+                console.log('AI breakdown button clicked for task:', task.id);
+                try {
+                  setShowAIBreakdown(true);
+                } catch (err) {
+                  console.error('Error showing AI breakdown:', err);
+                  alert('There was an error opening the AI breakdown. Please try again.');
+                }
+              }}
             >
               <span className="ai-icon">🤖</span> Break Down with AI
             </button>

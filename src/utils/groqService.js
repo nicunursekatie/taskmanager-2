@@ -16,6 +16,7 @@ export async function breakdownTask(taskTitle, taskDescription = '') {
   try {
     // Try to get environment info
     logEnvironment();
+    console.log('Breaking down task:', taskTitle);
   } catch (e) {
     console.error('Error logging environment:', e);
   }
@@ -23,6 +24,7 @@ export async function breakdownTask(taskTitle, taskDescription = '') {
   // Always use the fallback key to ensure functionality
   // This is a workaround for environment variable issues
   const GROQ_API_KEY = FALLBACK_GROQ_API_KEY;
+  console.log('Using API key of length:', GROQ_API_KEY.length);
   
   // Fall back to template if needed
   if (!GROQ_API_KEY) {
