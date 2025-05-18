@@ -1141,9 +1141,9 @@ function App() {
             <div className="all-tasks-view">
               <div className="section-card">
                 <h2 className="section-title">All Tasks</h2>
-                {tasks.filter(task => task.status !== 'completed').length > 0 ? (
+                {tasks.filter(task => task.status !== 'completed' && !task.parentId).length > 0 ? (
                   <TaskList 
-                    tasks={tasks.filter(task => task.status !== 'completed')} 
+                    tasks={tasks.filter(task => task.status !== 'completed' && !task.parentId)} 
                     toggleTask={toggleTask} 
                     deleteTask={deleteTask} 
                     updateTask={updateTask}
