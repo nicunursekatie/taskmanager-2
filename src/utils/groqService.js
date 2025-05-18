@@ -100,6 +100,15 @@ FORMAT:
     // Extract subtasks from the AI response
     const subtasksText = data.choices[0].message.content.trim();
     
+    // Log raw API response for debugging
+    console.log('Raw API response:', subtasksText);
+    
+    // First check if we have a NEEDS_CLARIFICATION response
+    if (subtasksText.trim().startsWith('NEEDS_CLARIFICATION:')) {
+      console.log('Detected clarification request:', subtasksText);
+      return [subtasksText.trim()];
+    }
+    
     // Parse the response based on the expected numbered list format
     let subtasks = [];
     
@@ -108,7 +117,11 @@ FORMAT:
       subtasks = subtasksText
         .split('\n')
         .map(line => {
-          // Remove numbering like "1. " or "1) " and any brackets
+          // Check if this line is a NEEDS_CLARIFICATION message
+          if (line.trim().startsWith('NEEDS_CLARIFICATION:')) {
+            return line.trim();
+          }
+          // Otherwise remove numbering like "1. " or "1) " and any brackets
           return line.replace(/^\d+[\.\)]\s*|\[|\]/g, '').trim();
         })
         .filter(line => line.length > 0 && line.length < 200); // Reasonable length for a subtask
@@ -152,6 +165,12 @@ FORMAT:
     // Clean up any remaining formatting and normalize spacing
     subtasks = subtasks.map(task => {
       if (!task) return ''; // Handle null or undefined
+      
+      // Don't modify NEEDS_CLARIFICATION messages
+      if (task.startsWith('NEEDS_CLARIFICATION:')) {
+        return task;
+      }
+      
       return task
         .replace(/^[-*•]|\[\s?\]|\s*-\s*/, '') // Remove bullets, brackets, etc.
         .replace(/\s+/g, ' ')                 // Normalize spacing
@@ -165,6 +184,14 @@ FORMAT:
     if (subtasks.length === 0) {
       console.warn('Failed to extract subtasks from AI response, using fallback');
       return fallbackBreakdownTask(taskTitle, taskDescription);
+    }
+    
+    // Log the final processed subtasks for debugging
+    console.log('Final processed subtasks:', subtasks);
+    
+    // Check one more time for NEEDS_CLARIFICATION
+    if (subtasks.length === 1 && subtasks[0].startsWith('NEEDS_CLARIFICATION:')) {
+      console.log('Final check detected clarification request');
     }
     
     return subtasks;

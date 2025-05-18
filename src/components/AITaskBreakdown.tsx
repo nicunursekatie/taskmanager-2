@@ -53,8 +53,12 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
         throw new Error('No valid subtasks were generated');
       }
       
+      // Log what we received from the API
+      console.log('AITaskBreakdown received subtasks:', validSubtasks);
+      
       // Check if the AI is requesting clarification
       if (validSubtasks.length === 1 && validSubtasks[0].startsWith('NEEDS_CLARIFICATION')) {
+        console.log('Detected clarification request in component:', validSubtasks[0]);
         setNeedsClarification(true);
         setClarificationText(validSubtasks[0].replace('NEEDS_CLARIFICATION:', '').trim());
         setGeneratedSubtasks([]);
