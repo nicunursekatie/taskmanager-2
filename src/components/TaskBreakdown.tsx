@@ -20,6 +20,7 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
 }) => {
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
   const [isExpanded, setIsExpanded] = useState(true);
+  const [showAIBreakdown, setShowAIBreakdown] = useState(subtasks.length === 0);
   
   // Calculate progress percentage
   const totalSubtasks = subtasks.length;
@@ -33,6 +34,8 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
     if (newSubtaskTitle.trim()) {
       addSubtask(task.id, newSubtaskTitle.trim());
       setNewSubtaskTitle('');
+      // Hide the AI breakdown when a manual subtask is added
+      setShowAIBreakdown(false);
     }
   };
   
@@ -105,13 +108,26 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
             </div>
           )}
           
-          {/* Add the AI Task Breakdown component */}
-          <AITaskBreakdown 
-            task={task} 
-            addSubtask={addSubtask}
-            updateTaskDescription={updateTaskDescription}
-            existingSubtasks={subtasks}
-          />
+          {/* Only show the AI breakdown if explicitly requested or if there are no subtasks */}
+          {showAIBreakdown ? (
+            <AITaskBreakdown 
+              task={task} 
+              addSubtask={(parentId, title) => {
+                addSubtask(parentId, title);
+                // Hide the AI breakdown once subtasks are added
+                setShowAIBreakdown(false);
+              }}
+              updateTaskDescription={updateTaskDescription}
+              existingSubtasks={subtasks}
+            />
+          ) : (
+            <button 
+              className="ai-breakdown-again-btn"
+              onClick={() => setShowAIBreakdown(true)}
+            >
+              <span className="ai-icon">🤖</span> Break Down with AI
+            </button>
+          )}
         </>
       )}
     </div>

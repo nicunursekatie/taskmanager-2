@@ -133,8 +133,8 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
 
   // Only handles UI closure - subtasks are already added automatically
   const handleAddSubtasks = () => {
-    // Don't add subtasks again, just close the UI
-    // This prevents duplicate subtasks
+    // Reset all UI state to completely hide the component
+    // This ensures the UI disappears after subtasks are added
     handleCancel();
   };
 
