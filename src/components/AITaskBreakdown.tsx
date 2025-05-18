@@ -320,15 +320,38 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
             <>
               <h4 className="ai-subtasks-heading">
                 AI-Suggested Subtasks
-                <span className="ai-badge">AI</span>
+                <span className="ai-badge">{generatedSubtasks.length}</span>
               </h4>
+              
+              <div className="ai-subtasks-header">
+                <div className="ai-select-all">
+                  <input 
+                    type="checkbox"
+                    id="select-all-subtasks"
+                    checked={selectedSubtasks.length === generatedSubtasks.length}
+                    onChange={() => {
+                      if (selectedSubtasks.length === generatedSubtasks.length) {
+                        // Deselect all
+                        setSelectedSubtasks([]);
+                      } else {
+                        // Select all
+                        setSelectedSubtasks([...generatedSubtasks]);
+                      }
+                    }}
+                  />
+                  <label htmlFor="select-all-subtasks">
+                    {selectedSubtasks.length === generatedSubtasks.length ? 'Deselect All' : 'Select All'}
+                  </label>
+                </div>
+              </div>
               
               <div className="ai-subtasks-list">
                 {generatedSubtasks.map((subtask, index) => (
-                  <div key={index} className="ai-subtask-item">
+                  <div key={index} className={`ai-subtask-item ${selectedSubtasks.includes(subtask) ? 'selected' : ''}`}>
                     <div className="ai-checkbox-container">
                       <input 
                         type="checkbox"
+                        id={`subtask-${index}`}
                         checked={selectedSubtasks.includes(subtask)}
                         onChange={() => toggleSubtaskSelection(subtask, index)}
                       />
