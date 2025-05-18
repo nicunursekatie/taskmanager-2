@@ -106,13 +106,12 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
           )}
           
           {/* Add the AI Task Breakdown component */}
-          {subtasks.length === 0 && (
-            <AITaskBreakdown 
-              task={task} 
-              addSubtask={addSubtask}
-              updateTaskDescription={updateTaskDescription}
-            />
-          )}
+          <AITaskBreakdown 
+            task={task} 
+            addSubtask={addSubtask}
+            updateTaskDescription={updateTaskDescription}
+            existingSubtasks={subtasks}
+          />
         </>
       )}
     </div>

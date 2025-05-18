@@ -6,7 +6,7 @@
   border-top: 1px dashed var(--border-color);
 }
 
-.ai-breakdown-btn {
+.ai-breakdown-btn, .ai-breakdown-again-btn {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -21,14 +21,20 @@
   transition: all 0.2s ease;
 }
 
-.ai-breakdown-btn:hover {
+.ai-breakdown-btn:hover, .ai-breakdown-again-btn:hover {
   background-color: #e0f0ff;
   transform: translateY(-1px);
 }
 
-.ai-breakdown-btn:disabled {
+.ai-breakdown-btn:disabled, .ai-breakdown-again-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.ai-breakdown-again-btn {
+  margin-top: 15px;
+  background-color: #f8f9fa;
+  border-color: #e2e8f0;
 }
 
 .ai-icon {
@@ -405,14 +411,19 @@
 
 /* Dark mode adjustments */
 @media (prefers-color-scheme: dark) {
-  .ai-breakdown-btn {
+  .ai-breakdown-btn, .ai-breakdown-again-btn {
     background-color: rgba(56, 161, 255, 0.1);
     border-color: rgba(56, 161, 255, 0.3);
     color: #90cdf4;
   }
   
-  .ai-breakdown-btn:hover {
+  .ai-breakdown-btn:hover, .ai-breakdown-again-btn:hover {
     background-color: rgba(56, 161, 255, 0.2);
+  }
+  
+  .ai-breakdown-again-btn {
+    background-color: rgba(45, 55, 72, 0.4);
+    border-color: rgba(45, 55, 72, 0.6);
   }
   
   .ai-breakdown-results {

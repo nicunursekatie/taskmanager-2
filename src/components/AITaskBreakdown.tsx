@@ -7,6 +7,7 @@ interface AITaskBreakdownProps {
   task: Task;
   addSubtask: (parentId: string, title: string) => void;
   updateTaskDescription?: (id: string, description: string) => void;
+  existingSubtasks: Task[];
 }
 
 /**
@@ -16,7 +17,8 @@ interface AITaskBreakdownProps {
 const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({ 
   task, 
   addSubtask,
-  updateTaskDescription 
+  updateTaskDescription,
+  existingSubtasks
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [generatedSubtasks, setGeneratedSubtasks] = useState<string[]>([]);
@@ -306,6 +308,7 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
     }
   };
 
+  // Modified to completely reset the state and hide the component
   const handleCancel = () => {
     setGeneratedSubtasks([]);
     setSelectedSubtasks([]);
@@ -313,11 +316,14 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
     setError(null);
     setNeedsClarification(false);
     setClarificationText('');
+    setIsLoading(false);
   };
 
   return (
     <div className="ai-task-breakdown">
       {!generatedSubtasks.length && !isLoading && !needsClarification ? (
+        // Show button based on whether there are existing subtasks
+        existingSubtasks.length === 0 ? (
         <button 
           className="ai-breakdown-btn"
           onClick={handleGenerateSubtasks}
@@ -325,6 +331,15 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
         >
           <span className="ai-icon">🤖</span> Auto-Break Down Task with AI
         </button>
+        ) : (
+          <button 
+            className="ai-breakdown-again-btn"
+            onClick={handleGenerateSubtasks}
+            disabled={isLoading}
+          >
+            <span className="ai-icon">🤖</span> Break Down Again with AI
+          </button>
+        )
       ) : (
         <div className="ai-breakdown-results">
           {isLoading ? (
