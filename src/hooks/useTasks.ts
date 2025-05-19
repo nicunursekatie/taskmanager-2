@@ -1,7 +1,7 @@
 // src/hooks/useTasks.ts
 // Update your existing useTasks.ts hook to include context handling
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Task, ContextTag, PriorityLevel } from '../types';
 
 export function useTasks() {
@@ -141,8 +141,8 @@ export function useTasks() {
     );
   };
   
-  // Add new function for subtasks
-  const addSubtask = (parentId: string, title: string): string => {
+  // Add new function for subtasks as useCallback to prevent rerenders
+  const addSubtask = useCallback((parentId: string, title: string): string => {
     // Get parent task to inherit properties
     const parentTask = tasks.find(t => t.id === parentId);
     
@@ -166,11 +166,33 @@ export function useTasks() {
       priority: parentTask.priority, // Inherit priority from parent
     };
     
-    setTasks(prev => [...prev, newSubtask]);
+    // Update tasks with the new subtask and immediately save to localStorage
+    setTasks(prev => {
+      const updated = [...prev, newSubtask];
+      try {
+        // Directly save to localStorage to ensure immediate persistence
+        localStorage.setItem('tasks', JSON.stringify(updated));
+        console.log(`Added subtask "${title}" with ID ${newId} to parent ${parentId} (total tasks: ${updated.length})`);
+        // Verify the subtask was added to localStorage
+        const stored = localStorage.getItem('tasks');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          const subtask = parsed.find((t: Task) => t.id === newId);
+          if (subtask) {
+            console.log(`Verified subtask ${newId} is in localStorage`);
+          } else {
+            console.error(`Subtask ${newId} was not found in localStorage after saving`);
+          }
+        }
+      } catch (e) {
+        console.error('Error saving tasks to localStorage:', e);
+      }
+      return updated;
+    });
     
     // Return the new subtask ID so we can track it
     return newId;
-  };
+  }, [tasks]); // Add tasks as a dependency
 
   return { 
     tasks, 

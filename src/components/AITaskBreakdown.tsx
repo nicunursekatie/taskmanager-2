@@ -144,27 +144,61 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
     
     console.log('Added subtask IDs:', addedSubtaskIds);
     
-    // Force refresh the UI multiple times to ensure changes are reflected
+    // Force refresh the UI multiple times with increasing delays to ensure changes are reflected
     if (forceRefresh) {
+      // Initial refresh
       forceRefresh();
-      // Force another refresh after a small delay to ensure changes are reflected
+      
+      // Second refresh after 100ms
       setTimeout(() => {
         forceRefresh();
-        console.log('Forced second refresh after delay');
+        console.log('Forced second refresh after 100ms delay');
+        
+        // Third refresh after another 200ms (300ms total)
+        setTimeout(() => {
+          forceRefresh();
+          console.log('Forced third refresh after 300ms total delay');
+          
+          // Fourth refresh after another 300ms (600ms total)
+          setTimeout(() => {
+            forceRefresh();
+            console.log('Forced fourth refresh after 600ms total delay');
+            
+            // Try reloading all tasks from localStorage to verify subtasks exist
+            try {
+              const stored = localStorage.getItem('tasks');
+              if (stored) {
+                const parsedTasks = JSON.parse(stored);
+                const storedSubtasks = parsedTasks.filter((t: Task) => t.parentId === task.id);
+                console.log(`After 600ms: found ${storedSubtasks.length} subtasks in localStorage for task ${task.id}`);
+                console.log('Subtask IDs in localStorage:', storedSubtasks.map((t: Task) => t.id));
+                
+                // Check if all our added subtasks are in localStorage
+                const allFound = addedSubtaskIds.every(id => 
+                  storedSubtasks.some((t: Task) => t.id === id)
+                );
+                
+                console.log(`All subtasks found in localStorage: ${allFound}`);
+              }
+            } catch (e) {
+              console.error('Error checking localStorage after delays:', e);
+            }
+          }, 300);
+        }, 200);
       }, 100);
     }
     
     // We need to ensure the parent task is expanded to show the subtasks
-    // Create a custom event to trigger this behavior
+    // Create a custom event to trigger this behavior with a longer delay
     try {
-      // Delay the event dispatch slightly to ensure data is updated first
+      // Delay the event dispatch to ensure data is fully updated first
       setTimeout(() => {
         const expandEvent = new CustomEvent('expandTaskSubtasks', { 
           detail: { taskId: task.id } 
         });
         document.dispatchEvent(expandEvent);
-        console.log(`Triggered expandTaskSubtasks event for task ${task.id}`);
-      }, 200);
+        console.log(`Triggered expandTaskSubtasks event for task ${task.id} after 700ms delay`);
+      }, 700);
     } catch (e) {
       console.error('Error dispatching custom event:', e);
     }

@@ -84,13 +84,21 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
           
           if (storedSubtasks.length > 0) {
             console.log('Subtasks found in localStorage but not in props - they should appear when the parent reloads');
+            // If we have subtasks in localStorage but not in props, try to force a refresh
+            if (forceRefresh) {
+              // Trigger a cascade of delayed refreshes to ensure props get updated
+              forceRefresh();
+              setTimeout(() => forceRefresh(), 200);
+              setTimeout(() => forceRefresh(), 500);
+              console.log('Triggered cascade of refreshes to sync localStorage subtasks');
+            }
           }
         }
       } catch (e) {
         console.error('Error checking localStorage directly:', e);
       }
     }
-  }, [subtasks, refreshCounter, task.id]);
+  }, [subtasks, refreshCounter, task.id, forceRefresh]);
   
   // Calculate progress percentage
   const totalSubtasks = subtasks.length;
