@@ -1,5 +1,5 @@
 // src/components/TaskList.tsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Task, Subtask, TaskListProps, Category, Project, PriorityLevel } from '../types';
 import TaskBreakdown from './TaskBreakdown';
 import TimeEstimator from './TimeEstimator';
