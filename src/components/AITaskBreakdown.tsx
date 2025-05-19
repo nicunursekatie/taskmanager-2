@@ -80,7 +80,7 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
       } else {
         // Display the subtasks for user confirmation before adding them
         setGeneratedSubtasks(validSubtasks);
-        setSelectedSubtasks([...validSubtasks]); // Select all by default
+        setSelectedSubtasks(validSubtasks.map((_, idx) => idx.toString())); // Use indices as strings
         
         // Initialize editable versions of the subtasks
         const initialEditableSubtasks: {[key: number]: string} = {};
@@ -236,7 +236,7 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
       
       // Display the subtasks for user confirmation
       setGeneratedSubtasks(validSubtasks);
-      setSelectedSubtasks([...validSubtasks]);
+      setSelectedSubtasks(validSubtasks.map((_, idx) => idx.toString()));
       
       // Initialize editable versions of the subtasks
       const initialEditableSubtasks: {[key: number]: string} = {};
@@ -371,11 +371,9 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
                     checked={selectedSubtasks.length === generatedSubtasks.length}
                     onChange={() => {
                       if (selectedSubtasks.length === generatedSubtasks.length) {
-                        // Deselect all
                         setSelectedSubtasks([]);
                       } else {
-                        // Select all
-                        setSelectedSubtasks([...generatedSubtasks]);
+                        setSelectedSubtasks(generatedSubtasks.map((_, idx) => idx.toString())); // Use indices as strings
                       }
                     }}
                   />
