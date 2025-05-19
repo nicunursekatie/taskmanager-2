@@ -400,6 +400,8 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
                         value={editableSubtasks[index] || ''}
                         onChange={(e) => handleSubtaskEdit(index, e.target.value)}
                         disabled={!selectedSubtasks.includes(index.toString())}
+                        placeholder={editableSubtasks[index] === '' ? 'Edit subtask...' : undefined}
+                        style={{ color: '#222', background: '#fff', fontSize: 16, minWidth: 250, minHeight: 30, border: '1px solid #ccc', padding: '4px 8px', opacity: 1, zIndex: 10 }}
                       />
                     </div>
                   </div>
