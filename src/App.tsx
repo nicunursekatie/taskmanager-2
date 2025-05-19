@@ -753,7 +753,7 @@ function App() {
             
             <button 
               type="submit" 
-              className="px-6 py-2 rounded-lg font-semibold bg-primary text-white hover:bg-primary-dark shadow transition"
+              className="px-5 py-2 rounded-lg font-semibold text-base transition shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-primary text-white hover:bg-primary-dark active:bg-primary-dark"
             >
               Add Task
             </button>
@@ -840,7 +840,7 @@ function App() {
                         </div>
                         <div className="flex gap-2">
                           <button
-                            className="px-3 py-1 text-sm rounded-md bg-primary/10 text-primary hover:bg-primary/20 transition"
+                            className="px-5 py-2 rounded-lg font-semibold text-base transition shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 border border-primary text-primary bg-white hover:bg-primary/10 active:bg-primary/20"
                             onClick={() => {
                               setEditingTaskId(task.id);
                               setEditTaskTitle(task.title);
@@ -854,7 +854,7 @@ function App() {
                             Edit
                           </button>
                           <button
-                            className="px-3 py-1 text-sm rounded-md bg-primary text-white hover:bg-primary-dark transition"
+                            className="px-5 py-2 rounded-lg font-semibold text-base transition shadow-sm focus:outline-none focus:ring-2 focus:ring-danger focus:ring-offset-2 bg-danger text-white hover:bg-danger/90 active:bg-danger/80"
                             onClick={() => toggleTask(task.id)}
                           >
                             Complete
@@ -1518,8 +1518,8 @@ function App() {
                   )}
                 </div>
               </div>
-            );
-          })()}
+            </div>
+          )}
         </div>
           </>
         )}

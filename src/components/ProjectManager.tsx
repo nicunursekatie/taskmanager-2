@@ -267,7 +267,7 @@ export default function ProjectManager({
             )}
 
             <div className="form-actions">
-              <button type="submit" className="btn btn-primary">Create Project</button>
+              <button type="submit" className="px-5 py-2 rounded-lg font-semibold text-base transition shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-primary text-white hover:bg-primary-dark active:bg-primary-dark">Create Project</button>
             </div>
           </form>
           
@@ -412,7 +412,7 @@ export default function ProjectManager({
                     <div className="form-actions">
                       <button
                         type="button"
-                        className="btn btn-primary"
+                        className="px-5 py-2 rounded-lg font-semibold text-base transition shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 border border-primary text-primary bg-white hover:bg-primary/10 active:bg-primary/20"
                         onClick={handleUpdateProject}
                       >
                         Save Changes
@@ -439,13 +439,13 @@ export default function ProjectManager({
                       </div>
                       <div className="flex gap-sm">
                         <button
-                          className="btn btn-sm btn-outline"
+                          className="px-5 py-2 rounded-lg font-semibold text-base transition shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 border border-primary text-primary bg-white hover:bg-primary/10 active:bg-primary/20"
                           onClick={() => startEditing(project)}
                         >
                           Edit
                         </button>
                         <button
-                          className="btn btn-sm btn-danger"
+                          className="px-5 py-2 rounded-lg font-semibold text-base transition shadow-sm focus:outline-none focus:ring-2 focus:ring-danger focus:ring-offset-2 bg-danger text-white hover:bg-danger/90 active:bg-danger/80"
                           onClick={() => deleteProject(project.id)}
                         >
                           Delete
