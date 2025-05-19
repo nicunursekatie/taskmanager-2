@@ -195,24 +195,24 @@ export default function TaskList({
     return (
       <div
         key={task.id}
-        style={{
-          marginLeft: `${depth * 20}px`,
-          background: isSubtask ? "#f7fafd" : "white", // Light blue for subtasks
-          borderLeft: isSubtask ? "4px solid #2196f3" : undefined, // Blue border for subtasks
-          borderRadius: isSubtask ? "4px" : undefined,
-          marginTop: isSubtask ? "4px" : undefined,
-          boxShadow: isSubtask ? "0 1px 3px rgba(33,150,243,0.07)" : undefined,
-        }}
+        className={
+          [
+            depth === 0
+              ? "bg-white rounded-xl shadow-md p-6 mb-6 border border-gray-100 hover:shadow-lg transition-all"
+              : "bg-blue-50 border-l-4 border-blue-400 rounded-md mt-1 mb-2 ml-4 p-3",
+          ].join(' ')
+        }
       >
         <div
           id={`task-${task.id}`}
-          className={`task-item ${isSubtask ? "subtask-item" : ""} ${task.status === 'completed' ? 'completed' : ''} 
-                     ${task.priority ? `priority-${task.priority}` : ''} 
-                     ${hasChildren ? 'has-subtasks' : ''} 
-                     ${!isCollapsed && hasChildren ? 'expanded' : ''}`}
-          style={{
-            borderLeft: !task.priority && hasChildren ? `4px solid ${categoryColor}` : undefined
-          }}
+          className={
+            [
+              isSubtask ? "" : "flex flex-col gap-2",
+              task.status === 'completed' ? 'opacity-60 line-through' : '',
+              hasChildren && !isSubtask ? 'border-l-4 border-blue-200' : '',
+              !isCollapsed && hasChildren ? 'bg-blue-50' : '',
+            ].join(' ')
+          }
         >
           {editingId === task.id ? (
             // Edit mode
