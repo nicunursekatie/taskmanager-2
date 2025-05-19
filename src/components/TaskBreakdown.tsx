@@ -36,9 +36,9 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
       const stored = localStorage.getItem('tasks');
       if (stored) {
         const parsedTasks = JSON.parse(stored);
-        const storedSubtasks = parsedTasks.filter(t => t.parentId === task.id);
+        const storedSubtasks = parsedTasks.filter((t: Task) => t.parentId === task.id);
         console.log(`TaskBreakdown localStorage check: parent ${task.id} has ${storedSubtasks.length} subtasks`);
-        storedSubtasks.forEach((st, idx) => {
+        storedSubtasks.forEach((st: Task, idx: number) => {
           console.log(`  ${idx+1}. "${st.title}" (ID: ${st.id})`);
         });
       }
@@ -79,7 +79,7 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
         const stored = localStorage.getItem('tasks');
         if (stored) {
           const parsedTasks = JSON.parse(stored);
-          const storedSubtasks = parsedTasks.filter((t: any) => t.parentId === task.id);
+          const storedSubtasks = parsedTasks.filter((t: Task) => t.parentId === task.id);
           console.log(`[DIRECT CHECK] Found ${storedSubtasks.length} subtasks in localStorage for parent=${task.id}`);
           
           if (storedSubtasks.length > 0) {
@@ -187,23 +187,58 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
           task={task} 
           addSubtask={(parentId, title) => {
             console.log('Adding subtask from TaskBreakdown wrapper:', title);
-            
             // Call the passed addSubtask function
             const subtaskId = addSubtask(parentId, title);
             console.log('Added subtask with ID:', subtaskId);
-            
             // Force multiple refreshes to ensure UI updates properly
             forceRefresh();
-            
             // Force another refresh after a sequence of short delays
             setTimeout(() => {
               forceRefresh();
               console.log('Forced second refresh (100ms delay)');
-              
               // Try reloading all tasks from localStorage
               try {
                 const stored = localStorage.getItem('tasks');
                 if (stored) {
                   const parsedTasks = JSON.parse(stored);
-                  const parentSubtasks = parsedTasks.filter((t: any) => t.parentId === parentId);
-                  console.log(`
+                  const parentSubtasks = parsedTasks.filter((t: Task) => t.parentId === parentId);
+                  console.log(`Recheck - parent ${parentId} has ${parentSubtasks.length} subtasks in localStorage`);
+                  console.log('Subtasks from localStorage:', parentSubtasks);
+                }
+              } catch (e) {
+                console.error('Error rechecking localStorage:', e);
+              }
+              // Schedule another refresh
+              setTimeout(() => {
+                forceRefresh();
+                console.log('Forced third refresh (300ms total delay)');
+              }, 200);
+            }, 100);
+            return subtaskId;
+          }}
+          updateTaskDescription={updateTaskDescription}
+          existingSubtasks={subtasks}
+          setShowAIBreakdown={setShowAIBreakdown}
+          forceRefresh={forceRefresh}
+        />
+      ) : (
+        <button 
+          className="ai-breakdown-again-btn"
+          onClick={() => {
+            console.log('AI breakdown button clicked for task:', task.id);
+            try {
+              setShowAIBreakdown(true);
+            } catch (err) {
+              console.error('Error showing AI breakdown:', err);
+              alert('There was an error opening the AI breakdown. Please try again.');
+            }
+          }}
+        >
+          <span className="ai-icon">🤖</span> Break Down with AI
+        </button>
+      )}
+    </div>
+  );
+};
+
+export default TaskBreakdown;
