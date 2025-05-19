@@ -64,6 +64,9 @@ export default {
       lineHeight: {
         DEFAULT: '1.6',
       },
+      fontFamily: {
+        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+      },
     },
   },
   plugins: [],

@@ -797,8 +797,8 @@ function App() {
           {activeTab === 'dashboard' && (
             <div className="space-y-8">
               {/* Today's Tasks Section */}
-              <div className="bg-card rounded-2xl shadow-lg p-8 mb-8">
-                <h2 className="text-2xl font-bold text-text mb-6 pb-2 border-b border-border relative inline-block after:absolute after:right-[-12px] after:top-1/2 after:w-2 after:h-2 after:rounded-full after:bg-primary after:opacity-70 after:transform after:-translate-y-1/2">Today's Tasks</h2>
+              <div className="bg-white border border-border rounded-lg shadow-sm p-4 mb-6">
+                <h2 className="text-lg font-bold text-primary mb-2 border-b border-border pb-1">Today's Tasks</h2>
                 {todayTasks.length > 0 ? (
                   <TaskList
                     tasks={todayTasks}
@@ -820,11 +820,11 @@ function App() {
 
               {/* Upcoming Tasks Section */}
               {upcomingTasks.length > 0 && (
-                <div className="bg-card rounded-2xl shadow-lg p-8 mb-8">
-                  <h2 className="text-2xl font-bold text-text mb-6 pb-2 border-b border-border relative inline-block after:absolute after:right-[-12px] after:top-1/2 after:w-2 after:h-2 after:rounded-full after:bg-primary after:opacity-70 after:transform after:-translate-y-1/2">Upcoming Tasks</h2>
+                <div className="bg-white border border-border rounded-lg shadow-sm p-4 mb-6">
+                  <h2 className="text-lg font-bold text-primary mb-2 border-b border-border pb-1">Upcoming Tasks</h2>
                   <div className="space-y-4">
                     {upcomingTasks.map(task => (
-                      <div key={task.id} className="flex items-center justify-between p-4 bg-background rounded-lg border border-border hover:shadow-md transition">
+                      <div key={task.id} className="flex items-center gap-3 py-2 px-3 border-b border-border last:border-b-0">
                         <div className="flex-1">
                           <h3 className="text-lg font-semibold text-text">{task.title}</h3>
                           <div className="flex items-center gap-2 mt-1">
@@ -840,7 +840,7 @@ function App() {
                         </div>
                         <div className="flex gap-2">
                           <button
-                            className="px-5 py-2 rounded-lg font-semibold text-base transition shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 border border-primary text-primary bg-white hover:bg-primary/10 active:bg-primary/20"
+                            className="px-4 py-1 rounded-md font-semibold text-sm transition shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 bg-primary text-white hover:bg-primary-dark active:bg-primary-dark"
                             onClick={() => {
                               setEditingTaskId(task.id);
                               setEditTaskTitle(task.title);
@@ -854,7 +854,7 @@ function App() {
                             Edit
                           </button>
                           <button
-                            className="px-5 py-2 rounded-lg font-semibold text-base transition shadow-sm focus:outline-none focus:ring-2 focus:ring-success focus:ring-offset-2 bg-success text-white hover:bg-success/90 active:bg-success/80"
+                            className="px-4 py-1 rounded-md font-semibold text-sm transition shadow-sm focus:outline-none focus:ring-2 focus:ring-success focus:ring-offset-2 bg-success text-white hover:bg-success/90 active:bg-success/80"
                             onClick={() => toggleTask(task.id)}
                           >
                             Complete
@@ -867,8 +867,8 @@ function App() {
               )}
 
               {/* Projects Section */}
-              <div className="bg-card rounded-2xl shadow-lg p-8 mb-8">
-                <h2 className="text-2xl font-bold text-text mb-6 pb-2 border-b border-border relative inline-block after:absolute after:right-[-12px] after:top-1/2 after:w-2 after:h-2 after:rounded-full after:bg-primary after:opacity-70 after:transform after:-translate-y-1/2">Projects</h2>
+              <div className="bg-white border border-border rounded-lg shadow-sm p-4 mb-6">
+                <h2 className="text-lg font-bold text-primary mb-2 border-b border-border pb-1">Projects</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {projects.map(project => {
                     const projectTasks = tasks.filter(t =>
@@ -913,7 +913,7 @@ function App() {
                     return (
                       <div
                         key={project.id}
-                        className={`bg-background rounded-lg border-l-4 ${urgencyClass} p-4 hover:shadow-md transition cursor-pointer`}
+                        className={`bg-background border border-border rounded-md shadow-sm p-3 mb-4 flex flex-col gap-2 ${urgencyClass}`}
                         onClick={() => {
                           setActiveTab('projects');
                           setTimeout(() => {
