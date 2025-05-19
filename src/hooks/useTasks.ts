@@ -142,18 +142,19 @@ export function useTasks() {
   };
   
   // Add new function for subtasks
-  const addSubtask = (parentId: string, title: string) => {
+  const addSubtask = (parentId: string, title: string): string => {
     // Get parent task to inherit properties
     const parentTask = tasks.find(t => t.id === parentId);
     
     if (!parentTask) {
       console.error("Parent task not found");
-      return;
+      return '';
     }
     
     // Create a new subtask with inherited properties
+    const newId = Date.now().toString();
     const newSubtask: Task = {
-      id: Date.now().toString(),
+      id: newId,
       title,
       status: 'pending',
       parentId, // Required for Subtask type
@@ -166,6 +167,9 @@ export function useTasks() {
     };
     
     setTasks(prev => [...prev, newSubtask]);
+    
+    // Return the new subtask ID so we can track it
+    return newId;
   };
 
   return { 

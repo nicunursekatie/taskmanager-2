@@ -85,14 +85,20 @@ export default function TaskList({
       
       // Scroll to the task if possible
       try {
-        const taskElement = document.getElementById(`task-${taskId}`);
-        if (taskElement) {
-          taskElement.scrollIntoView({ behavior: 'smooth' });
-          taskElement.classList.add('highlight-task');
-          setTimeout(() => {
-            taskElement.classList.remove('highlight-task');
-          }, 2000);
-        }
+        setTimeout(() => {
+          // Delayed scroll to ensure elements are updated
+          const taskElement = document.getElementById(`task-${taskId}`);
+          if (taskElement) {
+            console.log('Scrolling to task:', taskId);
+            taskElement.scrollIntoView({ behavior: 'smooth' });
+            taskElement.classList.add('highlight-task');
+            setTimeout(() => {
+              taskElement.classList.remove('highlight-task');
+            }, 2000);
+          } else {
+            console.log('Task element not found after delay:', taskId);
+          }
+        }, 300); // Delay scroll to ensure DOM is updated
       } catch (e) {
         console.error('Error scrolling to task:', e);
       }

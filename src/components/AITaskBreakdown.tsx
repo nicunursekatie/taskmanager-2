@@ -134,25 +134,37 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
     
     // Don't show message - we'll ensure the subtasks are visible immediately
     
-    // Add each subtask one by one
+    // Add each subtask one by one and collect the IDs
+    const addedSubtaskIds = [];
     for (const subtaskTitle of subtasksToAdd) {
       console.log(`Adding subtask: "${subtaskTitle}" to parent: ${task.id}`);
-      addSubtask(task.id, subtaskTitle);
+      const newId = addSubtask(task.id, subtaskTitle);
+      if (newId) addedSubtaskIds.push(newId);
     }
     
-    // Force refresh the UI
+    console.log('Added subtask IDs:', addedSubtaskIds);
+    
+    // Force refresh the UI multiple times to ensure changes are reflected
     if (forceRefresh) {
       forceRefresh();
+      // Force another refresh after a small delay to ensure changes are reflected
+      setTimeout(() => {
+        forceRefresh();
+        console.log('Forced second refresh after delay');
+      }, 100);
     }
     
     // We need to ensure the parent task is expanded to show the subtasks
     // Create a custom event to trigger this behavior
     try {
-      const expandEvent = new CustomEvent('expandTaskSubtasks', { 
-        detail: { taskId: task.id } 
-      });
-      document.dispatchEvent(expandEvent);
-      console.log(`Triggered expandTaskSubtasks event for task ${task.id}`);
+      // Delay the event dispatch slightly to ensure data is updated first
+      setTimeout(() => {
+        const expandEvent = new CustomEvent('expandTaskSubtasks', { 
+          detail: { taskId: task.id } 
+        });
+        document.dispatchEvent(expandEvent);
+        console.log(`Triggered expandTaskSubtasks event for task ${task.id}`);
+      }, 200);
     } catch (e) {
       console.error('Error dispatching custom event:', e);
     }
