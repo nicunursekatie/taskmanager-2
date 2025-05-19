@@ -24,6 +24,7 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
   const [isExpanded, setIsExpanded] = useState(true);
   const [showAIBreakdown, setShowAIBreakdown] = useState(false);
   const [hasRunBreakdown, setHasRunBreakdown] = useState(false);
+  const [showBreakdownSection, setShowBreakdownSection] = useState(false);
   
   // Use a forced refresh counter to ensure we re-render when needed
   const [refreshCounter, setRefreshCounter] = useState(0);
@@ -115,6 +116,7 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
       setNewSubtaskTitle('');
       setShowAIBreakdown(false);
       setHasRunBreakdown(true);
+      setShowBreakdownSection(false);
       try {
         const expandEvent = new CustomEvent('expandTaskSubtasks', { 
           detail: { taskId: task.id } 
@@ -129,45 +131,85 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
   
   return (
     <div className="task-breakdown">
-      <div className="breakdown-header">
-        <h3 className="breakdown-title">
+      {/* Only show the breakdown section if showBreakdownSection is true */}
+      {(!subtasks.length && !hasRunBreakdown && !showBreakdownSection) && (
+        <button
+          className="btn btn-primary"
+          style={{ margin: '1em 0' }}
+          onClick={() => setShowBreakdownSection(true)}
+        >
           Break Down This Task
-          <button 
-            className="toggle-button"
-            onClick={() => setIsExpanded(!isExpanded)}
-          >
-            {isExpanded ? '−' : '+'}
-          </button>
-        </h3>
-        <div className="breakdown-progress">
-          <div className="subtask-progress">
-            <div 
-              className="subtask-progress-bar" 
-              style={{ width: `${progressPercentage}%` }}
-            ></div>
-          </div>
-          <div className="progress-text">
-            {totalSubtasks === 0 ? (
-              <span className="no-subtasks-text">No subtasks yet. Break down this task into smaller steps.</span>
-            ) : (
-              <span>{completedSubtasks} of {totalSubtasks} steps completed ({progressPercentage}%)</span>
-            )}
-          </div>
-        </div>
-      </div>
-      
-      {isExpanded && !hasRunBreakdown && (
+        </button>
+      )}
+      {(showBreakdownSection && !hasRunBreakdown) && (
         <>
-          <form onSubmit={handleAddSubtask} className="subtask-add-form">
-            <input
-              type="text"
-              value={newSubtaskTitle}
-              onChange={(e) => setNewSubtaskTitle(e.target.value)}
-              placeholder="Add a step to break down this task..."
-              className="form-control"
+          <div className="breakdown-header">
+            <h3 className="breakdown-title">
+              Break Down This Task
+              <button 
+                className="toggle-button"
+                onClick={() => setIsExpanded(!isExpanded)}
+              >
+                {isExpanded ? '−' : '+'}
+              </button>
+            </h3>
+            <div className="breakdown-progress">
+              <div className="subtask-progress">
+                <div 
+                  className="subtask-progress-bar" 
+                  style={{ width: `${progressPercentage}%` }}
+                ></div>
+              </div>
+              <div className="progress-text">
+                {totalSubtasks === 0 ? (
+                  <span className="no-subtasks-text">No subtasks yet. Break down this task into smaller steps.</span>
+                ) : (
+                  <span>{completedSubtasks} of {totalSubtasks} steps completed ({progressPercentage}%)</span>
+                )}
+              </div>
+            </div>
+          </div>
+          {isExpanded && (
+            <>
+              <form onSubmit={handleAddSubtask} className="subtask-add-form">
+                <input
+                  type="text"
+                  value={newSubtaskTitle}
+                  onChange={(e) => setNewSubtaskTitle(e.target.value)}
+                  placeholder="Add a step to break down this task..."
+                  className="form-control"
+                />
+                <button type="submit" className="btn btn-primary">Add Step</button>
+              </form>
+            </>
+          )}
+          {showAIBreakdown && !hasRunBreakdown ? (
+            <AITaskBreakdown 
+              task={task} 
+              addSubtask={(parentId, title) => {
+                const subtaskId = addSubtask(parentId, title);
+                forceRefresh();
+                setHasRunBreakdown(true);
+                setShowBreakdownSection(false);
+                setTimeout(() => {
+                  forceRefresh();
+                  setTimeout(() => forceRefresh(), 200);
+                }, 100);
+                return subtaskId;
+              }}
+              updateTaskDescription={updateTaskDescription}
+              existingSubtasks={subtasks}
+              setShowAIBreakdown={setShowAIBreakdown}
+              forceRefresh={forceRefresh}
             />
-            <button type="submit" className="btn btn-primary">Add Step</button>
-          </form>
+          ) : !hasRunBreakdown && (
+            <button 
+              className="ai-breakdown-again-btn"
+              onClick={() => setShowAIBreakdown(true)}
+            >
+              <span className="ai-icon">🤖</span> Break Down with AI
+            </button>
+          )}
         </>
       )}
       {isExpanded && hasRunBreakdown && (
@@ -177,44 +219,16 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
           onClick={() => {
             setHasRunBreakdown(false);
             setNewSubtaskTitle('');
+            setShowBreakdownSection(true);
           }}
         >
           Re-run Breakdown
         </button>
       )}
-      
       {subtasks.length > 0 && progressPercentage === 100 && (
         <div className="completion-message">
           🎉 All steps complete! You're doing great!
         </div>
-      )}
-      
-      {/* AI Breakdown - only show if explicitly requested */}
-      {showAIBreakdown && !hasRunBreakdown ? (
-        <AITaskBreakdown 
-          task={task} 
-          addSubtask={(parentId, title) => {
-            const subtaskId = addSubtask(parentId, title);
-            forceRefresh();
-            setHasRunBreakdown(true);
-            setTimeout(() => {
-              forceRefresh();
-              setTimeout(() => forceRefresh(), 200);
-            }, 100);
-            return subtaskId;
-          }}
-          updateTaskDescription={updateTaskDescription}
-          existingSubtasks={subtasks}
-          setShowAIBreakdown={setShowAIBreakdown}
-          forceRefresh={forceRefresh}
-        />
-      ) : !hasRunBreakdown && (
-        <button 
-          className="ai-breakdown-again-btn"
-          onClick={() => setShowAIBreakdown(true)}
-        >
-          <span className="ai-icon">🤖</span> Break Down with AI
-        </button>
       )}
     </div>
   );
