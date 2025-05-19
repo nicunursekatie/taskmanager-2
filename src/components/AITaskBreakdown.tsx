@@ -27,7 +27,7 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [generatedSubtasks, setGeneratedSubtasks] = useState<string[]>([]);
   const [selectedSubtasks, setSelectedSubtasks] = useState<string[]>([]);
-  const [editableSubtasks, setEditableSubtasks] = useState<{[key: string]: string}>({});
+  const [editableSubtasks, setEditableSubtasks] = useState<{[key: number]: string}>({});
   const [error, setError] = useState<string | null>(null);
   const [needsClarification, setNeedsClarification] = useState(false);
   const [clarificationText, setClarificationText] = useState('');
@@ -83,9 +83,9 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
         setSelectedSubtasks([...validSubtasks]); // Select all by default
         
         // Initialize editable versions of the subtasks
-        const initialEditableSubtasks: {[key: string]: string} = {};
-        validSubtasks.forEach((subtask) => {
-          initialEditableSubtasks[subtask] = subtask;
+        const initialEditableSubtasks: {[key: number]: string} = {};
+        validSubtasks.forEach((subtask, idx) => {
+          initialEditableSubtasks[idx] = subtask;
         });
         setEditableSubtasks(initialEditableSubtasks);
       }
@@ -98,19 +98,19 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
   };
 
   // Toggle selection of a subtask
-  const toggleSubtaskSelection = (subtask: string, index: number) => {
-    if (selectedSubtasks.includes(subtask)) {
-      setSelectedSubtasks(selectedSubtasks.filter(st => st !== subtask));
+  const toggleSubtaskSelection = (subtaskKey: string, index: number) => {
+    if (selectedSubtasks.includes(subtaskKey)) {
+      setSelectedSubtasks(selectedSubtasks.filter(st => st !== subtaskKey));
     } else {
-      setSelectedSubtasks([...selectedSubtasks, subtask]);
+      setSelectedSubtasks([...selectedSubtasks, subtaskKey]);
     }
   };
 
   // Update editable subtask
-  const handleSubtaskEdit = (subtask: string, value: string) => {
+  const handleSubtaskEdit = (subtaskKey: number, value: string) => {
     setEditableSubtasks({
       ...editableSubtasks,
-      [subtask]: value
+      [subtaskKey]: value
     });
   };
 
@@ -124,10 +124,10 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
     }
     
     // Add each selected subtask
-    selectedSubtasks.forEach((subtask) => {
-      const value = editableSubtasks[subtask];
+    selectedSubtasks.forEach((subtaskKey) => {
+      const index = Number(subtaskKey);
+      const value = editableSubtasks[index];
       if (value && value.trim()) {
-        console.log(`Adding subtask: ${value}`);
         addSubtask(task.id, value.trim());
       }
     });
@@ -239,9 +239,9 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
       setSelectedSubtasks([...validSubtasks]);
       
       // Initialize editable versions of the subtasks
-      const initialEditableSubtasks: {[key: string]: string} = {};
-      validSubtasks.forEach((subtask) => {
-        initialEditableSubtasks[subtask] = subtask;
+      const initialEditableSubtasks: {[key: number]: string} = {};
+      validSubtasks.forEach((subtask, idx) => {
+        initialEditableSubtasks[idx] = subtask;
       });
       setEditableSubtasks(initialEditableSubtasks);
       
@@ -387,21 +387,21 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
               
               <div className="ai-subtasks-list">
                 {generatedSubtasks.map((subtask, index) => (
-                  <div key={index} className={`ai-subtask-item ${selectedSubtasks.includes(subtask) ? 'selected' : ''}`}>
+                  <div key={index} className={`ai-subtask-item ${selectedSubtasks.includes(index.toString()) ? 'selected' : ''}`}>
                     <div className="ai-checkbox-container">
                       <input 
                         type="checkbox"
                         id={`subtask-${index}`}
-                        checked={selectedSubtasks.includes(subtask)}
-                        onChange={() => toggleSubtaskSelection(subtask, index)}
+                        checked={selectedSubtasks.includes(index.toString())}
+                        onChange={() => toggleSubtaskSelection(index.toString(), index)}
                       />
                       <span className="ai-checkmark"></span>
                       <input 
                         type="text"
                         className="ai-subtask-edit"
-                        value={editableSubtasks[subtask] || ''}
-                        onChange={(e) => handleSubtaskEdit(subtask, e.target.value)}
-                        disabled={!selectedSubtasks.includes(subtask)}
+                        value={editableSubtasks[index] || ''}
+                        onChange={(e) => handleSubtaskEdit(index, e.target.value)}
+                        disabled={!selectedSubtasks.includes(index.toString())}
                       />
                     </div>
                   </div>
