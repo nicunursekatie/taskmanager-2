@@ -142,27 +142,28 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
         </button>
       )}
       {(showBreakdownSection && !hasRunBreakdown) && (
-        <div className="bg-white rounded-xl shadow p-6 border border-yellow-200 mt-2 mb-4">
-          <div className="breakdown-header flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-yellow-700 flex items-center gap-2">
+        <div className="bg-white rounded-md shadow-sm p-4 border border-gray-200 mt-2 mb-4">
+          <div className="breakdown-header flex items-center justify-between mb-2">
+            <h3 className="text-base font-semibold text-gray-800 flex items-center gap-2">
               <span className="inline-block w-2 h-2 rounded-full bg-yellow-400 mr-2"></span>
               Break Down This Task
             </h3>
             <button 
-              className="text-yellow-700 hover:text-yellow-900 text-2xl font-bold focus:outline-none"
+              className="text-gray-500 hover:text-gray-700 text-xl font-bold focus:outline-none"
               onClick={() => setIsExpanded(!isExpanded)}
+              aria-label={isExpanded ? 'Collapse' : 'Expand'}
             >
-              {isExpanded ? '−' : '+'}
+              {isExpanded ? '▼' : '▶'}
             </button>
           </div>
-          <div className="breakdown-progress mb-4">
-            <div className="w-full bg-yellow-100 rounded-full h-2.5 mb-2">
+          <div className="breakdown-progress mb-2">
+            <div className="w-full bg-gray-100 rounded-full h-2 mb-1">
               <div 
-                className="bg-yellow-400 h-2.5 rounded-full transition-all"
+                className="bg-yellow-400 h-2 rounded-full transition-all"
                 style={{ width: `${progressPercentage}%` }}
               ></div>
             </div>
-            <div className="text-sm text-gray-500">
+            <div className="text-xs text-gray-500">
               {totalSubtasks === 0 ? (
                 <span>No subtasks yet. Break down this task into smaller steps.</span>
               ) : (
@@ -171,15 +172,15 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
             </div>
           </div>
           {isExpanded && (
-            <form onSubmit={handleAddSubtask} className="flex gap-2 mb-4">
+            <form onSubmit={handleAddSubtask} className="flex gap-2 mb-2">
               <input
                 type="text"
                 value={newSubtaskTitle}
                 onChange={(e) => setNewSubtaskTitle(e.target.value)}
                 placeholder="Add a step to break down this task..."
-                className="flex-1 border border-yellow-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                className="flex-1 border border-gray-300 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               />
-              <button type="submit" className="px-4 py-2 rounded-lg font-semibold bg-yellow-400 text-yellow-900 hover:bg-yellow-500 transition">
+              <button type="submit" className="px-4 py-1 rounded-md font-semibold bg-primary text-white hover:bg-primary-dark text-sm transition">
                 Add Step
               </button>
             </form>
@@ -205,10 +206,10 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
             />
           ) : !hasRunBreakdown && (
             <button 
-              className="px-4 py-2 rounded-lg font-semibold bg-yellow-300 text-yellow-900 hover:bg-yellow-400 transition"
+              className="px-4 py-1 rounded-md font-medium border border-primary text-primary bg-white hover:bg-primary/10 text-sm flex items-center gap-1 transition"
               onClick={() => setShowAIBreakdown(true)}
             >
-              <span className="mr-2">🤖</span> Break Down with AI
+              <span className="mr-1">🤖</span> Break Down with AI
             </button>
           )}
         </div>
