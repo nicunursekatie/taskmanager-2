@@ -266,6 +266,9 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
     setShowAIBreakdown?.(false);
   };
 
+  console.log('generatedSubtasks:', generatedSubtasks);
+  console.log('editableSubtasks:', editableSubtasks);
+
   return (
     <div className="ai-task-breakdown">
       {!generatedSubtasks.length && !isLoading && !needsClarification ? (
