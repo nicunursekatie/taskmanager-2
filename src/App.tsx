@@ -1582,6 +1582,7 @@ function App() {
           updateProject={updateProject}
           deleteProject={deleteProject}
           editingProject={editingProject}
+          onEdit={setEditingProject}
           onClose={() => {
             setShowProjectManager(false);
             setEditingProject(null);

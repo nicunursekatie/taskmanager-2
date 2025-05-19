@@ -9,6 +9,7 @@ type ProjectManagerProps = {
   updateProject: (id: string, project: Omit<Project, 'id'>) => void;
   deleteProject: (id: string) => void;
   editingProject: Project | null;
+  onEdit: (project: Project) => void;
   onClose: () => void;
 };
 
@@ -19,6 +20,7 @@ export default function ProjectManager({
   updateProject,
   deleteProject,
   editingProject,
+  onEdit,
   onClose,
 }: ProjectManagerProps) {
   // State for new project form
@@ -308,8 +310,7 @@ export default function ProjectManager({
                 <div className="flex flex-col gap-2 items-end ml-2">
                   <button
                     className="px-4 py-1 rounded-md font-medium text-primary border border-primary bg-white hover:bg-primary/10 text-sm transition mb-1"
-                    onClick={() => editingProject === null ? onClose() : null /* parent handles edit */}
-                    disabled
+                    onClick={() => onEdit(project)}
                   >
                     Edit
                   </button>
