@@ -238,31 +238,6 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
     setNeedsClarification(false);
     setClarificationText('');
     setAiClarificationRequest('');
-  }
-    
-    // Double-check what's in localStorage now
-    try {
-      const stored = localStorage.getItem('tasks');
-      if (stored) {
-        const parsedTasks = JSON.parse(stored);
-        const storedSubtasks = parsedTasks.filter((t: Task) => t.parentId === task.id);
-        console.log(`After adding: found ${storedSubtasks.length} subtasks in localStorage for task ${task.id}`);
-      }
-    } catch (e) {
-      console.error('Error checking localStorage after adding subtasks:', e);
-    }
-    
-    // Reset UI state
-    setGeneratedSubtasks([]);
-    setSelectedSubtasks([]);
-    setEditableSubtasks({});
-    setError(null);
-    setNeedsClarification(false);
-    setClarificationText('');
-    setAiClarificationRequest('');
-    
-    // Hide the AI component
-    setShowAIBreakdown?.(false);
   };
 
   // Handle saving additional task details/clarification
