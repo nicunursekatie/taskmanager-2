@@ -40,12 +40,13 @@ export type Category = {
   color: string;
 };
 // Context type for task categorization
-export type PriorityLevel = 'must-do' | 'want-to-do' | 'when-i-can' | null;
+export type PriorityLevel = 'critical' | 'high' | 'medium' | 'low' | null;
 
 // Task type with context support
 export type Task = {
   id: string;
   title: string;
+  description?: string; // Description provides more context for AI task breakdown
   dueDate?: string | null; // ISO date string with or without time: "YYYY-MM-DD" or "YYYY-MM-DDTHH:MM:SS"
   dueTime?: string | null; // Optional time component: "HH:MM"
   status: 'pending' | 'completed';
@@ -54,6 +55,9 @@ export type Task = {
   categories?: string[];
   context?: ContextTag | null; // Allow null
   estimatedMinutes?: number | null; // Can be number, null, or undefined
+  actualMinutes?: number | null; // Actual time spent
+  timeStarted?: string | null; // ISO timestamp when task was started
+  timeCompleted?: string | null; // ISO timestamp when task was completed
   priority?: PriorityLevel; // Optional priority level
 };
 
@@ -88,12 +92,17 @@ export type TaskListProps = {
     id: string,
     title: string,
     dueDate: string | null,
-    categories?: string[],
-    projectId?: string | null,
-    dependsOn?: string[],
-    priority?: PriorityLevel
+    categories?: string[] | undefined,
+    projectId?: string | null | undefined,
+    dependsOn?: string[] | undefined,
+    priority?: PriorityLevel | null | undefined
   ) => void;
-  addSubtask: (parentId: string, title: string) => void; // Add this line
+  
+  updateTaskDescription?: (id: string, description: string) => void;
+  addSubtask: (parentId: string, title: string) => void;
+  updateTaskEstimate?: (id: string, estimatedMinutes: number | null) => void;
+  startTaskTimer?: (id: string) => void;
+  completeTaskTimer?: (id: string) => void;
   categories: Category[];
   projects: Project[];
 };

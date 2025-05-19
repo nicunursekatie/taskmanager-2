@@ -3,10 +3,20 @@ import { useState, useEffect, useRef } from 'react';
 import './styles/calendar-view.css';
 import './compact-styles.css';
 import './app-styles.css';
+import './styles/delete-btn.css';
+import './styles/calendar-dark-mode.css';
+import './styles/adhd-friendly.css';
+import './styles/task-breakdown.css';
+import './styles/focus-mode.css';
+import './styles/time-estimator.css';
+import './styles/reminders.css';
+import './styles/task-highlights.css';
 
 // Component imports
 import TaskList from './components/TaskList';
 import ContextWizard from './components/ContextWizard';
+import FocusMode from './components/FocusMode';
+import ReminderSystem from './components/ReminderSystem';
 import CategoryManager from './components/CategoryManager';
 import ProjectManager from './components/ProjectManager';
 import ImportExport from './components/ImportExport';
@@ -17,6 +27,7 @@ import MoreOptionsMenu from './components/MoreOptionsMenu';
 // Utilities
 import { loadSampleData } from './utils/sampleData';
 import { clearAllData } from './utils/dataUtils';
+import { checkApiKeyStatus } from './utils/groqService';
 
 // Types
 import { Task, Category, Project, PriorityLevel } from './types';
@@ -29,6 +40,18 @@ type TabType = 'dashboard' | 'all-tasks' | 'projects' | 'categories' | 'calendar
 function App() {
   // Navigation state
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
+  const [focusModeActive, setFocusModeActive] = useState(false);
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+  
+  // Check API key status on component mount (with error handling)
+  useEffect(() => {
+    try {
+      checkApiKeyStatus();
+      console.log('App initialized successfully');
+    } catch (e) {
+      console.error('Error checking API key status:', e);
+    }
+  }, []);
 
   // Reset selectedCategoryId when changing tabs
   useEffect(() => {
@@ -50,15 +73,40 @@ function App() {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      } catch {}
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          console.log(`Loaded ${parsed.length} tasks from localStorage on startup`);
+          return parsed;
+        }
+      } catch (e) {
+        console.error('Error parsing tasks from localStorage:', e);
+      }
     }
     // Return empty array instead of preloaded data
+    console.log('No tasks found in localStorage, starting with empty array');
     return [];
   });
   
+  // Function to reload tasks directly from localStorage
+  const reloadTasksFromStorage = () => {
+    try {
+      const saved = localStorage.getItem('tasks');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          console.log(`Reloading ${parsed.length} tasks from localStorage`);
+          setTasks(parsed);
+          return true;
+        }
+      }
+    } catch (e) {
+      console.error('Error reloading tasks from localStorage:', e);
+    }
+    return false;
+  };
+  
   // Save tasks to localStorage when they change
   useEffect(() => {
+    console.log('Tasks changed, saving to localStorage:', tasks.length);
     localStorage.setItem('tasks', JSON.stringify(tasks));
   }, [tasks]);
   
@@ -75,7 +123,6 @@ function App() {
   const [showTaskEditModal, setShowTaskEditModal] = useState(false);
 
   // State for editing tasks in the modal
-  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [editTaskTitle, setEditTaskTitle] = useState('');
   const [editTaskDueDate, setEditTaskDueDate] = useState<string>('');
   const [editTaskDueTime, setEditTaskDueTime] = useState<string>('');
@@ -164,29 +211,90 @@ function App() {
     setTasks(prev => [...prev, newTask]);
   };
   
-  // Add new subtask
+  // Helper function to get subtasks for a specific task
+  const getTaskSubtasks = (parentId: string): Task[] => {
+    return tasks.filter(t => t.parentId === parentId);
+  };
+
+  // Add new subtask with direct localStorage persistence
   const addSubtask = (parentId: string, title: string) => {
+    console.log(`DIRECT addSubtask called with parentId=${parentId}, title="${title}"`);
+    
     // Get parent task to inherit properties
     const parentTask = tasks.find(t => t.id === parentId);
-
     if (!parentTask) {
-      console.error("Parent task not found");
+      console.error("Parent task not found for ID:", parentId);
       return;
     }
-
+    
+    // Create a unique ID that avoids collisions
+    const uniqueId = `st_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+    
+    // Create the new subtask
     const newSubtask: Task = {
-      id: Date.now().toString(),
+      id: uniqueId,
       title,
       status: 'pending',
-      parentId, // Set the parent ID
+      parentId,
       // Inherit properties from parent
-      dueDate: parentTask.dueDate, // Inherit due date from parent
-      dueTime: parentTask.dueTime, // Inherit due time from parent
-      projectId: parentTask.projectId, // Inherit project from parent
-      categories: parentTask.categories, // Inherit categories from parent
+      dueDate: parentTask.dueDate,
+      dueTime: parentTask.dueTime,
+      projectId: parentTask.projectId,
+      categories: parentTask.categories,
     };
-
-    setTasks(prev => [...prev, newSubtask]);
+    
+    console.log("Created new subtask object:", JSON.stringify(newSubtask));
+    
+    // First get existing tasks from localStorage to make sure we have the latest
+    let currentTasks: Task[] = [];
+    try {
+      const stored = localStorage.getItem('tasks');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) {
+          currentTasks = parsed;
+        }
+      }
+    } catch (e) {
+      console.error("Error reading current tasks from localStorage:", e);
+      // Fall back to the tasks in state
+      currentTasks = [...tasks];
+    }
+    
+    // Add our new subtask
+    const updatedTasks = [...currentTasks, newSubtask];
+    
+    // Log before saving
+    console.log(`Before saving: ${currentTasks.length} tasks → ${updatedTasks.length} tasks`);
+    
+    // Save directly to localStorage first
+    try {
+      localStorage.setItem('tasks', JSON.stringify(updatedTasks));
+      console.log("SAVED TO LOCALSTORAGE:", updatedTasks.length, "tasks");
+    } catch (e) {
+      console.error("Error saving to localStorage:", e);
+    }
+    
+    // Now reload the tasks from localStorage to ensure consistency
+    reloadTasksFromStorage();
+    
+    // For good measure, double check after a delay
+    setTimeout(() => {
+      reloadTasksFromStorage();
+      
+      try {
+        const stored = localStorage.getItem('tasks');
+        if (stored) {
+          const parsedTasks = JSON.parse(stored);
+          const storedSubtasks = parsedTasks.filter((t: Task) => t.parentId === parentId);
+          console.log(`VERIFICATION: parent ${parentId} has ${storedSubtasks.length} subtasks in localStorage`);
+        }
+      } catch (e) {
+        console.error('Error in verification:', e);
+      }
+    }, 300);
+    
+    return uniqueId; // Return the ID of the created subtask
   };
 
   // Toggle task completion status
@@ -205,6 +313,56 @@ function App() {
     setTasks(prev => prev.filter(task => task.id !== id && task.parentId !== id));
   };
   
+  // Update task estimate
+  const updateTaskEstimate = (id: string, estimatedMinutes: number | null) => {
+    setTasks(prev =>
+      prev.map(task =>
+        task.id === id
+          ? {
+              ...task,
+              estimatedMinutes: estimatedMinutes
+            }
+          : task
+      )
+    );
+  };
+  
+  // Start task timer
+  const startTaskTimer = (id: string) => {
+    const now = new Date().toISOString();
+    setTasks(prev =>
+      prev.map(task =>
+        task.id === id
+          ? {
+              ...task,
+              timeStarted: now
+            }
+          : task
+      )
+    );
+  };
+  
+  // Complete task timer
+  const completeTaskTimer = (id: string) => {
+    const now = new Date();
+    setTasks(prev =>
+      prev.map(task => {
+        if (task.id === id && task.timeStarted) {
+          const startTime = new Date(task.timeStarted);
+          const diffMs = now.getTime() - startTime.getTime();
+          const diffMinutes = Math.ceil(diffMs / (1000 * 60)); // Round up to nearest minute
+          
+          return {
+            ...task,
+            timeCompleted: now.toISOString(),
+            actualMinutes: diffMinutes
+          };
+        }
+        return task;
+      })
+    );
+  };
+
   // Update a task
   const updateTask = (
     id: string,
@@ -237,6 +395,20 @@ function App() {
               categories: categoryIds || task.categories,
               projectId: projectId !== undefined ? projectId : task.projectId,
               priority: priority !== undefined ? priority : task.priority,
+            }
+          : task
+      )
+    );
+  };
+  
+  // Update task description
+  const updateTaskDescription = (id: string, description: string) => {
+    setTasks(prev =>
+      prev.map(task =>
+        task.id === id
+          ? {
+              ...task,
+              description
             }
           : task
       )
@@ -474,12 +646,20 @@ function App() {
         </nav>
 
         <div className="top-actions">
-          <button 
-            className="btn btn-primary" 
-            onClick={() => setShowWizard(true)}
-          >
-            What now?
-          </button>
+          <div className="top-action-buttons">
+            <button 
+              className="btn btn-primary" 
+              onClick={() => setShowWizard(true)}
+            >
+              What now?
+            </button>
+            <button 
+              className="btn btn-accent focus-mode-btn" 
+              onClick={() => setFocusModeActive(true)}
+            >
+              <span className="focus-icon">🎯</span> Focus Mode
+            </button>
+          </div>
           <MoreOptionsMenu
             onManageCategories={() => setShowCategoryManager(true)}
             onImportExport={() => setShowImportExport(true)}
@@ -490,6 +670,20 @@ function App() {
       </header>
       
       <main className="main-content full-width">
+        {/* Render Focus Mode when active, otherwise show normal UI */}
+        {focusModeActive ? (
+          <FocusMode
+            tasks={tasks}
+            toggleTask={toggleTask}
+            deleteTask={deleteTask}
+            updateTask={updateTask}
+            addSubtask={addSubtask}
+            categories={categories}
+            projects={projects}
+            onExitFocusMode={() => setFocusModeActive(false)}
+          />
+        ) : (
+          <>
         {/* Capture Bar */}
         <div className="capture-container">
           <form className="capture-form" onSubmit={handleTaskSubmit}>
@@ -614,7 +808,11 @@ function App() {
                     toggleTask={toggleTask}
                     deleteTask={deleteTask}
                     updateTask={updateTask}
+                    updateTaskDescription={updateTaskDescription}
                     addSubtask={addSubtask}
+                    updateTaskEstimate={updateTaskEstimate}
+                    startTaskTimer={startTaskTimer}
+                    completeTaskTimer={completeTaskTimer}
                     categories={categories}
                     projects={projects}
                   />
@@ -1012,7 +1210,11 @@ function App() {
                     toggleTask={toggleTask}
                     deleteTask={deleteTask}
                     updateTask={updateTask}
+                    updateTaskDescription={updateTaskDescription}
                     addSubtask={addSubtask}
+                    updateTaskEstimate={updateTaskEstimate}
+                    startTaskTimer={startTaskTimer}
+                    completeTaskTimer={completeTaskTimer}
                     categories={categories}
                     projects={projects}
                   />
@@ -1026,12 +1228,13 @@ function App() {
             <div className="all-tasks-view">
               <div className="section-card">
                 <h2 className="section-title">All Tasks</h2>
-                {tasks.filter(task => task.status !== 'completed').length > 0 ? (
+                {tasks.filter(task => task.status !== 'completed' && !task.parentId).length > 0 ? (
                   <TaskList 
-                    tasks={tasks.filter(task => task.status !== 'completed')} 
+                    tasks={tasks.filter(task => task.status !== 'completed' && !task.parentId)} 
                     toggleTask={toggleTask} 
                     deleteTask={deleteTask} 
                     updateTask={updateTask}
+                    updateTaskDescription={updateTaskDescription}
                     addSubtask={addSubtask}
                     categories={categories}
                     projects={projects}
@@ -1049,6 +1252,7 @@ function App() {
                     toggleTask={toggleTask} 
                     deleteTask={deleteTask} 
                     updateTask={updateTask}
+                    updateTaskDescription={updateTaskDescription}
                     addSubtask={addSubtask}
                     categories={categories}
                     projects={projects}
@@ -1101,6 +1305,7 @@ function App() {
                             toggleTask={toggleTask} 
                             deleteTask={deleteTask} 
                             updateTask={updateTask}
+                            updateTaskDescription={updateTaskDescription}
                             addSubtask={addSubtask}
                             categories={categories}
                             projects={projects}
@@ -1118,6 +1323,7 @@ function App() {
                             toggleTask={toggleTask} 
                             deleteTask={deleteTask} 
                             updateTask={updateTask}
+                            updateTaskDescription={updateTaskDescription}
                             addSubtask={addSubtask}
                             categories={categories}
                             projects={projects}
@@ -1171,6 +1377,7 @@ function App() {
                           toggleTask={toggleTask} 
                           deleteTask={deleteTask} 
                           updateTask={updateTask}
+                          updateTaskDescription={updateTaskDescription}
                           addSubtask={addSubtask}
                           categories={categories}
                           projects={projects}
@@ -1188,6 +1395,7 @@ function App() {
                           toggleTask={toggleTask} 
                           deleteTask={deleteTask} 
                           updateTask={updateTask}
+                          updateTaskDescription={updateTaskDescription}
                           addSubtask={addSubtask}
                           categories={categories}
                           projects={projects}
@@ -1422,6 +1630,7 @@ function App() {
                         toggleTask={toggleTask}
                         deleteTask={deleteTask}
                         updateTask={updateTask}
+                        updateTaskDescription={updateTaskDescription}
                         addSubtask={addSubtask}
                         categories={categories}
                         projects={projects}
@@ -1516,6 +1725,7 @@ function App() {
                         toggleTask={toggleTask}
                         deleteTask={deleteTask}
                         updateTask={updateTask}
+                        updateTaskDescription={updateTaskDescription}
                         addSubtask={addSubtask}
                         categories={categories}
                         projects={projects}
@@ -1527,7 +1737,29 @@ function App() {
             );
           })()}
         </div>
+          </>
+        )}
       </main>
+      
+      {/* Reminder System - always visible regardless of focus mode */}
+      <ReminderSystem 
+        tasks={tasks} 
+        openTask={(taskId) => {
+          setEditingTaskId(taskId);
+          setEditTaskTitle(tasks.find(t => t.id === taskId)?.title || '');
+          setEditTaskDueDate(tasks.find(t => t.id === taskId)?.dueDate || '');
+          setEditTaskDueTime(tasks.find(t => t.id === taskId)?.dueTime || '');
+          setEditTaskCategories(tasks.find(t => t.id === taskId)?.categories || []);
+          setEditTaskProjectId(tasks.find(t => t.id === taskId)?.projectId ?? null);
+          setEditTaskPriority(tasks.find(t => t.id === taskId)?.priority ?? null);
+          setShowTaskEditModal(true);
+          
+          // Exit focus mode if it's active
+          if (focusModeActive) {
+            setFocusModeActive(false);
+          }
+        }}
+      />
       
       {/* Context Wizard Modal */}
       {showWizard && (
@@ -1598,6 +1830,21 @@ function App() {
                     onChange={e => setEditTaskTitle(e.target.value)}
                   />
                 </div>
+                
+                {/* Display subtask count */}
+                {(() => {
+                  const subtaskCount = tasks.filter(t => t.parentId === editingTaskId).length;
+                  if (subtaskCount > 0) {
+                    return (
+                      <div className="subtask-count-display">
+                        <span className="subtask-count">
+                          {subtaskCount} subtask{subtaskCount !== 1 ? 's' : ''}
+                        </span>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
 
                 <div className="input-group">
                   <label className="form-label">Due Date & Time</label>
@@ -1708,16 +1955,38 @@ function App() {
 
                 <div className="input-group">
                   <label className="form-label">Priority</label>
-                  <select
-                    className="form-control"
-                    value={editTaskPriority || ''}
-                    onChange={(e) => setEditTaskPriority(e.target.value as PriorityLevel || null)}
-                  >
-                    <option value="">No Priority</option>
-                    <option value="must-do">Must Do</option>
-                    <option value="want-to-do">Want To Do</option>
-                    <option value="when-i-can">When I Can</option>
-                  </select>
+                  <div className="priority-selector">
+                    <div 
+                      className={`priority-option critical ${editTaskPriority === 'critical' ? 'selected' : ''}`}
+                      onClick={() => setEditTaskPriority('critical')}
+                    >
+                      Critical
+                    </div>
+                    <div 
+                      className={`priority-option high ${editTaskPriority === 'high' ? 'selected' : ''}`}
+                      onClick={() => setEditTaskPriority('high')}
+                    >
+                      High
+                    </div>
+                    <div 
+                      className={`priority-option medium ${editTaskPriority === 'medium' ? 'selected' : ''}`}
+                      onClick={() => setEditTaskPriority('medium')}
+                    >
+                      Medium
+                    </div>
+                    <div 
+                      className={`priority-option low ${editTaskPriority === 'low' ? 'selected' : ''}`}
+                      onClick={() => setEditTaskPriority('low')}
+                    >
+                      Low
+                    </div>
+                    <div 
+                      className={`priority-option ${!editTaskPriority ? 'selected' : ''}`}
+                      onClick={() => setEditTaskPriority(null)}
+                    >
+                      None
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

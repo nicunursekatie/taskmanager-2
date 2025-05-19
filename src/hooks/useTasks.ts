@@ -1,7 +1,7 @@
 // src/hooks/useTasks.ts
 // Update your existing useTasks.ts hook to include context handling
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Task, ContextTag, PriorityLevel } from '../types';
 
 export function useTasks() {
@@ -35,7 +35,16 @@ export function useTasks() {
   };
 
   const deleteTask = (id: string) => {
-    setTasks(prev => prev.filter(t => t.id !== id && t.parentId !== id));
+    // Enhanced debugging
+    console.log(`Deleting task ${id} and its subtasks`);
+    
+    // Use correct filter logic for the operation
+    setTasks(prev => prev.filter(t => {
+      // Keep the task if:
+      // 1. It's not the task we're deleting AND
+      // 2. It's not a subtask of the task we're deleting
+      return t.id !== id && t.parentId !== id;
+    }));
   };
 
   const updateTask = (
@@ -105,19 +114,56 @@ export function useTasks() {
     );
   };
   
-  // Add new function for subtasks
-  const addSubtask = (parentId: string, title: string) => {
+  // Start task timer
+  const startTaskTimer = (id: string) => {
+    const now = new Date().toISOString();
+    setTasks(prev =>
+      prev.map(task =>
+        task.id === id
+          ? {
+              ...task,
+              timeStarted: now
+            }
+          : task
+      )
+    );
+  };
+  
+  // Complete task timer
+  const completeTaskTimer = (id: string) => {
+    const now = new Date();
+    setTasks(prev =>
+      prev.map(task => {
+        if (task.id === id && task.timeStarted) {
+          const startTime = new Date(task.timeStarted);
+          const diffMs = now.getTime() - startTime.getTime();
+          const diffMinutes = Math.ceil(diffMs / (1000 * 60)); // Round up to nearest minute
+          
+          return {
+            ...task,
+            timeCompleted: now.toISOString(),
+            actualMinutes: diffMinutes
+          };
+        }
+        return task;
+      })
+    );
+  };
+  
+  // Add new function for subtasks as useCallback to prevent rerenders
+  const addSubtask = useCallback((parentId: string, title: string): string => {
     // Get parent task to inherit properties
     const parentTask = tasks.find(t => t.id === parentId);
     
     if (!parentTask) {
       console.error("Parent task not found");
-      return;
+      return '';
     }
     
     // Create a new subtask with inherited properties
+    const newId = Date.now().toString();
     const newSubtask: Task = {
-      id: Date.now().toString(),
+      id: newId,
       title,
       status: 'pending',
       parentId, // Required for Subtask type
@@ -129,8 +175,33 @@ export function useTasks() {
       priority: parentTask.priority, // Inherit priority from parent
     };
     
-    setTasks(prev => [...prev, newSubtask]);
-  };
+    // Update tasks with the new subtask and immediately save to localStorage
+    setTasks(prev => {
+      const updated = [...prev, newSubtask];
+      try {
+        // Directly save to localStorage to ensure immediate persistence
+        localStorage.setItem('tasks', JSON.stringify(updated));
+        console.log(`Added subtask "${title}" with ID ${newId} to parent ${parentId} (total tasks: ${updated.length})`);
+        // Verify the subtask was added to localStorage
+        const stored = localStorage.getItem('tasks');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          const subtask = parsed.find((t: Task) => t.id === newId);
+          if (subtask) {
+            console.log(`Verified subtask ${newId} is in localStorage`);
+          } else {
+            console.error(`Subtask ${newId} was not found in localStorage after saving`);
+          }
+        }
+      } catch (e) {
+        console.error('Error saving tasks to localStorage:', e);
+      }
+      return updated;
+    });
+    
+    // Return the new subtask ID so we can track it
+    return newId;
+  }, [tasks]); // Add tasks as a dependency
 
   return { 
     tasks, 
@@ -141,6 +212,8 @@ export function useTasks() {
     addSubtask,
     updateTaskContext,
     updateTaskPriority,
-    updateTaskEstimate
+    updateTaskEstimate,
+    startTaskTimer,
+    completeTaskTimer
   };
 }

@@ -1,16 +1,23 @@
 // src/components/TaskList.tsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Task, Subtask, TaskListProps, Category, Project, PriorityLevel } from '../types';
+import TaskBreakdown from './TaskBreakdown';
+import TimeEstimator from './TimeEstimator';
 
 export default function TaskList({
   tasks,
   toggleTask,
   deleteTask,
   updateTask,
+  updateTaskDescription,
   addSubtask,
+  updateTaskEstimate,
+  startTaskTimer,
+  completeTaskTimer,
   categories,
   projects,
 }: TaskListProps) {
+  console.log('TaskList rendered with', tasks.length, 'tasks');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
   const [editDueDate, setEditDueDate] = useState<string>('');
@@ -25,10 +32,36 @@ export default function TaskList({
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
   
   // State for expanded/collapsed tasks
-  const [collapsedTasks, setCollapsedTasks] = useState<{[key: string]: boolean}>({});
+  // Initialize with all tasks that have subtasks already expanded
+  const [collapsedTasks, setCollapsedTasks] = useState<{[key: string]: boolean}>(() => {
+    const initialState: {[key: string]: boolean} = {};
+    
+    // For each task, check if it has subtasks and initialize it as expanded
+    tasks.forEach(t => {
+      const hasSubtasks = tasks.some(subtask => subtask.parentId === t.id);
+      if (hasSubtasks) {
+        // Set to false means expanded
+        initialState[t.id] = false;
+      }
+    });
+    
+    return initialState;
+  });
 
   // Only render top-level tasks (no parentId)
   const topLevelTasks = tasks.filter(t => !t.parentId);
+  
+  // Debug count of all tasks vs top-level vs subtasks
+  console.log(`TaskList received ${tasks.length} total tasks (${topLevelTasks.length} top-level, ${tasks.length - topLevelTasks.length} subtasks)`);
+  
+  // If there are subtasks, log the first few for debugging
+  if (tasks.length - topLevelTasks.length > 0) {
+    const subtasks = tasks.filter(t => t.parentId);
+    console.log('Sample subtasks:');
+    subtasks.slice(0, 3).forEach(st => 
+      console.log(`  Subtask "${st.title}" (ID: ${st.id}) for parent: ${st.parentId}`)
+    );
+  }
 
   // Toggle collapsed state of a task
   const toggleCollapsed = (taskId: string) => {
@@ -37,15 +70,96 @@ export default function TaskList({
       [taskId]: !prev[taskId]
     }));
   };
+  
+  // Listen for custom events to expand a task's subtasks
+  useEffect(() => {
+    const handleExpandTask = (e: any) => {
+      const { taskId } = e.detail;
+      console.log(`Received expand event for task: ${taskId}`);
+      
+      // Ensure the task is expanded
+      setCollapsedTasks(prev => ({
+        ...prev,
+        [taskId]: false
+      }));
+      
+      // Scroll to the task if possible
+      try {
+        setTimeout(() => {
+          // Delayed scroll to ensure elements are updated
+          const taskElement = document.getElementById(`task-${taskId}`);
+          if (taskElement) {
+            console.log('Scrolling to task:', taskId);
+            taskElement.scrollIntoView({ behavior: 'smooth' });
+            taskElement.classList.add('highlight-task');
+            setTimeout(() => {
+              taskElement.classList.remove('highlight-task');
+            }, 2000);
+          } else {
+            console.log('Task element not found after delay:', taskId);
+          }
+        }, 300); // Delay scroll to ensure DOM is updated
+      } catch (e) {
+        console.error('Error scrolling to task:', e);
+      }
+    };
+    
+    document.addEventListener('expandTaskSubtasks', handleExpandTask);
+    
+    return () => {
+      document.removeEventListener('expandTaskSubtasks', handleExpandTask);
+    };
+  }, []);
 
   // Check if a task has subtasks
   const hasSubtasks = (taskId: string) => {
     return tasks.some(t => t.parentId === taskId);
   };
 
-  // Get all subtasks for a given parent
+  // Get all subtasks for a given parent - with localStorage fallback
   const getSubtasks = (parentId: string): Task[] => {
-    return tasks.filter(t => t.parentId === parentId);
+    // Enhanced debug information to track the issue
+    console.log(`Searching for subtasks with parentId=${parentId}`);
+    console.log(`Current tasks array has ${tasks.length} total tasks`);
+    
+    // Show some example tasks from the array for debugging
+    if (tasks.length > 0) {
+      console.log("Sample tasks with their parentId values:");
+      tasks.slice(0, 5).forEach(t => {
+        console.log(`Task ID: ${t.id}, Title: ${t.title}, ParentID: ${t.parentId}`);
+      });
+    }
+    
+    // Check for any tasks with non-null parentId
+    const anySubtasks = tasks.filter(t => t.parentId !== null && t.parentId !== undefined);
+    console.log(`Found ${anySubtasks.length} tasks with non-null parentId in the system`);
+    
+    // Normal filtering from props
+    const propsResult = tasks.filter(t => t.parentId === parentId);
+    
+    // Only check localStorage if no subtasks found in props
+    if (propsResult.length === 0) {
+      // Try getting subtasks directly from localStorage
+      try {
+        const stored = localStorage.getItem('tasks');
+        if (stored) {
+          const parsedTasks = JSON.parse(stored);
+          const storageResult = parsedTasks.filter((t: Task) => t.parentId === parentId);
+          
+          if (storageResult.length > 0) {
+            console.log(`🔄 Found ${storageResult.length} subtasks for parent ${parentId} in localStorage that weren't in props!`);
+            // Return subtasks from localStorage - will be synced on next render
+            return storageResult;
+          }
+        }
+      } catch (e) {
+        console.error('Error checking localStorage for subtasks:', e);
+      }
+    }
+    
+    console.log(`getSubtasks(${parentId}) found ${propsResult.length} subtasks:`, 
+      propsResult.map(t => `${t.id}: ${t.title}`));
+    return propsResult;
   };
 
   // Handle subtask creation
@@ -69,21 +183,35 @@ export default function TaskList({
     const taskSubtasks = getSubtasks(task.id);
     const hasChildren = taskSubtasks.length > 0;
 
-    // Get the category color for the task's left border
-    const categoryColor = task.categories?.length
-      ? categories.find(c => c.id === task.categories![0])?.color || '#666'
-      : '#666';
+    // Add a class for subtasks
+    const isSubtask = !!task.parentId;
 
-    // Get priority class
-    const priorityClass = task.priority ? `priority-${task.priority}` : '';
+    // Determine the color for the category (use the first category if available)
+    const categoryColor =
+      task.categories && task.categories.length > 0
+        ? (categories.find(c => c.id === task.categories![0])?.color || "#bdbdbd")
+        : "#bdbdbd";
 
     return (
-      <div key={task.id} style={{ marginLeft: `${depth * 20}px` }}>
+      <div
+        key={task.id}
+        style={{
+          marginLeft: `${depth * 20}px`,
+          background: isSubtask ? "#f7fafd" : "white", // Light blue for subtasks
+          borderLeft: isSubtask ? "4px solid #2196f3" : undefined, // Blue border for subtasks
+          borderRadius: isSubtask ? "4px" : undefined,
+          marginTop: isSubtask ? "4px" : undefined,
+          boxShadow: isSubtask ? "0 1px 3px rgba(33,150,243,0.07)" : undefined,
+        }}
+      >
         <div
           id={`task-${task.id}`}
-          className={`task-item ${task.status === 'completed' ? 'completed' : ''} ${priorityClass}`}
+          className={`task-item ${isSubtask ? "subtask-item" : ""} ${task.status === 'completed' ? 'completed' : ''} 
+                     ${task.priority ? `priority-${task.priority}` : ''} 
+                     ${hasChildren ? 'has-subtasks' : ''} 
+                     ${!isCollapsed && hasChildren ? 'expanded' : ''}`}
           style={{
-            borderLeft: hasChildren ? `4px solid ${categoryColor}` : undefined
+            borderLeft: !task.priority && hasChildren ? `4px solid ${categoryColor}` : undefined
           }}
         >
           {editingId === task.id ? (
@@ -205,19 +333,38 @@ export default function TaskList({
 
               <div className="input-group">
                 <label className="form-label">Priority</label>
-                <select
-                  className="form-control"
-                  value={editPriority || ''}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    setEditPriority(value ? value as PriorityLevel : null);
-                  }}
-                >
-                  <option value="">No Priority</option>
-                  <option value="must-do">Must Do</option>
-                  <option value="want-to-do">Want To Do</option>
-                  <option value="when-i-can">When I Can</option>
-                </select>
+                <div className="priority-selector">
+                  <div 
+                    className={`priority-option critical ${editPriority === 'critical' ? 'selected' : ''}`}
+                    onClick={() => setEditPriority('critical')}
+                  >
+                    Critical
+                  </div>
+                  <div 
+                    className={`priority-option high ${editPriority === 'high' ? 'selected' : ''}`}
+                    onClick={() => setEditPriority('high')}
+                  >
+                    High
+                  </div>
+                  <div 
+                    className={`priority-option medium ${editPriority === 'medium' ? 'selected' : ''}`}
+                    onClick={() => setEditPriority('medium')}
+                  >
+                    Medium
+                  </div>
+                  <div 
+                    className={`priority-option low ${editPriority === 'low' ? 'selected' : ''}`}
+                    onClick={() => setEditPriority('low')}
+                  >
+                    Low
+                  </div>
+                  <div 
+                    className={`priority-option ${!editPriority ? 'selected' : ''}`}
+                    onClick={() => setEditPriority(null)}
+                  >
+                    None
+                  </div>
+                </div>
               </div>
               
               <div className="flex justify-between gap-sm">
@@ -264,7 +411,20 @@ export default function TaskList({
                     checked={task.status === 'completed'}
                     onChange={() => toggleTask(task.id)}
                   />
-                  
+                  {isSubtask && (
+                    <span
+                      style={{
+                        fontSize: "0.85em",
+                        color: "#2196f3",
+                        marginRight: "6px",
+                        fontWeight: 500,
+                        letterSpacing: "0.5px",
+                      }}
+                      title="Subtask"
+                    >
+                      ⮑ Subtask
+                    </span>
+                  )}
                   {hasChildren && (
                     <span 
                       className="task-collapse-toggle"
@@ -335,11 +495,19 @@ export default function TaskList({
 
                 {/* Display priority indicator */}
                 {task.priority && (
-                  <span className={`task-priority ${task.priority}`}>
-                    {task.priority === 'must-do' ? 'Must Do' :
-                     task.priority === 'want-to-do' ? 'Want To Do' :
-                     'When I Can'}
+                  <span className={`priority-badge ${task.priority}`}>
+                    {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
                   </span>
+                )}
+                
+                {/* Add time estimator component */}
+                {updateTaskEstimate && startTaskTimer && completeTaskTimer && (
+                  <TimeEstimator
+                    task={task}
+                    updateTaskEstimate={updateTaskEstimate}
+                    startTaskTimer={startTaskTimer}
+                    completeTaskTimer={completeTaskTimer}
+                  />
                 )}
 
                 {task.categories && task.categories.length > 0 &&
@@ -392,6 +560,16 @@ export default function TaskList({
                     </button>
                   </div>
                 </div>
+              )}
+              {/* Add TaskBreakdown for top-level tasks only */}
+              {depth === 0 && !task.parentId && (
+                <TaskBreakdown 
+                  task={task} 
+                  subtasks={getSubtasks(task.id)} 
+                  addSubtask={addSubtask}
+                  toggleTask={toggleTask}
+                  updateTaskDescription={updateTaskDescription}
+                />
               )}
             </>
           )}
