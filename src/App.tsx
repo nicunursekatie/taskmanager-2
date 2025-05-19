@@ -368,10 +368,10 @@ function App() {
     id: string,
     title: string,
     dueDate: string | null,
-    categoryIds?: string[],
+    categories?: string[],
     projectId?: string | null,
     dependsOn?: string[],
-    priority?: PriorityLevel
+    priority?: PriorityLevel | null
   ) => {
     // Extract time if it's included in the date string
     let dueTime = null;
@@ -392,7 +392,7 @@ function App() {
               title,
               dueDate: dateOnly,
               dueTime,
-              categories: categoryIds || task.categories,
+              categories: categories || task.categories,
               projectId: projectId !== undefined ? projectId : task.projectId,
               priority: priority !== undefined ? priority : task.priority,
             }
