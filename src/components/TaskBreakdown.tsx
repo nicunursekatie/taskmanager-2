@@ -203,7 +203,7 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
             </div>
           )}
           
-          {/* Only show the AI breakdown if explicitly requested or if there are no subtasks */}
+          {/* AI Breakdown - only show if explicitly requested */}
           {showAIBreakdown ? (
             <AITaskBreakdown 
               task={task} 

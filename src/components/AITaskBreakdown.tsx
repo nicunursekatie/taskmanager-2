@@ -163,6 +163,14 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
       aiContainer.appendChild(successMessage);
     }
     
+    // Immediately hide the breakdown component after a short delay
+    setTimeout(() => {
+      if (setShowAIBreakdown) {
+        setShowAIBreakdown(false);
+        console.log('Immediately hiding AI breakdown component after success message');
+      }
+    }, 1200);
+    
     // Force refresh the UI multiple times with increasing delays to ensure changes are reflected
     if (forceRefresh) {
       // Initial refresh
@@ -205,7 +213,7 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
                     setShowAIBreakdown(false);
                     console.log('Auto-hiding AI breakdown component after successful addition');
                   }
-                }, 1500); // Give user time to see the success message
+                }, 1000); // Give user time to see the success message
               }
             } catch (e) {
               console.error('Error checking localStorage after delays:', e);
