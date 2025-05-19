@@ -144,6 +144,25 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
     
     console.log('Added subtask IDs:', addedSubtaskIds);
     
+    // Show a success message
+    const successMessage = document.createElement('div');
+    successMessage.className = 'ai-success-message';
+    successMessage.innerHTML = `
+      <div class="success-content">
+        <span class="success-icon">✅</span>
+        <span>${subtasksToAdd.length} subtasks added successfully!</span>
+      </div>
+    `;
+    
+    // Append to the component
+    const aiContainer = document.querySelector('.ai-task-breakdown');
+    if (aiContainer) {
+      // Clear existing content
+      aiContainer.innerHTML = '';
+      // Add success message
+      aiContainer.appendChild(successMessage);
+    }
+    
     // Force refresh the UI multiple times with increasing delays to ensure changes are reflected
     if (forceRefresh) {
       // Initial refresh
@@ -179,6 +198,14 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
                 );
                 
                 console.log(`All subtasks found in localStorage: ${allFound}`);
+                
+                // After the fourth refresh, completely hide the AI breakdown component
+                setTimeout(() => {
+                  if (setShowAIBreakdown) {
+                    setShowAIBreakdown(false);
+                    console.log('Auto-hiding AI breakdown component after successful addition');
+                  }
+                }, 1500); // Give user time to see the success message
               }
             } catch (e) {
               console.error('Error checking localStorage after delays:', e);
@@ -202,6 +229,16 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
     } catch (e) {
       console.error('Error dispatching custom event:', e);
     }
+    
+    // Also hide the detail components immediately to reduce visual clutter
+    setGeneratedSubtasks([]);
+    setSelectedSubtasks([]);
+    setEditableSubtasks({});
+    setError(null);
+    setNeedsClarification(false);
+    setClarificationText('');
+    setAiClarificationRequest('');
+  }
     
     // Double-check what's in localStorage now
     try {

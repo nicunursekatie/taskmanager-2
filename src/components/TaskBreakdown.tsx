@@ -22,7 +22,7 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
     subtasks.map(st => st.title));
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
   const [isExpanded, setIsExpanded] = useState(true);
-  const [showAIBreakdown, setShowAIBreakdown] = useState(subtasks.length === 0);
+  const [showAIBreakdown, setShowAIBreakdown] = useState(false);
   
   // Use a forced refresh counter to ensure we re-render when needed
   const [refreshCounter, setRefreshCounter] = useState(0);
