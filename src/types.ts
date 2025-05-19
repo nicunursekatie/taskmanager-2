@@ -92,11 +92,12 @@ export type TaskListProps = {
     id: string,
     title: string,
     dueDate: string | null,
-    categories?: string[],
-    projectId?: string | null,
-    dependsOn?: string[],
-    priority?: PriorityLevel
+    categories?: string[] | undefined,
+    projectId?: string | null | undefined,
+    dependsOn?: string[] | undefined,
+    priority?: PriorityLevel | null | undefined
   ) => void;
+  
   updateTaskDescription?: (id: string, description: string) => void;
   addSubtask: (parentId: string, title: string) => void;
   updateTaskEstimate?: (id: string, estimatedMinutes: number | null) => void;
