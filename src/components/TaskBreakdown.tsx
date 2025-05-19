@@ -72,7 +72,25 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
       console.log('Subtasks exist, but keeping AI breakdown visible until user is done');
       // The AITaskBreakdown component will handle hiding itself when the user clicks "Done"
     }
-  }, [subtasks, refreshCounter]);
+    
+    // If no subtasks showing, check localStorage directly for any that might not have made it to the UI yet
+    if (subtasks.length === 0 && task.id) {
+      try {
+        const stored = localStorage.getItem('tasks');
+        if (stored) {
+          const parsedTasks = JSON.parse(stored);
+          const storedSubtasks = parsedTasks.filter((t: any) => t.parentId === task.id);
+          console.log(`[DIRECT CHECK] Found ${storedSubtasks.length} subtasks in localStorage for parent=${task.id}`);
+          
+          if (storedSubtasks.length > 0) {
+            console.log('Subtasks found in localStorage but not in props - they should appear when the parent reloads');
+          }
+        }
+      } catch (e) {
+        console.error('Error checking localStorage directly:', e);
+      }
+    }
+  }, [subtasks, refreshCounter, task.id]);
   
   // Calculate progress percentage
   const totalSubtasks = subtasks.length;
@@ -84,10 +102,23 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
   const handleAddSubtask = (e: React.FormEvent) => {
     e.preventDefault();
     if (newSubtaskTitle.trim()) {
+      // Add the subtask
       addSubtask(task.id, newSubtaskTitle.trim());
       setNewSubtaskTitle('');
+      
       // Hide the AI breakdown when a manual subtask is added
       setShowAIBreakdown(false);
+      
+      // Trigger the expand event to make sure the subtasks are visible
+      try {
+        const expandEvent = new CustomEvent('expandTaskSubtasks', { 
+          detail: { taskId: task.id } 
+        });
+        document.dispatchEvent(expandEvent);
+        console.log(`Triggered expandTaskSubtasks event for task ${task.id} from manual add`);
+      } catch (e) {
+        console.error('Error dispatching custom event:', e);
+      }
     }
   };
   
@@ -111,7 +142,11 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
             ></div>
           </div>
           <div className="progress-text">
-            {completedSubtasks} of {totalSubtasks} steps completed ({progressPercentage}%)
+            {totalSubtasks === 0 ? (
+              <span className="no-subtasks-text">No subtasks yet. Break down this task into smaller steps.</span>
+            ) : (
+              <span>{completedSubtasks} of {totalSubtasks} steps completed ({progressPercentage}%)</span>
+            )}
           </div>
         </div>
       </div>

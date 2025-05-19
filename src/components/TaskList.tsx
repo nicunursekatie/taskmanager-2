@@ -32,10 +32,36 @@ export default function TaskList({
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
   
   // State for expanded/collapsed tasks
-  const [collapsedTasks, setCollapsedTasks] = useState<{[key: string]: boolean}>({});
+  // Initialize with all tasks that have subtasks already expanded
+  const [collapsedTasks, setCollapsedTasks] = useState<{[key: string]: boolean}>(() => {
+    const initialState: {[key: string]: boolean} = {};
+    
+    // For each task, check if it has subtasks and initialize it as expanded
+    tasks.forEach(t => {
+      const hasSubtasks = tasks.some(subtask => subtask.parentId === t.id);
+      if (hasSubtasks) {
+        // Set to false means expanded
+        initialState[t.id] = false;
+      }
+    });
+    
+    return initialState;
+  });
 
   // Only render top-level tasks (no parentId)
   const topLevelTasks = tasks.filter(t => !t.parentId);
+  
+  // Debug count of all tasks vs top-level vs subtasks
+  console.log(`TaskList received ${tasks.length} total tasks (${topLevelTasks.length} top-level, ${tasks.length - topLevelTasks.length} subtasks)`);
+  
+  // If there are subtasks, log the first few for debugging
+  if (tasks.length - topLevelTasks.length > 0) {
+    const subtasks = tasks.filter(t => t.parentId);
+    console.log('Sample subtasks:');
+    subtasks.slice(0, 3).forEach(st => 
+      console.log(`  Subtask "${st.title}" (ID: ${st.id}) for parent: ${st.parentId}`)
+    );
+  }
 
   // Toggle collapsed state of a task
   const toggleCollapsed = (taskId: string) => {
@@ -44,6 +70,40 @@ export default function TaskList({
       [taskId]: !prev[taskId]
     }));
   };
+  
+  // Listen for custom events to expand a task's subtasks
+  useEffect(() => {
+    const handleExpandTask = (e: any) => {
+      const { taskId } = e.detail;
+      console.log(`Received expand event for task: ${taskId}`);
+      
+      // Ensure the task is expanded
+      setCollapsedTasks(prev => ({
+        ...prev,
+        [taskId]: false
+      }));
+      
+      // Scroll to the task if possible
+      try {
+        const taskElement = document.getElementById(`task-${taskId}`);
+        if (taskElement) {
+          taskElement.scrollIntoView({ behavior: 'smooth' });
+          taskElement.classList.add('highlight-task');
+          setTimeout(() => {
+            taskElement.classList.remove('highlight-task');
+          }, 2000);
+        }
+      } catch (e) {
+        console.error('Error scrolling to task:', e);
+      }
+    };
+    
+    document.addEventListener('expandTaskSubtasks', handleExpandTask);
+    
+    return () => {
+      document.removeEventListener('expandTaskSubtasks', handleExpandTask);
+    };
+  }, []);
 
   // Check if a task has subtasks
   const hasSubtasks = (taskId: string) => {
@@ -108,7 +168,10 @@ export default function TaskList({
       <div key={task.id} style={{ marginLeft: `${depth * 20}px` }}>
         <div
           id={`task-${task.id}`}
-          className={`task-item ${task.status === 'completed' ? 'completed' : ''} ${task.priority ? `priority-${task.priority}` : ''}`}
+          className={`task-item ${task.status === 'completed' ? 'completed' : ''} 
+                     ${task.priority ? `priority-${task.priority}` : ''} 
+                     ${hasChildren ? 'has-subtasks' : ''} 
+                     ${!isCollapsed && hasChildren ? 'expanded' : ''}`}
           style={{
             borderLeft: !task.priority && hasChildren ? `4px solid ${categoryColor}` : undefined
           }}

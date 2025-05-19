@@ -10,6 +10,7 @@ import './styles/task-breakdown.css';
 import './styles/focus-mode.css';
 import './styles/time-estimator.css';
 import './styles/reminders.css';
+import './styles/task-highlights.css';
 
 // Component imports
 import TaskList from './components/TaskList';

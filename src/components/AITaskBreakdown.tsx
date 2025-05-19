@@ -132,15 +132,41 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
     // Log how many subtasks we're adding
     console.log(`Adding ${subtasksToAdd.length} subtasks to task ${task.id}`);
     
+    // Don't show message - we'll ensure the subtasks are visible immediately
+    
     // Add each subtask one by one
     for (const subtaskTitle of subtasksToAdd) {
       console.log(`Adding subtask: "${subtaskTitle}" to parent: ${task.id}`);
       addSubtask(task.id, subtaskTitle);
     }
     
-    // Now force a refresh to make sure UI updates
+    // Force refresh the UI
     if (forceRefresh) {
       forceRefresh();
+    }
+    
+    // We need to ensure the parent task is expanded to show the subtasks
+    // Create a custom event to trigger this behavior
+    try {
+      const expandEvent = new CustomEvent('expandTaskSubtasks', { 
+        detail: { taskId: task.id } 
+      });
+      document.dispatchEvent(expandEvent);
+      console.log(`Triggered expandTaskSubtasks event for task ${task.id}`);
+    } catch (e) {
+      console.error('Error dispatching custom event:', e);
+    }
+    
+    // Double-check what's in localStorage now
+    try {
+      const stored = localStorage.getItem('tasks');
+      if (stored) {
+        const parsedTasks = JSON.parse(stored);
+        const storedSubtasks = parsedTasks.filter((t) => t.parentId === task.id);
+        console.log(`After adding: found ${storedSubtasks.length} subtasks in localStorage for task ${task.id}`);
+      }
+    } catch (e) {
+      console.error('Error checking localStorage after adding subtasks:', e);
     }
     
     // Reset UI state
