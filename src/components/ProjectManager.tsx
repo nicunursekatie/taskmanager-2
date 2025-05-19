@@ -221,9 +221,10 @@ export default function ProjectManager({
                   onChange={(e) => setNewPriority(e.target.value as PriorityLevel || null)}
                 >
                   <option value="">No Priority</option>
-                  <option value="must-do">Must Do</option>
-                  <option value="want-to-do">Want To Do</option>
-                  <option value="when-i-can">When I Can</option>
+                  <option value="critical">Critical</option>
+                  <option value="high">High</option>
+                  <option value="medium">Medium</option>
+                  <option value="low">Low</option>
                 </select>
               </div>
             </div>
@@ -363,9 +364,10 @@ export default function ProjectManager({
                           onChange={(e) => setEditPriority(e.target.value as PriorityLevel || null)}
                         >
                           <option value="">No Priority</option>
-                          <option value="must-do">Must Do</option>
-                          <option value="want-to-do">Want To Do</option>
-                          <option value="when-i-can">When I Can</option>
+                          <option value="critical">Critical</option>
+                          <option value="high">High</option>
+                          <option value="medium">Medium</option>
+                          <option value="low">Low</option>
                         </select>
                       </div>
                     </div>
@@ -470,9 +472,10 @@ export default function ProjectManager({
 
                         {project.priority && (
                           <span className={`task-priority ${project.priority}`}>
-                            {project.priority === 'must-do' ? 'Must Do' :
-                             project.priority === 'want-to-do' ? 'Want To Do' :
-                             'When I Can'}
+                            {project.priority === 'critical' ? 'Critical' :
+                             project.priority === 'high' ? 'High' :
+                             project.priority === 'medium' ? 'Medium' :
+                             'Low'}
                           </span>
                         )}
 

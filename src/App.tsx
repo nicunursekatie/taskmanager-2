@@ -602,43 +602,43 @@ function App() {
   }));
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans">
+    <div className="min-h-screen bg-background font-sans">
       {/* Top Navigation */}
-      <header className="sticky top-0 z-30 bg-white shadow-md flex items-center justify-between px-8 py-4 border-b border-gray-200">
-        <h1 className="text-3xl font-extrabold text-yellow-600 tracking-tight relative after:absolute after:left-0 after:-bottom-1 after:w-16 after:h-1 after:bg-yellow-400 after:rounded-full after:content-['']">Task Manager</h1>
+      <header className="sticky top-0 z-30 bg-card shadow-md flex items-center justify-between px-8 py-4 border-b border-border">
+        <h1 className="text-3xl font-extrabold text-primary tracking-tight relative after:absolute after:left-0 after:-bottom-1 after:w-16 after:h-1 after:bg-primary-light after:rounded-full after:content-['']">Task Manager</h1>
         <nav className="flex gap-2 ml-8">
           <button 
-            className={`px-4 py-2 rounded-lg font-semibold transition text-gray-700 hover:bg-yellow-100 hover:text-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-400 ${activeTab === 'dashboard' ? 'bg-yellow-400 text-yellow-900 shadow' : ''}`}
+            className={`px-4 py-2 rounded-lg font-semibold transition text-text hover:bg-primary/10 hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary ${activeTab === 'dashboard' ? 'bg-primary text-white shadow' : ''}`}
             onClick={() => setActiveTab('dashboard')}
           >
             Dashboard
           </button>
           <button 
-            className={`px-4 py-2 rounded-lg font-semibold transition text-gray-700 hover:bg-yellow-100 hover:text-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-400 ${activeTab === 'all-tasks' ? 'bg-yellow-400 text-yellow-900 shadow' : ''}`}
+            className={`px-4 py-2 rounded-lg font-semibold transition text-text hover:bg-primary/10 hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary ${activeTab === 'all-tasks' ? 'bg-primary text-white shadow' : ''}`}
             onClick={() => setActiveTab('all-tasks')}
           >
             All Tasks
           </button>
           <button 
-            className={`px-4 py-2 rounded-lg font-semibold transition text-gray-700 hover:bg-yellow-100 hover:text-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-400 ${activeTab === 'projects' ? 'bg-yellow-400 text-yellow-900 shadow' : ''}`}
+            className={`px-4 py-2 rounded-lg font-semibold transition text-text hover:bg-primary/10 hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary ${activeTab === 'projects' ? 'bg-primary text-white shadow' : ''}`}
             onClick={() => setActiveTab('projects')}
           >
             Projects
           </button>
           <button 
-            className={`px-4 py-2 rounded-lg font-semibold transition text-gray-700 hover:bg-yellow-100 hover:text-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-400 ${activeTab === 'categories' ? 'bg-yellow-400 text-yellow-900 shadow' : ''}`}
+            className={`px-4 py-2 rounded-lg font-semibold transition text-text hover:bg-primary/10 hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary ${activeTab === 'categories' ? 'bg-primary text-white shadow' : ''}`}
             onClick={() => setActiveTab('categories')}
           >
             Categories
           </button>
           <button 
-            className={`px-4 py-2 rounded-lg font-semibold transition text-gray-700 hover:bg-yellow-100 hover:text-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-400 ${activeTab === 'calendar' ? 'bg-yellow-400 text-yellow-900 shadow' : ''}`}
+            className={`px-4 py-2 rounded-lg font-semibold transition text-text hover:bg-primary/10 hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary ${activeTab === 'calendar' ? 'bg-primary text-white shadow' : ''}`}
             onClick={() => setActiveTab('calendar')}
           >
             Calendar
           </button>
           <button 
-            className={`px-4 py-2 rounded-lg font-semibold transition text-gray-700 hover:bg-yellow-100 hover:text-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-400 ${activeTab === 'daily-planner' ? 'bg-yellow-400 text-yellow-900 shadow' : ''}`}
+            className={`px-4 py-2 rounded-lg font-semibold transition text-text hover:bg-primary/10 hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary ${activeTab === 'daily-planner' ? 'bg-primary text-white shadow' : ''}`}
             onClick={() => setActiveTab('daily-planner')}
           >
             Daily Planner
@@ -646,13 +646,13 @@ function App() {
         </nav>
         <div className="flex gap-3 items-center">
           <button 
-            className="px-4 py-2 rounded-lg font-semibold bg-yellow-400 text-yellow-900 hover:bg-yellow-500 shadow transition"
+            className="px-4 py-2 rounded-lg font-semibold bg-primary text-white hover:bg-primary-dark shadow transition"
             onClick={() => setShowWizard(true)}
           >
             What now?
           </button>
           <button 
-            className="px-4 py-2 rounded-lg font-semibold bg-yellow-100 text-yellow-700 hover:bg-yellow-200 shadow transition"
+            className="px-4 py-2 rounded-lg font-semibold bg-primary/10 text-primary hover:bg-primary/20 shadow transition"
             onClick={() => setFocusModeActive(true)}
           >
             <span className="mr-1">🎯</span> Focus Mode
@@ -665,7 +665,7 @@ function App() {
           />
         </div>
       </header>
-      <main className="max-w-5xl mx-auto w-full px-4 py-8">
+      <main className="max-w-7xl mx-auto w-full px-4 py-8">
         {/* Render Focus Mode when active, otherwise show normal UI */}
         {focusModeActive ? (
           <FocusMode
@@ -681,29 +681,28 @@ function App() {
         ) : (
           <>
         {/* Capture Bar */}
-        <div className="capture-container">
-          <form className="capture-form" onSubmit={handleTaskSubmit}>
-            <div style={{ flex: "1 1 300px", minWidth: "300px" }}>
+        <div className="bg-card rounded-lg shadow-md p-4 mb-8">
+          <form className="flex flex-wrap gap-4 items-start" onSubmit={handleTaskSubmit}>
+            <div className="flex-1 min-w-[300px]">
               <input
                 type="text"
-                className="form-control capture-input"
+                className="w-full px-4 py-2 rounded-lg border border-border bg-background text-text placeholder-text-light focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                 placeholder="Quick capture a new task..."
                 ref={titleInputRef}
-                style={{ width: "100%" }}
               />
             </div>
 
-            <div className="date-time-inputs" style={{ flex: "0 0 auto" }}>
-              <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+            <div className="flex gap-4">
+              <div className="flex flex-col gap-2">
                 <input
                   type="date"
-                  className="form-control date-input"
+                  className="px-4 py-2 rounded-lg border border-border bg-background text-text focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                   ref={dateInputRef}
                 />
-                <div className="date-shortcuts" style={{ margin: "4px 0" }}>
+                <div className="flex gap-2">
                   <button
                     type="button"
-                    className="date-shortcut-btn"
+                    className="px-3 py-1 text-sm rounded-md bg-primary/10 text-primary hover:bg-primary/20 transition"
                     onClick={() => {
                       if (dateInputRef.current) {
                         const today = new Date();
@@ -716,7 +715,7 @@ function App() {
                   </button>
                   <button
                     type="button"
-                    className="date-shortcut-btn"
+                    className="px-3 py-1 text-sm rounded-md bg-primary/10 text-primary hover:bg-primary/20 transition"
                     onClick={() => {
                       if (dateInputRef.current) {
                         const tomorrow = new Date();
@@ -732,17 +731,16 @@ function App() {
               </div>
               <input
                 type="time"
-                className="form-control time-input"
+                className="px-4 py-2 rounded-lg border border-border bg-background text-text focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                 ref={timeInputRef}
               />
             </div>
             
-            <div style={{ flex: "0 0 auto", width: "180px" }}>
+            <div className="w-[180px]">
               <select 
-                className="form-control"
+                className="w-full px-4 py-2 rounded-lg border border-border bg-background text-text focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                 value={newParent}
                 onChange={(e) => setNewParent(e.target.value)}
-                style={{ width: "100%" }}
               >
                 <option value="">No Parent Task</option>
                 {parentOptions.map(o => (
@@ -753,9 +751,12 @@ function App() {
               </select>
             </div>
             
-            <div style={{ flex: "0 0 auto" }}>
-              <button type="submit" className="btn btn-primary">Add</button>
-            </div>
+            <button 
+              type="submit" 
+              className="px-6 py-2 rounded-lg font-semibold bg-primary text-white hover:bg-primary-dark shadow transition"
+            >
+              Add Task
+            </button>
           </form>
         </div>
         
@@ -794,10 +795,10 @@ function App() {
           
           {/* Dashboard View */}
           {activeTab === 'dashboard' && (
-            <div className="dashboard-view">
+            <div className="space-y-8">
               {/* Today's Tasks Section */}
-              <div className="section-card today-tasks-card">
-                <h2 className="section-title">Today's Tasks</h2>
+              <div className="bg-card rounded-lg shadow-md p-6">
+                <h2 className="text-2xl font-bold text-text mb-6 pb-2 border-b border-border relative inline-block after:absolute after:right-[-12px] after:top-1/2 after:w-2 after:h-2 after:rounded-full after:bg-primary after:opacity-70 after:transform after:-translate-y-1/2">Today's Tasks</h2>
                 {todayTasks.length > 0 ? (
                   <TaskList
                     tasks={todayTasks}
@@ -813,33 +814,33 @@ function App() {
                     projects={projects}
                   />
                 ) : (
-                  <p className="empty-message">No tasks due today.</p>
+                  <p className="text-text-light italic text-center py-4">No tasks due today.</p>
                 )}
               </div>
 
               {/* Upcoming Tasks Section */}
               {upcomingTasks.length > 0 && (
-                <div className="section-card upcoming-tasks-card">
-                  <h2 className="section-title">Upcoming Tasks</h2>
-                  <div className="upcoming-tasks">
+                <div className="bg-card rounded-lg shadow-md p-6">
+                  <h2 className="text-2xl font-bold text-text mb-6 pb-2 border-b border-border relative inline-block after:absolute after:right-[-12px] after:top-1/2 after:w-2 after:h-2 after:rounded-full after:bg-primary after:opacity-70 after:transform after:-translate-y-1/2">Upcoming Tasks</h2>
+                  <div className="space-y-4">
                     {upcomingTasks.map(task => (
-                      <div key={task.id} className="upcoming-task-item">
-                        <div className="upcoming-task-info">
-                          <h3 className="upcoming-task-title">{task.title}</h3>
-                          <div className="upcoming-task-deadline">
-                            <span className="due-label">
+                      <div key={task.id} className="flex items-center justify-between p-4 bg-background rounded-lg border border-border hover:shadow-md transition">
+                        <div className="flex-1">
+                          <h3 className="text-lg font-semibold text-text">{task.title}</h3>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="text-sm text-text-light">
                               Due: {new Date(task.dueDate || '').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
                             </span>
                             {task.projectId && (
-                              <span className="upcoming-task-project">
+                              <span className="px-2 py-1 text-xs rounded-full bg-primary/10 text-primary">
                                 {projects.find(p => p.id === task.projectId)?.name}
                               </span>
                             )}
                           </div>
                         </div>
-                        <div className="upcoming-task-actions">
+                        <div className="flex gap-2">
                           <button
-                            className="btn btn-sm btn-outline"
+                            className="px-3 py-1 text-sm rounded-md bg-primary/10 text-primary hover:bg-primary/20 transition"
                             onClick={() => {
                               setEditingTaskId(task.id);
                               setEditTaskTitle(task.title);
@@ -853,7 +854,7 @@ function App() {
                             Edit
                           </button>
                           <button
-                            className="btn btn-sm btn-primary"
+                            className="px-3 py-1 text-sm rounded-md bg-primary text-white hover:bg-primary-dark transition"
                             onClick={() => toggleTask(task.id)}
                           >
                             Complete
@@ -866,9 +867,9 @@ function App() {
               )}
 
               {/* Projects Section */}
-              <div className="section-card">
-                <h2 className="section-title">Projects</h2>
-                <div className="projects-grid dashboard-grid">
+              <div className="bg-card rounded-lg shadow-md p-6">
+                <h2 className="text-2xl font-bold text-text mb-6 pb-2 border-b border-border relative inline-block after:absolute after:right-[-12px] after:top-1/2 after:w-2 after:h-2 after:rounded-full after:bg-primary after:opacity-70 after:transform after:-translate-y-1/2">Projects</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {projects.map(project => {
                     const projectTasks = tasks.filter(t =>
                       t.projectId === project.id &&
@@ -897,26 +898,22 @@ function App() {
                     // Categorize urgency with UTC timezone handling
                     let urgencyClass = '';
                     if (nearestDueDate && nearestDueDate.dueDate) {
-                      // Create date objects with UTC time zone
                       const dueDate = new Date(nearestDueDate.dueDate + 'Z');
                       const currentDate = new Date();
-
-                      // Normalize both dates to start of day in local time for comparison
                       const dueDateStart = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate());
                       const currentDateStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
-
                       const diffTime = dueDateStart.getTime() - currentDateStart.getTime();
                       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-                      if (diffDays < 0) urgencyClass = 'project-overdue';
-                      else if (diffDays <= 2) urgencyClass = 'project-urgent';
-                      else if (diffDays <= 7) urgencyClass = 'project-upcoming';
+                      if (diffDays < 0) urgencyClass = 'border-danger';
+                      else if (diffDays <= 2) urgencyClass = 'border-warning';
+                      else if (diffDays <= 7) urgencyClass = 'border-primary';
                     }
 
                     return (
                       <div
                         key={project.id}
-                        className={`project-card mini-card ${urgencyClass}`}
+                        className={`bg-background rounded-lg border-l-4 ${urgencyClass} p-4 hover:shadow-md transition cursor-pointer`}
                         onClick={() => {
                           setActiveTab('projects');
                           setTimeout(() => {
@@ -928,56 +925,57 @@ function App() {
                             }
                           }, 100);
                         }}
-                        style={{ cursor: 'pointer' }}
                       >
-                        <div className="project-header">
-                          <div className="project-title-section">
-                            <h3 className="project-title">{project.name}</h3>
+                        <div className="flex items-start justify-between mb-4">
+                          <div>
+                            <h3 className="text-lg font-semibold text-text">{project.name}</h3>
                             {project.description && (
-                              <div className="project-description-preview">{project.description.length > 60 ?
-                                project.description.substring(0, 60) + '...' :
-                                project.description}
-                              </div>
+                              <p className="text-sm text-text-light mt-1">
+                                {project.description.length > 60
+                                  ? project.description.substring(0, 60) + '...'
+                                  : project.description}
+                              </p>
                             )}
                           </div>
-                          <div className="project-stats">
-                            <span className="task-count">{projectTasks.length}</span>
-                          </div>
+                          <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-white text-sm font-semibold">
+                            {projectTasks.length}
+                          </span>
                         </div>
 
                         {/* Progress bar */}
-                        <div className="project-progress-container">
-                          <div className="project-progress-bar">
-                            <div className="project-progress-fill" style={{ width: `${progressPercentage}%` }}></div>
+                        <div className="mb-4">
+                          <div className="h-2 bg-background rounded-full overflow-hidden">
+                            <div 
+                              className="h-full bg-primary transition-all duration-300"
+                              style={{ width: `${progressPercentage}%` }}
+                            />
                           </div>
-                          <div className="project-progress-text">{progressPercentage}% complete</div>
+                          <p className="text-sm text-text-light mt-1">{progressPercentage}% complete</p>
                         </div>
 
                         {/* Next due task indicator */}
                         {nearestDueDate && nearestDueDate.dueDate && (
-                          <div className="project-next-due">
-                            <span className="next-due-label">Next due:</span>
-                            <span className="next-due-date">
-                              {new Date(nearestDueDate.dueDate).toLocaleDateString('en-US',
-                                { weekday: 'short', month: 'short', day: 'numeric'})}
-                            </span>
-                            <span className="next-due-task">{nearestDueDate.title}</span>
+                          <div className="text-sm text-text-light">
+                            <span className="font-medium">Next due:</span>{' '}
+                            {new Date(nearestDueDate.dueDate).toLocaleDateString('en-US',
+                              { weekday: 'short', month: 'short', day: 'numeric'})}
+                            <p className="mt-1 text-text truncate">{nearestDueDate.title}</p>
                           </div>
                         )}
 
-                        <div className="project-task-list">
+                        <div className="mt-4 space-y-2">
                           {projectTasks.slice(0, 3).map(task => (
-                            <div key={task.id} className="mini-task-item">
+                            <div key={task.id} className="flex items-center gap-2 p-2 rounded-md hover:bg-primary/5 transition">
                               <input
                                 type="checkbox"
                                 checked={false}
                                 onChange={() => toggleTask(task.id)}
+                                className="w-4 h-4 rounded border-border text-primary focus:ring-primary"
                               />
                               <div
-                                className="mini-task-title-container"
+                                className="flex-1 min-w-0"
                                 onClick={(e) => {
-                                  e.stopPropagation(); // Prevent parent (project card) click event
-                                  // Set up task edit modal
+                                  e.stopPropagation();
                                   setEditingTaskId(task.id);
                                   setEditTaskTitle(task.title);
                                   setEditTaskDueDate(task.dueDate || '');
@@ -987,235 +985,25 @@ function App() {
                                   setEditTaskPriority(task.priority ?? null);
                                   setShowTaskEditModal(true);
                                 }}
-                                style={{ cursor: 'pointer' }}
                               >
-                                <span className="mini-task-title">{task.title}</span>
+                                <p className="text-sm text-text truncate">{task.title}</p>
                                 {task.dueDate && (
-                                  <span className={`mini-task-due-date ${isDateBefore(task.dueDate, todayStart) ? 'overdue' : ''}`}>
+                                  <span className={`text-xs ${isDateBefore(task.dueDate, todayStart) ? 'text-danger' : 'text-text-light'}`}>
                                     {new Date(task.dueDate).toLocaleDateString('en-US', {
                                       month: 'short',
-                                      day: 'numeric',  // Use UTC to maintain consistent date
+                                      day: 'numeric'
                                     })}
                                   </span>
                                 )}
                               </div>
                             </div>
                           ))}
-                          {projectTasks.length > 3 && (
-                            <button
-                              className="more-tasks-button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setActiveTab('projects');
-                                setTimeout(() => {
-                                  const projectElement = document.getElementById(`project-${project.id}`);
-                                  if (projectElement) {
-                                    projectElement.scrollIntoView({ behavior: 'smooth' });
-                                    projectElement.classList.add('highlight');
-                                    setTimeout(() => projectElement.classList.remove('highlight'), 2000);
-                                  }
-                                }, 100);
-                              }}
-                            >
-                              +{projectTasks.length - 3} more tasks
-                            </button>
-                          )}
                         </div>
                       </div>
                     );
                   })}
-                  
-                  {/* Unassigned Tasks Card */}
-                  {tasks.filter(t => !t.projectId && t.status !== 'completed').length > 0 && (
-                    <div
-                      className="project-card mini-card no-project-card"
-                      onClick={() => {
-                        setActiveTab('projects');
-                        setTimeout(() => {
-                          const unassignedElement = document.getElementById('unassigned-tasks');
-                          if (unassignedElement) {
-                            unassignedElement.scrollIntoView({ behavior: 'smooth' });
-                            unassignedElement.classList.add('highlight');
-                            setTimeout(() => unassignedElement.classList.remove('highlight'), 2000);
-                          }
-                        }, 100);
-                      }}
-                      style={{ cursor: 'pointer' }}
-                    >
-                      <div className="project-header">
-                        <div className="project-title-section">
-                          <h3 className="project-title">Unassigned Tasks</h3>
-                          <div className="project-description-preview">Tasks not assigned to any project</div>
-                        </div>
-                        <div className="project-stats">
-                          <span className="task-count">
-                            {tasks.filter(t => !t.projectId && t.status !== 'completed').length}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Find upcoming and overdue unassigned tasks */}
-                      {(() => {
-                        const unassignedTasks = tasks.filter(t => !t.projectId && t.status !== 'completed');
-                        const now = new Date();
-                        const overdueTasks = unassignedTasks.filter(t => t.dueDate && new Date(t.dueDate) < now);
-                        const upcomingTasks = unassignedTasks.filter(t =>
-                          t.dueDate &&
-                          new Date(t.dueDate) >= now &&
-                          new Date(t.dueDate) <= new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
-                        );
-
-                        if (overdueTasks.length > 0 || upcomingTasks.length > 0) {
-                          return (
-                            <div className="unassigned-task-summary">
-                              {overdueTasks.length > 0 && (
-                                <div className="unassigned-overdue-count">
-                                  <span className="count-circle overdue">{overdueTasks.length}</span> overdue
-                                </div>
-                              )}
-                              {upcomingTasks.length > 0 && (
-                                <div className="unassigned-upcoming-count">
-                                  <span className="count-circle upcoming">{upcomingTasks.length}</span> due soon
-                                </div>
-                              )}
-                            </div>
-                          );
-                        }
-                        return null;
-                      })()}
-
-                      <div className="project-task-list">
-                        {tasks
-                          .filter(t => !t.projectId && t.status !== 'completed')
-                          .slice(0, 3)
-                          .map(task => (
-                            <div key={task.id} className="mini-task-item">
-                              <input
-                                type="checkbox"
-                                checked={false}
-                                onChange={() => toggleTask(task.id)}
-                              />
-                              <div
-                                className="mini-task-title-container"
-                                onClick={(e) => {
-                                  e.stopPropagation(); // Prevent parent (project card) click event
-                                  // Set up task edit modal
-                                  setEditingTaskId(task.id);
-                                  setEditTaskTitle(task.title);
-                                  setEditTaskDueDate(task.dueDate || '');
-                                  setEditTaskDueTime(task.dueTime || '');
-                                  setEditTaskCategories(task.categories || []);
-                                  setEditTaskProjectId(task.projectId ?? null);
-                                  setEditTaskPriority(task.priority ?? null);
-                                  setShowTaskEditModal(true);
-                                }}
-                                style={{ cursor: 'pointer' }}
-                              >
-                                <span className="mini-task-title">{task.title}</span>
-                                {task.dueDate && (
-                                  <span className={`mini-task-due-date ${isDateBefore(task.dueDate, todayStart) ? 'overdue' : ''}`}>
-                                    {new Date(task.dueDate).toLocaleDateString('en-US', {
-                                      month: 'short',
-                                      day: 'numeric',
-                                      timeZone: 'UTC'  // Use UTC to maintain consistent date
-                                    })}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          ))}
-                        {tasks.filter(t => !t.projectId && t.status !== 'completed').length > 3 && (
-                          <button
-                            className="more-tasks-button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setActiveTab('projects');
-                              setTimeout(() => {
-                                const unassignedElement = document.getElementById('unassigned-tasks');
-                                if (unassignedElement) {
-                                  unassignedElement.scrollIntoView({ behavior: 'smooth' });
-                                  unassignedElement.classList.add('highlight');
-                                  setTimeout(() => unassignedElement.classList.remove('highlight'), 2000);
-                                }
-                              }, 100);
-                            }}
-                          >
-                            View all {tasks.filter(t => !t.projectId && t.status !== 'completed').length} tasks
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  )}
                 </div>
               </div>
-              
-              {/* Recent Activity Section */}
-              <div className="section-card">
-                <h2 className="section-title">Recent Activity</h2>
-                <div className="recent-tasks">
-                  {tasks
-                    .filter(t => t.status !== 'completed')
-                    .sort((a, b) => (Number(b.id) || 0) - (Number(a.id) || 0)) // Sort by most recent (assuming ID is timestamp-based)
-                    .slice(0, 5)
-                    .map(task => (
-                      <div key={task.id} className="recent-task-item">
-                        <input
-                          type="checkbox"
-                          checked={false}
-                          onChange={() => toggleTask(task.id)}
-                        />
-                        <div
-                          className="recent-task-title-container"
-                          onClick={() => {
-                            // Set up task edit modal
-                            setEditingTaskId(task.id);
-                            setEditTaskTitle(task.title);
-                            setEditTaskDueDate(task.dueDate || '');
-                            setEditTaskDueTime(task.dueTime || '');
-                            setEditTaskCategories(task.categories || []);
-                            setEditTaskProjectId(task.projectId ?? null);
-                            setEditTaskPriority(task.priority ?? null);
-                            setShowTaskEditModal(true);
-                          }}
-                          style={{ cursor: 'pointer' }}
-                        >
-                          <span className="recent-task-title">{task.title}</span>
-                          {task.dueDate && (
-                            <span className="recent-task-due-date">
-                              {new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                            </span>
-                          )}
-                        </div>
-                        {task.projectId && (
-                          <span className="task-project tag">
-                            {projects.find(p => p.id === task.projectId)?.name}
-                          </span>
-                        )}
-                      </div>
-                    ))
-                  }
-                </div>
-              </div>
-              
-              {/* Overdue Tasks Section */}
-              {overdueTasks.length > 0 && (
-                <div className="section-card overdue-tasks-card">
-                  <h2 className="section-title">Overdue Tasks</h2>
-                  <TaskList
-                    tasks={overdueTasks}
-                    toggleTask={toggleTask}
-                    deleteTask={deleteTask}
-                    updateTask={updateTask}
-                    updateTaskDescription={updateTaskDescription}
-                    addSubtask={addSubtask}
-                    updateTaskEstimate={updateTaskEstimate}
-                    startTaskTimer={startTaskTimer}
-                    completeTaskTimer={completeTaskTimer}
-                    categories={categories}
-                    projects={projects}
-                  />
-                </div>
-              )}
             </div>
           )}
           

@@ -12,9 +12,10 @@
   --danger-color: #e74c3c;
 
   /* Priority colors */
-  --priority-must-do: #e74c3c;
-  --priority-want-to-do: #f39c12;
-  --priority-when-i-can: #3498db;
+  --priority-critical: #e74c3c;
+  --priority-high: #f39c12;
+  --priority-medium: #3498db;
+  --priority-low: #2ecc71;
 
   /* Add color RGB values for transparency effects */
   --primary-color-rgb: 67, 97, 238;
@@ -24,9 +25,10 @@
   --danger-color-rgb: 231, 76, 60;
 
   /* Priority RGB values */
-  --priority-must-do-rgb: 231, 76, 60;
-  --priority-want-to-do-rgb: 243, 156, 18;
-  --priority-when-i-can-rgb: 52, 152, 219;
+  --priority-critical-rgb: 231, 76, 60;
+  --priority-high-rgb: 243, 156, 18;
+  --priority-medium-rgb: 52, 152, 219;
+  --priority-low-rgb: 46, 204, 113;
 
   /* Neutral colors - higher contrast */
   --text-color: #222222;
@@ -763,10 +765,50 @@ body {
   border-left-color: var(--priority-when-i-can);
 }
 
+.task-item.priority-critical {
+  border-left-color: var(--priority-critical);
+  box-shadow: 0 2px 5px rgba(var(--priority-critical-rgb), 0.15);
+}
+
+.task-item.priority-critical:hover {
+  box-shadow: 0 4px 8px rgba(var(--priority-critical-rgb), 0.2);
+}
+
+.task-item.priority-high {
+  border-left-color: var(--priority-high);
+  box-shadow: 0 2px 5px rgba(var(--priority-high-rgb), 0.15);
+}
+
+.task-item.priority-high:hover {
+  box-shadow: 0 4px 8px rgba(var(--priority-high-rgb), 0.2);
+}
+
+.task-item.priority-medium {
+  border-left-color: var(--priority-medium);
+  box-shadow: 0 2px 5px rgba(var(--priority-medium-rgb), 0.15);
+}
+
+.task-item.priority-medium:hover {
+  box-shadow: 0 4px 8px rgba(var(--priority-medium-rgb), 0.2);
+}
+
+.task-item.priority-low {
+  border-left-color: var(--priority-low);
+  box-shadow: 0 2px 5px rgba(var(--priority-low-rgb), 0.15);
+}
+
+.task-item.priority-low:hover {
+  box-shadow: 0 4px 8px rgba(var(--priority-low-rgb), 0.2);
+}
+
 /* Combine priority with completion state */
 .task-item.completed.priority-must-do,
 .task-item.completed.priority-want-to-do,
-.task-item.completed.priority-when-i-can {
+.task-item.completed.priority-when-i-can,
+.task-item.completed.priority-critical,
+.task-item.completed.priority-high,
+.task-item.completed.priority-medium,
+.task-item.completed.priority-low {
   border-left-color: var(--success-color);
 }
 
@@ -883,6 +925,46 @@ body {
 
 .task-priority.when-i-can::before {
   background-color: var(--priority-when-i-can);
+}
+
+.task-priority.critical {
+  color: var(--priority-critical);
+  background-color: rgba(var(--priority-critical-rgb), 0.1);
+  border: 1px solid rgba(var(--priority-critical-rgb), 0.3);
+}
+
+.task-priority.critical::before {
+  background-color: var(--priority-critical);
+}
+
+.task-priority.high {
+  color: var(--priority-high);
+  background-color: rgba(var(--priority-high-rgb), 0.1);
+  border: 1px solid rgba(var(--priority-high-rgb), 0.3);
+}
+
+.task-priority.high::before {
+  background-color: var(--priority-high);
+}
+
+.task-priority.medium {
+  color: var(--priority-medium);
+  background-color: rgba(var(--priority-medium-rgb), 0.1);
+  border: 1px solid rgba(var(--priority-medium-rgb), 0.3);
+}
+
+.task-priority.medium::before {
+  background-color: var(--priority-medium);
+}
+
+.task-priority.low {
+  color: var(--priority-low);
+  background-color: rgba(var(--priority-low-rgb), 0.1);
+  border: 1px solid rgba(var(--priority-low-rgb), 0.3);
+}
+
+.task-priority.low::before {
+  background-color: var(--priority-low);
 }
 
 .subtasks {
