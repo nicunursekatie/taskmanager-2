@@ -602,64 +602,61 @@ function App() {
   }));
 
   return (
-    <div className="app-container full-width">
+    <div className="min-h-screen bg-gray-50 font-sans">
       {/* Top Navigation */}
-      <header className="top-nav">
-        <h1 className="app-title">Task Manager</h1>
-        <nav className="main-nav">
+      <header className="sticky top-0 z-30 bg-white shadow-md flex items-center justify-between px-8 py-4 border-b border-gray-200">
+        <h1 className="text-3xl font-extrabold text-yellow-600 tracking-tight relative after:absolute after:left-0 after:-bottom-1 after:w-16 after:h-1 after:bg-yellow-400 after:rounded-full after:content-['']">Task Manager</h1>
+        <nav className="flex gap-2 ml-8">
           <button 
-            className={`nav-button ${activeTab === 'dashboard' ? 'active' : ''}`}
+            className={`px-4 py-2 rounded-lg font-semibold transition text-gray-700 hover:bg-yellow-100 hover:text-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-400 ${activeTab === 'dashboard' ? 'bg-yellow-400 text-yellow-900 shadow' : ''}`}
             onClick={() => setActiveTab('dashboard')}
           >
             Dashboard
           </button>
           <button 
-            className={`nav-button ${activeTab === 'all-tasks' ? 'active' : ''}`}
+            className={`px-4 py-2 rounded-lg font-semibold transition text-gray-700 hover:bg-yellow-100 hover:text-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-400 ${activeTab === 'all-tasks' ? 'bg-yellow-400 text-yellow-900 shadow' : ''}`}
             onClick={() => setActiveTab('all-tasks')}
           >
             All Tasks
           </button>
           <button 
-            className={`nav-button ${activeTab === 'projects' ? 'active' : ''}`}
+            className={`px-4 py-2 rounded-lg font-semibold transition text-gray-700 hover:bg-yellow-100 hover:text-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-400 ${activeTab === 'projects' ? 'bg-yellow-400 text-yellow-900 shadow' : ''}`}
             onClick={() => setActiveTab('projects')}
           >
             Projects
           </button>
           <button 
-            className={`nav-button ${activeTab === 'categories' ? 'active' : ''}`}
+            className={`px-4 py-2 rounded-lg font-semibold transition text-gray-700 hover:bg-yellow-100 hover:text-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-400 ${activeTab === 'categories' ? 'bg-yellow-400 text-yellow-900 shadow' : ''}`}
             onClick={() => setActiveTab('categories')}
           >
             Categories
           </button>
           <button 
-            className={`nav-button ${activeTab === 'calendar' ? 'active' : ''}`}
+            className={`px-4 py-2 rounded-lg font-semibold transition text-gray-700 hover:bg-yellow-100 hover:text-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-400 ${activeTab === 'calendar' ? 'bg-yellow-400 text-yellow-900 shadow' : ''}`}
             onClick={() => setActiveTab('calendar')}
           >
             Calendar
           </button>
           <button 
-            className={`nav-button ${activeTab === 'daily-planner' ? 'active' : ''}`}
+            className={`px-4 py-2 rounded-lg font-semibold transition text-gray-700 hover:bg-yellow-100 hover:text-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-400 ${activeTab === 'daily-planner' ? 'bg-yellow-400 text-yellow-900 shadow' : ''}`}
             onClick={() => setActiveTab('daily-planner')}
           >
             Daily Planner
           </button>
         </nav>
-
-        <div className="top-actions">
-          <div className="top-action-buttons">
-            <button 
-              className="btn btn-primary" 
-              onClick={() => setShowWizard(true)}
-            >
-              What now?
-            </button>
-            <button 
-              className="btn btn-accent focus-mode-btn" 
-              onClick={() => setFocusModeActive(true)}
-            >
-              <span className="focus-icon">🎯</span> Focus Mode
-            </button>
-          </div>
+        <div className="flex gap-3 items-center">
+          <button 
+            className="px-4 py-2 rounded-lg font-semibold bg-yellow-400 text-yellow-900 hover:bg-yellow-500 shadow transition"
+            onClick={() => setShowWizard(true)}
+          >
+            What now?
+          </button>
+          <button 
+            className="px-4 py-2 rounded-lg font-semibold bg-yellow-100 text-yellow-700 hover:bg-yellow-200 shadow transition"
+            onClick={() => setFocusModeActive(true)}
+          >
+            <span className="mr-1">🎯</span> Focus Mode
+          </button>
           <MoreOptionsMenu
             onManageCategories={() => setShowCategoryManager(true)}
             onImportExport={() => setShowImportExport(true)}
@@ -668,8 +665,7 @@ function App() {
           />
         </div>
       </header>
-      
-      <main className="main-content full-width">
+      <main className="max-w-5xl mx-auto w-full px-4 py-8">
         {/* Render Focus Mode when active, otherwise show normal UI */}
         {focusModeActive ? (
           <FocusMode
