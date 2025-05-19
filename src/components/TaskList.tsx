@@ -156,19 +156,30 @@ export default function TaskList({
     const taskSubtasks = getSubtasks(task.id);
     const hasChildren = taskSubtasks.length > 0;
 
-    // Get the category color for the task's left border
-    const categoryColor = task.categories?.length
-      ? categories.find(c => c.id === task.categories![0])?.color || '#666'
-      : '#666';
+    // Add a class for subtasks
+    const isSubtask = !!task.parentId;
 
-    // Get priority class
-    const priorityClass = task.priority ? `priority-${task.priority}` : '';
+    // Determine the color for the category (use the first category if available)
+    const categoryColor =
+      task.categories && task.categories.length > 0
+        ? (categories.find(c => c.id === task.categories![0])?.color || "#bdbdbd")
+        : "#bdbdbd";
 
     return (
-      <div key={task.id} style={{ marginLeft: `${depth * 20}px` }}>
+      <div
+        key={task.id}
+        style={{
+          marginLeft: `${depth * 20}px`,
+          background: isSubtask ? "#f7fafd" : "white", // Light blue for subtasks
+          borderLeft: isSubtask ? "4px solid #2196f3" : undefined, // Blue border for subtasks
+          borderRadius: isSubtask ? "4px" : undefined,
+          marginTop: isSubtask ? "4px" : undefined,
+          boxShadow: isSubtask ? "0 1px 3px rgba(33,150,243,0.07)" : undefined,
+        }}
+      >
         <div
           id={`task-${task.id}`}
-          className={`task-item ${task.status === 'completed' ? 'completed' : ''} 
+          className={`task-item ${isSubtask ? "subtask-item" : ""} ${task.status === 'completed' ? 'completed' : ''} 
                      ${task.priority ? `priority-${task.priority}` : ''} 
                      ${hasChildren ? 'has-subtasks' : ''} 
                      ${!isCollapsed && hasChildren ? 'expanded' : ''}`}
@@ -373,7 +384,20 @@ export default function TaskList({
                     checked={task.status === 'completed'}
                     onChange={() => toggleTask(task.id)}
                   />
-                  
+                  {isSubtask && (
+                    <span
+                      style={{
+                        fontSize: "0.85em",
+                        color: "#2196f3",
+                        marginRight: "6px",
+                        fontWeight: 500,
+                        letterSpacing: "0.5px",
+                      }}
+                      title="Subtask"
+                    >
+                      ⮑ Subtask
+                    </span>
+                  )}
                   {hasChildren && (
                     <span 
                       className="task-collapse-toggle"

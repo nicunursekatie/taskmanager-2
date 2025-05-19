@@ -162,7 +162,7 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
       const stored = localStorage.getItem('tasks');
       if (stored) {
         const parsedTasks = JSON.parse(stored);
-        const storedSubtasks = parsedTasks.filter((t) => t.parentId === task.id);
+        const storedSubtasks = parsedTasks.filter((t: Task) => t.parentId === task.id);
         console.log(`After adding: found ${storedSubtasks.length} subtasks in localStorage for task ${task.id}`);
       }
     } catch (e) {
