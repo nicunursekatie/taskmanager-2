@@ -1,0 +1,354 @@
+/* ADHD-Friendly Styles */
+
+/* Enhanced priority colors with higher contrast */
+:root {
+  /* Vibrant priority colors */
+  --adhd-priority-critical: #ff3860;
+  --adhd-priority-high: #ff9f43;
+  --adhd-priority-medium: #3fc1c9;
+  --adhd-priority-low: #20bf6b;
+
+  /* RGB values for backgrounds/transparencies */
+  --adhd-priority-critical-rgb: 255, 56, 96;
+  --adhd-priority-high-rgb: 255, 159, 67;
+  --adhd-priority-medium-rgb: 63, 193, 201;
+  --adhd-priority-low-rgb: 32, 191, 107;
+
+  /* Animation speed - slightly faster for ADHD attention */
+  --adhd-transition-speed: 0.15s;
+}
+
+/* Priority task styling */
+.task-item.priority-critical {
+  border-left: 6px solid var(--adhd-priority-critical);
+  box-shadow: 0 2px 8px rgba(var(--adhd-priority-critical-rgb), 0.25);
+  animation: pulse-critical 2s infinite;
+}
+
+.task-item.priority-high {
+  border-left: 6px solid var(--adhd-priority-high);
+  box-shadow: 0 2px 8px rgba(var(--adhd-priority-high-rgb), 0.2);
+}
+
+.task-item.priority-medium {
+  border-left: 5px solid var(--adhd-priority-medium);
+  box-shadow: 0 2px 6px rgba(var(--adhd-priority-medium-rgb), 0.15);
+}
+
+.task-item.priority-low {
+  border-left: 4px solid var(--adhd-priority-low);
+  box-shadow: 0 2px 5px rgba(var(--adhd-priority-low-rgb), 0.1);
+}
+
+/* Hover effects with more immediate feedback */
+.task-item.priority-critical:hover,
+.task-item.priority-high:hover,
+.task-item.priority-medium:hover,
+.task-item.priority-low:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+  transition: all var(--adhd-transition-speed) ease-out;
+}
+
+/* Priority badges */
+.priority-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  margin-right: 8px;
+}
+
+.priority-badge.critical {
+  background-color: rgba(var(--adhd-priority-critical-rgb), 0.15);
+  color: var(--adhd-priority-critical);
+  border: 1px solid var(--adhd-priority-critical);
+}
+
+.priority-badge.high {
+  background-color: rgba(var(--adhd-priority-high-rgb), 0.15);
+  color: var(--adhd-priority-high);
+  border: 1px solid var(--adhd-priority-high);
+}
+
+.priority-badge.medium {
+  background-color: rgba(var(--adhd-priority-medium-rgb), 0.15);
+  color: var(--adhd-priority-medium);
+  border: 1px solid var(--adhd-priority-medium);
+}
+
+.priority-badge.low {
+  background-color: rgba(var(--adhd-priority-low-rgb), 0.15);
+  color: var(--adhd-priority-low);
+  border: 1px solid var(--adhd-priority-low);
+}
+
+/* Attention-grabbing animation for critical tasks */
+@keyframes pulse-critical {
+  0% {
+    box-shadow: 0 0 0 0 rgba(var(--adhd-priority-critical-rgb), 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 5px rgba(var(--adhd-priority-critical-rgb), 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(var(--adhd-priority-critical-rgb), 0);
+  }
+}
+
+/* Enhanced visual hierarchy for due dates */
+.due-soon {
+  font-weight: bold;
+  color: var(--adhd-priority-high);
+}
+
+.overdue {
+  font-weight: bold;
+  color: var(--adhd-priority-critical);
+  animation: pulse-text 1.5s infinite;
+}
+
+@keyframes pulse-text {
+  0% { opacity: 1; }
+  50% { opacity: 0.7; }
+  100% { opacity: 1; }
+}
+
+/* More visual task completion feedback */
+.task-checkbox:checked + .task-title {
+  text-decoration: line-through;
+  opacity: 0.6;
+  transition: all 0.3s ease;
+}
+
+/* Success animation when task is completed */
+.task-complete-animation {
+  animation: task-complete 0.5s ease-out;
+}
+
+@keyframes task-complete {
+  0% { background-color: rgba(var(--adhd-priority-low-rgb), 0); }
+  50% { background-color: rgba(var(--adhd-priority-low-rgb), 0.2); }
+  100% { background-color: rgba(var(--adhd-priority-low-rgb), 0); }
+}
+
+/* Focus mode styles */
+.focus-mode {
+  max-width: 800px;
+  margin: 0 auto;
+  background-color: #fff;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 5px 30px rgba(0, 0, 0, 0.1);
+}
+
+.focus-mode .task-item {
+  margin-bottom: 20px;
+}
+
+.focus-mode .task-item:not(.priority-critical):not(.priority-high) {
+  opacity: 0.5;
+}
+
+.focus-timer {
+  font-size: 2rem;
+  text-align: center;
+  margin: 20px 0;
+  font-weight: bold;
+}
+
+/* Enhanced priority selector in forms */
+.priority-selector {
+  display: flex;
+  gap: 8px;
+  margin: 15px 0;
+}
+
+.priority-option {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  text-align: center;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+}
+
+.priority-option.critical {
+  background-color: rgba(var(--adhd-priority-critical-rgb), 0.1);
+  color: var(--adhd-priority-critical);
+  border-color: rgba(var(--adhd-priority-critical-rgb), 0.3);
+}
+
+.priority-option.high {
+  background-color: rgba(var(--adhd-priority-high-rgb), 0.1);
+  color: var(--adhd-priority-high);
+  border-color: rgba(var(--adhd-priority-high-rgb), 0.3);
+}
+
+.priority-option.medium {
+  background-color: rgba(var(--adhd-priority-medium-rgb), 0.1);
+  color: var(--adhd-priority-medium);
+  border-color: rgba(var(--adhd-priority-medium-rgb), 0.3);
+}
+
+.priority-option.low {
+  background-color: rgba(var(--adhd-priority-low-rgb), 0.1);
+  color: var(--adhd-priority-low);
+  border-color: rgba(var(--adhd-priority-low-rgb), 0.3);
+}
+
+.priority-option.selected {
+  transform: scale(1.05);
+  border-width: 2px;
+}
+
+.priority-option.critical.selected {
+  background-color: rgba(var(--adhd-priority-critical-rgb), 0.2);
+  border-color: var(--adhd-priority-critical);
+}
+
+.priority-option.high.selected {
+  background-color: rgba(var(--adhd-priority-high-rgb), 0.2);
+  border-color: var(--adhd-priority-high);
+}
+
+.priority-option.medium.selected {
+  background-color: rgba(var(--adhd-priority-medium-rgb), 0.2);
+  border-color: var(--adhd-priority-medium);
+}
+
+.priority-option.low.selected {
+  background-color: rgba(var(--adhd-priority-low-rgb), 0.2);
+  border-color: var(--adhd-priority-low);
+}
+
+/* Time blocks and estimation */
+.time-estimate {
+  display: inline-block;
+  padding: 3px 8px;
+  background-color: #f0f0f0;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  margin-left: 8px;
+}
+
+.time-estimate.short {
+  background-color: rgba(var(--adhd-priority-low-rgb), 0.1);
+  color: var(--adhd-priority-low);
+}
+
+.time-estimate.medium {
+  background-color: rgba(var(--adhd-priority-medium-rgb), 0.1);
+  color: var(--adhd-priority-medium);
+}
+
+.time-estimate.long {
+  background-color: rgba(var(--adhd-priority-high-rgb), 0.1);
+  color: var(--adhd-priority-high);
+}
+
+/* Task breakdown visualization */
+.subtask-progress {
+  height: 8px;
+  background-color: #f0f0f0;
+  border-radius: 4px;
+  margin: 10px 0;
+  overflow: hidden;
+}
+
+.subtask-progress-bar {
+  height: 100%;
+  background-color: var(--adhd-priority-medium);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+/* Quick access floating button */
+.quick-add-floating {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: var(--adhd-priority-medium);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 1000;
+}
+
+.quick-add-floating:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25);
+}
+
+/* Focus mode button */
+.focus-mode-btn {
+  background-color: var(--adhd-priority-medium);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  animation: gentle-pulse 2s infinite;
+}
+
+.focus-mode-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25);
+}
+
+@keyframes gentle-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(var(--adhd-priority-medium-rgb), 0.4); }
+  70% { box-shadow: 0 0 0 6px rgba(var(--adhd-priority-medium-rgb), 0); }
+  100% { box-shadow: 0 0 0 0 rgba(var(--adhd-priority-medium-rgb), 0); }
+}
+
+/* Visual reward animation for completed tasks */
+.reward-animation {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+.confetti {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background-color: var(--adhd-priority-high);
+  opacity: 0.8;
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  .priority-option {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+  
+  .time-estimate {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  .subtask-progress {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+}
