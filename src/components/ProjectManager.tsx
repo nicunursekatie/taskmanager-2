@@ -127,149 +127,152 @@ export default function ProjectManager({
         </div>
         
         <div className="modal-body">
-          <form onSubmit={handleAddProject} className="project-form">
-            <h3 className="form-section-title">Add New Project</h3>
+          {/* Only show Add New Project form when not editing */}
+          {editId === null && (
+            <form onSubmit={handleAddProject} className="project-form">
+              <h3 className="form-section-title">Add New Project</h3>
 
-            <div className="form-row">
-              <div className="input-group flex-grow">
-                <label className="form-label">Project Name</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="Enter project name"
-                  value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
-                  required
-                />
-              </div>
+              <div className="form-row">
+                <div className="input-group flex-grow">
+                  <label className="form-label">Project Name</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Enter project name"
+                    value={newName}
+                    onChange={(e) => setNewName(e.target.value)}
+                    required
+                  />
+                </div>
 
-              <div className="input-group color-picker">
-                <label className="form-label">Color</label>
-                <input
-                  type="color"
-                  className="form-control"
-                  value={newColor}
-                  onChange={(e) => setNewColor(e.target.value)}
-                />
-              </div>
-            </div>
-
-            <div className="input-group">
-              <label className="form-label">Description</label>
-              <textarea
-                className="form-control"
-                placeholder="Project description (optional)"
-                value={newDescription}
-                onChange={(e) => setNewDescription(e.target.value)}
-                rows={2}
-              />
-            </div>
-
-            <div className="form-row">
-              <div className="input-group">
-                <label className="form-label">Due Date</label>
-                <input
-                  type="date"
-                  className="form-control"
-                  value={newDueDate}
-                  onChange={(e) => setNewDueDate(e.target.value)}
-                />
-                <div className="date-shortcuts">
-                  <button
-                    type="button"
-                    className="date-shortcut-btn"
-                    onClick={() => {
-                      const today = new Date();
-                      const dateString = today.toISOString().split('T')[0];
-                      setNewDueDate(dateString);
-                    }}
-                  >
-                    Today
-                  </button>
-                  <button
-                    type="button"
-                    className="date-shortcut-btn"
-                    onClick={() => {
-                      const nextWeek = new Date();
-                      nextWeek.setDate(nextWeek.getDate() + 7);
-                      const dateString = nextWeek.toISOString().split('T')[0];
-                      setNewDueDate(dateString);
-                    }}
-                  >
-                    +1 Week
-                  </button>
-                  <button
-                    type="button"
-                    className="date-shortcut-btn"
-                    onClick={() => {
-                      const nextMonth = new Date();
-                      nextMonth.setMonth(nextMonth.getMonth() + 1);
-                      const dateString = nextMonth.toISOString().split('T')[0];
-                      setNewDueDate(dateString);
-                    }}
-                  >
-                    +1 Month
-                  </button>
+                <div className="input-group color-picker">
+                  <label className="form-label">Color</label>
+                  <input
+                    type="color"
+                    className="form-control"
+                    value={newColor}
+                    onChange={(e) => setNewColor(e.target.value)}
+                  />
                 </div>
               </div>
 
               <div className="input-group">
-                <label className="form-label">Priority</label>
-                <select
+                <label className="form-label">Description</label>
+                <textarea
                   className="form-control"
-                  value={newPriority || ''}
-                  onChange={(e) => setNewPriority(e.target.value as PriorityLevel || null)}
-                >
-                  <option value="">No Priority</option>
-                  <option value="critical">Critical</option>
-                  <option value="high">High</option>
-                  <option value="medium">Medium</option>
-                  <option value="low">Low</option>
-                </select>
+                  placeholder="Project description (optional)"
+                  value={newDescription}
+                  onChange={(e) => setNewDescription(e.target.value)}
+                  rows={2}
+                />
               </div>
-            </div>
 
-            <div className="form-row">
-              <div className="input-group">
-                <label className="form-label">Status</label>
-                <select
-                  className="form-control"
-                  value={newStatus}
-                  onChange={(e) => setNewStatus(e.target.value as Project['status'])}
-                >
-                  <option value="not-started">Not Started</option>
-                  <option value="in-progress">In Progress</option>
-                  <option value="on-hold">On Hold</option>
-                  <option value="completed">Completed</option>
-                </select>
-              </div>
-            </div>
-
-            {categories.length > 0 && (
-              <div className="input-group">
-                <label className="form-label">Categories</label>
-                <div className="category-selector">
-                  {categories.map(category => (
-                    <div
-                      key={category.id}
-                      className={`category-option ${newCategoryIds.includes(category.id) ? 'selected' : ''}`}
-                      style={{
-                        backgroundColor: newCategoryIds.includes(category.id) ? category.color : 'transparent',
-                        border: `1px solid ${category.color}`
+              <div className="form-row">
+                <div className="input-group">
+                  <label className="form-label">Due Date</label>
+                  <input
+                    type="date"
+                    className="form-control"
+                    value={newDueDate}
+                    onChange={(e) => setNewDueDate(e.target.value)}
+                  />
+                  <div className="date-shortcuts">
+                    <button
+                      type="button"
+                      className="date-shortcut-btn"
+                      onClick={() => {
+                        const today = new Date();
+                        const dateString = today.toISOString().split('T')[0];
+                        setNewDueDate(dateString);
                       }}
-                      onClick={() => toggleCategory(category.id, true)}
                     >
-                      {category.name}
-                    </div>
-                  ))}
+                      Today
+                    </button>
+                    <button
+                      type="button"
+                      className="date-shortcut-btn"
+                      onClick={() => {
+                        const nextWeek = new Date();
+                        nextWeek.setDate(nextWeek.getDate() + 7);
+                        const dateString = nextWeek.toISOString().split('T')[0];
+                        setNewDueDate(dateString);
+                      }}
+                    >
+                      +1 Week
+                    </button>
+                    <button
+                      type="button"
+                      className="date-shortcut-btn"
+                      onClick={() => {
+                        const nextMonth = new Date();
+                        nextMonth.setMonth(nextMonth.getMonth() + 1);
+                        const dateString = nextMonth.toISOString().split('T')[0];
+                        setNewDueDate(dateString);
+                      }}
+                    >
+                      +1 Month
+                    </button>
+                  </div>
+                </div>
+
+                <div className="input-group">
+                  <label className="form-label">Priority</label>
+                  <select
+                    className="form-control"
+                    value={newPriority || ''}
+                    onChange={(e) => setNewPriority(e.target.value as PriorityLevel || null)}
+                  >
+                    <option value="">No Priority</option>
+                    <option value="critical">Critical</option>
+                    <option value="high">High</option>
+                    <option value="medium">Medium</option>
+                    <option value="low">Low</option>
+                  </select>
                 </div>
               </div>
-            )}
 
-            <div className="form-actions">
-              <button type="submit" className="px-5 py-2 rounded-lg font-semibold text-base transition shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-primary text-white hover:bg-primary-dark active:bg-primary-dark">Create Project</button>
-            </div>
-          </form>
+              <div className="form-row">
+                <div className="input-group">
+                  <label className="form-label">Status</label>
+                  <select
+                    className="form-control"
+                    value={newStatus}
+                    onChange={(e) => setNewStatus(e.target.value as Project['status'])}
+                  >
+                    <option value="not-started">Not Started</option>
+                    <option value="in-progress">In Progress</option>
+                    <option value="on-hold">On Hold</option>
+                    <option value="completed">Completed</option>
+                  </select>
+                </div>
+              </div>
+
+              {categories.length > 0 && (
+                <div className="input-group">
+                  <label className="form-label">Categories</label>
+                  <div className="category-selector">
+                    {categories.map(category => (
+                      <div
+                        key={category.id}
+                        className={`category-option ${newCategoryIds.includes(category.id) ? 'selected' : ''}`}
+                        style={{
+                          backgroundColor: newCategoryIds.includes(category.id) ? category.color : 'transparent',
+                          border: `1px solid ${category.color}`
+                        }}
+                        onClick={() => toggleCategory(category.id, true)}
+                      >
+                        {category.name}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="form-actions">
+                <button type="submit" className="px-5 py-2 rounded-lg font-semibold text-base transition shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-primary text-white hover:bg-primary-dark active:bg-primary-dark">Create Project</button>
+              </div>
+            </form>
+          )}
           
           <h3 className="section-title mt-lg">Your Projects</h3>
           

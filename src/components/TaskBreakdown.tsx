@@ -134,10 +134,11 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
       {/* Only show the breakdown section if showBreakdownSection is true */}
       {(!subtasks.length && !hasRunBreakdown && !showBreakdownSection) && (
         <button
-          className="px-4 py-2 rounded-lg font-semibold shadow-sm bg-yellow-400 text-yellow-900 hover:bg-yellow-500 transition mb-2"
+          className="px-3 py-1 rounded-md font-medium text-primary border border-primary bg-primary/5 hover:bg-primary/10 transition text-sm flex items-center gap-1 shadow-none"
           onClick={() => setShowBreakdownSection(true)}
         >
-          Break Down This Task
+          <span className="material-icons text-base">call_split</span>
+          Break Down
         </button>
       )}
       {(showBreakdownSection && !hasRunBreakdown) && (
