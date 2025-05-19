@@ -171,104 +171,39 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
             />
             <button type="submit" className="btn btn-primary">Add Step</button>
           </form>
-          
-          <div className="subtasks-list">
-            {subtasks.length > 0 ? (
-              <ul>
-                {subtasks.map(subtask => (
-                  <li key={subtask.id} className={`subtask-item ${subtask.status === 'completed' ? 'completed' : ''}`}>
-                    <input
-                      type="checkbox"
-                      checked={subtask.status === 'completed'}
-                      onChange={() => toggleTask(subtask.id)}
-                      id={`subtask-check-${subtask.id}`}
-                    />
-                    <label htmlFor={`subtask-check-${subtask.id}`} className="subtask-label">
-                      {subtask.title}
-                    </label>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <div className="empty-subtasks">
-                <p>Breaking complex tasks into smaller steps makes them easier to complete!</p>
-                <p>Add your first step above to get started.</p>
-              </div>
-            )}
-          </div>
-          
-          {subtasks.length > 0 && progressPercentage === 100 && (
-            <div className="completion-message">
-              🎉 All steps complete! You're doing great!
-            </div>
-          )}
-          
-          {/* AI Breakdown - only show if explicitly requested */}
-          {showAIBreakdown ? (
-            <AITaskBreakdown 
-              task={task} 
-              addSubtask={(parentId, title) => {
-                console.log('Adding subtask from TaskBreakdown wrapper:', title);
-                
-                // Call the passed addSubtask function
-                const subtaskId = addSubtask(parentId, title);
-                console.log('Added subtask with ID:', subtaskId);
-                
-                // Force multiple refreshes to ensure UI updates properly
-                forceRefresh();
-                
-                // Force another refresh after a sequence of short delays
-                setTimeout(() => {
-                  forceRefresh();
-                  console.log('Forced second refresh (100ms delay)');
-                  
-                  // Try reloading all tasks from localStorage
-                  try {
-                    const stored = localStorage.getItem('tasks');
-                    if (stored) {
-                      const parsedTasks = JSON.parse(stored);
-                      const parentSubtasks = parsedTasks.filter(t => t.parentId === parentId);
-                      console.log(`Recheck - parent ${parentId} has ${parentSubtasks.length} subtasks in localStorage`);
-                      console.log('Subtasks from localStorage:', parentSubtasks);
-                    }
-                  } catch (e) {
-                    console.error('Error rechecking localStorage:', e);
-                  }
-                  
-                  // Schedule another refresh
-                  setTimeout(() => {
-                    forceRefresh();
-                    console.log('Forced third refresh (300ms total delay)');
-                  }, 200);
-                }, 100);
-                
-                return subtaskId;
-              }}
-              updateTaskDescription={updateTaskDescription}
-              existingSubtasks={subtasks}
-              setShowAIBreakdown={setShowAIBreakdown}
-              forceRefresh={forceRefresh}
-            />
-          ) : (
-            <button 
-              className="ai-breakdown-again-btn"
-              onClick={() => {
-                console.log('AI breakdown button clicked for task:', task.id);
-                try {
-                  setShowAIBreakdown(true);
-                } catch (err) {
-                  console.error('Error showing AI breakdown:', err);
-                  alert('There was an error opening the AI breakdown. Please try again.');
-                }
-              }}
-            >
-              <span className="ai-icon">🤖</span> Break Down with AI
-            </button>
-          )}
+          {/* Removed subtask list rendering here to prevent duplicate display */}
         </>
       )}
-    </div>
-  );
-};
-
-export default TaskBreakdown;
+      
+      {subtasks.length > 0 && progressPercentage === 100 && (
+        <div className="completion-message">
+          🎉 All steps complete! You're doing great!
+        </div>
+      )}
+      
+      {/* AI Breakdown - only show if explicitly requested */}
+      {showAIBreakdown ? (
+        <AITaskBreakdown 
+          task={task} 
+          addSubtask={(parentId, title) => {
+            console.log('Adding subtask from TaskBreakdown wrapper:', title);
+            
+            // Call the passed addSubtask function
+            const subtaskId = addSubtask(parentId, title);
+            console.log('Added subtask with ID:', subtaskId);
+            
+            // Force multiple refreshes to ensure UI updates properly
+            forceRefresh();
+            
+            // Force another refresh after a sequence of short delays
+            setTimeout(() => {
+              forceRefresh();
+              console.log('Forced second refresh (100ms delay)');
+              
+              // Try reloading all tasks from localStorage
+              try {
+                const stored = localStorage.getItem('tasks');
+                if (stored) {
+                  const parsedTasks = JSON.parse(stored);
+                  const parentSubtasks = parsedTasks.filter((t: any) => t.parentId === parentId);
+                  console.log(`
