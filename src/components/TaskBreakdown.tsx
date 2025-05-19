@@ -46,19 +46,11 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
     }
     
     // If we now have subtasks but the AI breakdown is still showing, hide it
-    // Use a much longer delay to ensure all operations have completed
+    // Only hide when the loading process is complete and user is done with the AI component
+    // Don't auto-hide immediately as this is causing subtasks to disappear from UI
     if (subtasks.length > 0 && showAIBreakdown) {
-      console.log('Auto-hiding AI breakdown after subtasks added');
-      // Add a longer delay to let UI update first and all operations complete
-      setTimeout(() => {
-        // Double check subtasks still exist before hiding
-        if (subtasks.length > 0) {
-          console.log('Confirmed subtasks still exist, hiding AI breakdown');
-          setShowAIBreakdown(false);
-        } else {
-          console.log('Subtasks disappeared, not hiding AI breakdown');
-        }
-      }, 2500);
+      console.log('Subtasks exist, but keeping AI breakdown visible until user is done');
+      // The AITaskBreakdown component will handle hiding itself when the user clicks "Done"
     }
   }, [subtasks, refreshCounter]);
   

@@ -52,6 +52,23 @@ export default function TaskList({
 
   // Get all subtasks for a given parent
   const getSubtasks = (parentId: string): Task[] => {
+    // Enhanced debug information to track the issue
+    console.log(`Searching for subtasks with parentId=${parentId}`);
+    console.log(`Current tasks array has ${tasks.length} total tasks`);
+    
+    // Show some example tasks from the array for debugging
+    if (tasks.length > 0) {
+      console.log("Sample tasks with their parentId values:");
+      tasks.slice(0, 5).forEach(t => {
+        console.log(`Task ID: ${t.id}, Title: ${t.title}, ParentID: ${t.parentId}`);
+      });
+    }
+    
+    // Check for any tasks with non-null parentId
+    const anySubtasks = tasks.filter(t => t.parentId !== null && t.parentId !== undefined);
+    console.log(`Found ${anySubtasks.length} tasks with non-null parentId in the system`);
+    
+    // Normal filtering
     const result = tasks.filter(t => t.parentId === parentId);
     console.log(`getSubtasks(${parentId}) found ${result.length} subtasks:`, 
       result.map(t => `${t.id}: ${t.title}`));

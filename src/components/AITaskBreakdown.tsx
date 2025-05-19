@@ -92,51 +92,16 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
         // to ensure they're processed sequentially and don't conflict
         console.log('Adding subtasks:', validSubtasks);
         
-        // Create a final callback to trigger after all subtasks are added
-        const afterAllSubtasksAdded = () => {
-          console.log('All subtasks added, verifying before notifying parent');
-          
-          // Force a refresh in the parent to reflect the new subtasks
-          if (forceRefresh) {
-            console.log('Forcing parent refresh to update subtasks list');
-            forceRefresh();
-          }
-          
-          // Verify that the subtasks were actually added before proceeding
-          setTimeout(() => {
-            console.log('Current existingSubtasks:', existingSubtasks.length);
-            
-            // Force another refresh to make sure the latest subtasks are displayed
-            if (forceRefresh) {
-              console.log('Forcing another parent refresh');
-              forceRefresh();
-            }
-            
-            // Only proceed if we can confirm subtasks were added or after max attempts
-            let checks = 0;
-            const maxChecks = 3;
-            
-            const checkSubtasks = () => {
-              // Force refresh on each check
-              if (forceRefresh) forceRefresh();
-              
-              if (existingSubtasks.length > 0 || checks >= maxChecks) {
-                console.log(`Subtasks verified (${existingSubtasks.length}) or max checks reached (${checks}/${maxChecks})`);
-                handleAddSubtasks();
-              } else {
-                checks++;
-                console.log(`Waiting for subtasks to appear... (${checks}/${maxChecks})`);
-                setTimeout(checkSubtasks, 500);
-              }
-            };
-            
-            checkSubtasks();
-          }, 500);
-        };
-        
         // Add all subtasks in one go to reduce chance of race conditions
         console.log(`Adding ${validSubtasks.length} subtasks to task ${task.id} all at once`);
         
+        // First force a refresh to ensure we're working with the latest state
+        if (forceRefresh) {
+          console.log('Forcing parent refresh before adding subtasks');
+          forceRefresh();
+        }
+        
+        // Then add all subtasks
         validSubtasks.forEach((subtask, index) => {
           if (subtask.trim()) {
             console.log(`Adding subtask ${index + 1}/${validSubtasks.length}:`, subtask);
@@ -144,9 +109,15 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
           }
         });
         
-        // Call the final callback after all subtasks have been added
-        console.log("All subtasks added directly, calling final callback");
-        setTimeout(() => afterAllSubtasksAdded(), 500);
+        // Force another refresh after adding all subtasks
+        if (forceRefresh) {
+          console.log('Forcing parent refresh after adding all subtasks');
+          forceRefresh();
+        }
+        
+        // Important: Do NOT automatically proceed to handleAddSubtasks() here
+        // This was causing subtasks to disappear by closing the AI component too early
+        // Let the user click "Done" when they're ready to close the AI component
         
         // Don't reset the UI state immediately - keep showing the subtasks to the user
         // This gives users time to see what subtasks were added
@@ -249,22 +220,32 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
     });
   };
 
-  // Only handles UI closure - subtasks are already added automatically
+  // Only handles UI closure - subtasks are already added
   const handleAddSubtasks = () => {
-    console.log('handleAddSubtasks called, closing UI and notifying parent');
-    // Reset all UI state to completely hide the component
-    // This ensures the UI disappears after subtasks are added
-    handleCancel();
+    console.log('handleAddSubtasks called, user is done with subtasks');
     
-    // Signal to parent component that we're done adding subtasks
-    // But add a significant delay to make sure all subtasks have been processed
-    // and the parent component has had time to update its state
-    console.log('Preparing to hide AI breakdown component, waiting for all operations to complete');
-    setTimeout(() => {
-      console.log('Existing subtasks at hide time:', existingSubtasks.length);
-      console.log('Ready to hide AI breakdown component');
-      setShowAIBreakdown?.(false);
-    }, 3000);  // Use a longer 3-second delay
+    // First, force a final refresh to make sure all subtasks are properly displayed
+    if (forceRefresh) {
+      console.log('Final force refresh before closing');
+      forceRefresh();
+    }
+    
+    // Log existing subtasks for debugging
+    console.log('Existing subtasks at completion time:', existingSubtasks.length);
+    
+    // Reset UI state but don't immediately hide the component
+    setGeneratedSubtasks([]);
+    setSelectedSubtasks([]);
+    setEditableSubtasks({});
+    setError(null);
+    setNeedsClarification(false);
+    setClarificationText('');
+    setAiClarificationRequest('');
+    setIsLoading(false);
+    
+    // Signal to parent component that we're done
+    console.log('Hiding AI breakdown component');
+    setShowAIBreakdown?.(false);
   };
 
   // Handle saving additional task details/clarification

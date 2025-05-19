@@ -200,8 +200,8 @@ function App() {
       return;
     }
 
-    // Create a unique ID with microsecond precision to avoid collisions
-    const uniqueId = `${Date.now()}-${Math.floor(Math.random() * 1000000)}`;
+    // Using a consistent ID format: plain timestamp as string - this matches useTasks.ts
+    const uniqueId = Date.now().toString();
     console.log('Creating new subtask with ID:', uniqueId, 'title:', title, 'for parent:', parentId);
     
     const newSubtask: Task = {
