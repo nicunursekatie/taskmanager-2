@@ -23,6 +23,7 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
   const [isExpanded, setIsExpanded] = useState(true);
   const [showAIBreakdown, setShowAIBreakdown] = useState(false);
+  const [hasRunBreakdown, setHasRunBreakdown] = useState(false);
   
   // Use a forced refresh counter to ensure we re-render when needed
   const [refreshCounter, setRefreshCounter] = useState(0);
@@ -110,14 +111,10 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
   const handleAddSubtask = (e: React.FormEvent) => {
     e.preventDefault();
     if (newSubtaskTitle.trim()) {
-      // Add the subtask
       addSubtask(task.id, newSubtaskTitle.trim());
       setNewSubtaskTitle('');
-      
-      // Hide the AI breakdown when a manual subtask is added
       setShowAIBreakdown(false);
-      
-      // Trigger the expand event to make sure the subtasks are visible
+      setHasRunBreakdown(true);
       try {
         const expandEvent = new CustomEvent('expandTaskSubtasks', { 
           detail: { taskId: task.id } 
@@ -159,7 +156,7 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
         </div>
       </div>
       
-      {isExpanded && (
+      {isExpanded && !hasRunBreakdown && (
         <>
           <form onSubmit={handleAddSubtask} className="subtask-add-form">
             <input
@@ -171,8 +168,19 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
             />
             <button type="submit" className="btn btn-primary">Add Step</button>
           </form>
-          {/* Removed subtask list rendering here to prevent duplicate display */}
         </>
+      )}
+      {isExpanded && hasRunBreakdown && (
+        <button
+          className="btn btn-outline"
+          style={{ margin: '1em 0' }}
+          onClick={() => {
+            setHasRunBreakdown(false);
+            setNewSubtaskTitle('');
+          }}
+        >
+          Re-run Breakdown
+        </button>
       )}
       
       {subtasks.length > 0 && progressPercentage === 100 && (
@@ -182,37 +190,16 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
       )}
       
       {/* AI Breakdown - only show if explicitly requested */}
-      {showAIBreakdown ? (
+      {showAIBreakdown && !hasRunBreakdown ? (
         <AITaskBreakdown 
           task={task} 
           addSubtask={(parentId, title) => {
-            console.log('Adding subtask from TaskBreakdown wrapper:', title);
-            // Call the passed addSubtask function
             const subtaskId = addSubtask(parentId, title);
-            console.log('Added subtask with ID:', subtaskId);
-            // Force multiple refreshes to ensure UI updates properly
             forceRefresh();
-            // Force another refresh after a sequence of short delays
+            setHasRunBreakdown(true);
             setTimeout(() => {
               forceRefresh();
-              console.log('Forced second refresh (100ms delay)');
-              // Try reloading all tasks from localStorage
-              try {
-                const stored = localStorage.getItem('tasks');
-                if (stored) {
-                  const parsedTasks = JSON.parse(stored);
-                  const parentSubtasks = parsedTasks.filter((t: Task) => t.parentId === parentId);
-                  console.log(`Recheck - parent ${parentId} has ${parentSubtasks.length} subtasks in localStorage`);
-                  console.log('Subtasks from localStorage:', parentSubtasks);
-                }
-              } catch (e) {
-                console.error('Error rechecking localStorage:', e);
-              }
-              // Schedule another refresh
-              setTimeout(() => {
-                forceRefresh();
-                console.log('Forced third refresh (300ms total delay)');
-              }, 200);
+              setTimeout(() => forceRefresh(), 200);
             }, 100);
             return subtaskId;
           }}
@@ -221,18 +208,10 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
           setShowAIBreakdown={setShowAIBreakdown}
           forceRefresh={forceRefresh}
         />
-      ) : (
+      ) : !hasRunBreakdown && (
         <button 
           className="ai-breakdown-again-btn"
-          onClick={() => {
-            console.log('AI breakdown button clicked for task:', task.id);
-            try {
-              setShowAIBreakdown(true);
-            } catch (err) {
-              console.error('Error showing AI breakdown:', err);
-              alert('There was an error opening the AI breakdown. Please try again.');
-            }
-          }}
+          onClick={() => setShowAIBreakdown(true)}
         >
           <span className="ai-icon">🤖</span> Break Down with AI
         </button>
