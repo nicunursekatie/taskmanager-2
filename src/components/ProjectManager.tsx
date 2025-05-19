@@ -412,7 +412,7 @@ export default function ProjectManager({
                     <div className="form-actions">
                       <button
                         type="button"
-                        className="px-5 py-2 rounded-lg font-semibold text-base transition shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 border border-primary text-primary bg-white hover:bg-primary/10 active:bg-primary/20"
+                        className="px-5 py-2 rounded-lg font-semibold text-base transition shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 bg-primary text-white hover:bg-primary-dark active:bg-primary-dark"
                         onClick={handleUpdateProject}
                       >
                         Save Changes
@@ -439,7 +439,7 @@ export default function ProjectManager({
                       </div>
                       <div className="flex gap-sm">
                         <button
-                          className="px-5 py-2 rounded-lg font-semibold text-base transition shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 border border-primary text-primary bg-white hover:bg-primary/10 active:bg-primary/20"
+                          className="px-5 py-2 rounded-lg font-semibold text-base transition shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 bg-primary text-white hover:bg-primary-dark active:bg-primary-dark"
                           onClick={() => startEditing(project)}
                         >
                           Edit

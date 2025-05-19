@@ -681,7 +681,7 @@ function App() {
         ) : (
           <>
         {/* Capture Bar */}
-        <div className="bg-card rounded-lg shadow-md p-4 mb-8">
+        <div className="bg-card rounded-2xl shadow-lg p-8 mb-8">
           <form className="flex flex-wrap gap-4 items-start" onSubmit={handleTaskSubmit}>
             <div className="flex-1 min-w-[300px]">
               <input
@@ -797,7 +797,7 @@ function App() {
           {activeTab === 'dashboard' && (
             <div className="space-y-8">
               {/* Today's Tasks Section */}
-              <div className="bg-card rounded-lg shadow-md p-6">
+              <div className="bg-card rounded-2xl shadow-lg p-8 mb-8">
                 <h2 className="text-2xl font-bold text-text mb-6 pb-2 border-b border-border relative inline-block after:absolute after:right-[-12px] after:top-1/2 after:w-2 after:h-2 after:rounded-full after:bg-primary after:opacity-70 after:transform after:-translate-y-1/2">Today's Tasks</h2>
                 {todayTasks.length > 0 ? (
                   <TaskList
@@ -820,7 +820,7 @@ function App() {
 
               {/* Upcoming Tasks Section */}
               {upcomingTasks.length > 0 && (
-                <div className="bg-card rounded-lg shadow-md p-6">
+                <div className="bg-card rounded-2xl shadow-lg p-8 mb-8">
                   <h2 className="text-2xl font-bold text-text mb-6 pb-2 border-b border-border relative inline-block after:absolute after:right-[-12px] after:top-1/2 after:w-2 after:h-2 after:rounded-full after:bg-primary after:opacity-70 after:transform after:-translate-y-1/2">Upcoming Tasks</h2>
                   <div className="space-y-4">
                     {upcomingTasks.map(task => (
@@ -854,7 +854,7 @@ function App() {
                             Edit
                           </button>
                           <button
-                            className="px-5 py-2 rounded-lg font-semibold text-base transition shadow-sm focus:outline-none focus:ring-2 focus:ring-danger focus:ring-offset-2 bg-danger text-white hover:bg-danger/90 active:bg-danger/80"
+                            className="px-5 py-2 rounded-lg font-semibold text-base transition shadow-sm focus:outline-none focus:ring-2 focus:ring-success focus:ring-offset-2 bg-success text-white hover:bg-success/90 active:bg-success/80"
                             onClick={() => toggleTask(task.id)}
                           >
                             Complete
@@ -867,7 +867,7 @@ function App() {
               )}
 
               {/* Projects Section */}
-              <div className="bg-card rounded-lg shadow-md p-6">
+              <div className="bg-card rounded-2xl shadow-lg p-8 mb-8">
                 <h2 className="text-2xl font-bold text-text mb-6 pb-2 border-b border-border relative inline-block after:absolute after:right-[-12px] after:top-1/2 after:w-2 after:h-2 after:rounded-full after:bg-primary after:opacity-70 after:transform after:-translate-y-1/2">Projects</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {projects.map(project => {
