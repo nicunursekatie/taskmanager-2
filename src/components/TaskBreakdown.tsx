@@ -146,12 +146,9 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
               task={task} 
               addSubtask={(parentId, title) => {
                 console.log('Adding subtask from TaskBreakdown:', title);
-                
-                // Call parent component's addSubtask function
                 addSubtask(parentId, title);
-                
-                // Force a refresh after each subtask
-                setTimeout(() => forceRefresh(), 50);
+                // Instead of setTimeout, call forceRefresh immediately after all adds
+                forceRefresh();
               }}
               updateTaskDescription={updateTaskDescription}
               existingSubtasks={subtasks}

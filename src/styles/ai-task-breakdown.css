@@ -249,12 +249,16 @@
   color: #222 !important;
   background: #fff !important;
   font-size: 16px !important;
-  min-width: 250px !important;
+  width: 100% !important;
+  min-width: 0 !important;
   min-height: 30px !important;
   border: 1px solid #ccc !important;
   padding: 4px 8px !important;
   opacity: 1 !important;
   z-index: 10 !important;
+  box-sizing: border-box !important;
+  overflow-x: auto !important;
+  white-space: pre-line !important;
 }
 
 .ai-subtask-edit:disabled {
