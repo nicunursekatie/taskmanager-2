@@ -12,266 +12,94 @@ interface AITaskBreakdownProps {
   forceRefresh?: () => void;
 }
 
-/**
- * AI-powered task breakdown component that uses Groq API
- * to suggest subtasks, with improved error handling
- */
-const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({ 
-  task, 
+const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
+  task,
   addSubtask,
   updateTaskDescription,
   existingSubtasks,
   setShowAIBreakdown,
-  forceRefresh
+  forceRefresh,
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [generatedSubtasks, setGeneratedSubtasks] = useState<string[]>([]);
   const [selectedSubtasks, setSelectedSubtasks] = useState<string[]>([]);
-  const [editableSubtasks, setEditableSubtasks] = useState<{[key: number]: string}>({});
+  const [editableSubtasks, setEditableSubtasks] = useState<{ [key: number]: string }>({});
   const [error, setError] = useState<string | null>(null);
   const [needsClarification, setNeedsClarification] = useState(false);
   const [clarificationText, setClarificationText] = useState('');
   const [aiClarificationRequest, setAiClarificationRequest] = useState('');
+  const [success, setSuccess] = useState(false);
 
-  // Generate subtasks using AI
+  // 1. AI subtask generation
   const handleGenerateSubtasks = async () => {
-    console.log('handleGenerateSubtasks triggered', task.title);
     setIsLoading(true);
     setError(null);
     setNeedsClarification(false);
-    
+
     try {
-      // Pass both title and description (if available) to the breakdown function
-      const subtasks = await breakdownTask(
-        task.title, 
-        task.description || ''
-      );
-      
-      // Validate subtasks array
-      if (!subtasks || !Array.isArray(subtasks) || subtasks.length === 0) {
-        throw new Error('Invalid subtasks returned from AI service');
-      }
-      
-      // Make sure all subtasks are valid strings
-      const validSubtasks = subtasks.filter(subtask => 
-        typeof subtask === 'string' && subtask.trim().length > 0
-      );
-      
-      if (validSubtasks.length === 0) {
-        throw new Error('No valid subtasks were generated');
-      }
-      
-      // Log what we received from the API
-      console.log('AITaskBreakdown received subtasks:', validSubtasks);
-      
-      // Check if the AI is requesting clarification
-      if (validSubtasks.length === 1 && validSubtasks[0].startsWith('NEEDS_CLARIFICATION')) {
-        console.log('Detected clarification request in component:', validSubtasks[0]);
+      const subtasks = await breakdownTask(task.title, task.description || '');
+      if (!subtasks || !Array.isArray(subtasks) || subtasks.length === 0)
+        throw new Error('No subtasks returned from AI');
+      const valid = subtasks.filter(s => typeof s === 'string' && s.trim());
+      if (!valid.length) throw new Error('No valid subtasks generated');
+      if (valid.length === 1 && valid[0].startsWith('NEEDS_CLARIFICATION')) {
         setNeedsClarification(true);
-        // Store the clarification request but don't set it as the text content
-        const clarificationRequest = validSubtasks[0].replace('NEEDS_CLARIFICATION:', '').trim();
-        // Just set clarification text to empty - we'll display the request separately
-        setClarificationText('');
+        setAiClarificationRequest(valid[0].replace('NEEDS_CLARIFICATION:', '').trim());
         setGeneratedSubtasks([]);
         setSelectedSubtasks([]);
-        
-        // Store the request for display purposes only
-        setAiClarificationRequest(clarificationRequest);
       } else {
-        // Display the subtasks for user confirmation before adding them
-        setGeneratedSubtasks(validSubtasks);
-        setSelectedSubtasks(validSubtasks.map((_, idx) => idx.toString())); // Use indices as strings
-        
-        // Initialize editable versions of the subtasks
-        const initialEditableSubtasks: {[key: number]: string} = {};
-        validSubtasks.forEach((subtask, idx) => {
-          initialEditableSubtasks[idx] = subtask;
-        });
-        setEditableSubtasks(initialEditableSubtasks);
+        setGeneratedSubtasks(valid);
+        setSelectedSubtasks(valid.map((_, i) => i.toString()));
+        const edits: { [key: number]: string } = {};
+        valid.forEach((t, i) => (edits[i] = t));
+        setEditableSubtasks(edits);
       }
     } catch (err: any) {
-      console.error('Error generating subtasks:', err);
-      setError(err.message || 'Error occurred while generating subtasks');
+      setError(err.message || 'Error generating subtasks');
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Toggle selection of a subtask
-  const toggleSubtaskSelection = (subtaskKey: string, index: number) => {
-    if (selectedSubtasks.includes(subtaskKey)) {
-      setSelectedSubtasks(selectedSubtasks.filter(st => st !== subtaskKey));
-    } else {
-      setSelectedSubtasks([...selectedSubtasks, subtaskKey]);
-    }
+  // 2. Toggle and edit
+  const toggleSubtaskSelection = (key: string) => {
+    setSelectedSubtasks(prev =>
+      prev.includes(key) ? prev.filter(st => st !== key) : [...prev, key]
+    );
+  };
+  const handleSubtaskEdit = (key: number, value: string) => {
+    setEditableSubtasks(e => ({ ...e, [key]: value }));
   };
 
-  // Update editable subtask
-  const handleSubtaskEdit = (subtaskKey: number, value: string) => {
-    setEditableSubtasks({
-      ...editableSubtasks,
-      [subtaskKey]: value
-    });
-  };
-
-  // Add the selected subtasks when user clicks "Add Subtasks"
+  // 3. Add subtasks and CLOSE overlay
   const handleAddSubtasks = () => {
-    console.log('handleAddSubtasks called, adding selected subtasks');
-    
-    // Gather all selected subtasks first
-    const subtasksToAdd = [];
-    
-    for (const subtaskKey of selectedSubtasks) {
-      const index = Number(subtaskKey);
-      const value = editableSubtasks[index];
-      if (value && value.trim()) {
-        subtasksToAdd.push(value.trim());
-      }
-    }
-    
-    // Log how many subtasks we're adding
-    console.log(`Adding ${subtasksToAdd.length} subtasks to task ${task.id}`);
-    
-    // Don't show message - we'll ensure the subtasks are visible immediately
-    
-    // Add each subtask one by one and collect the IDs
-    const addedSubtaskIds = [];
-    for (const subtaskTitle of subtasksToAdd) {
-      console.log(`Adding subtask: "${subtaskTitle}" to parent: ${task.id}`);
-      const newId = addSubtask(task.id, subtaskTitle);
-      if (newId) addedSubtaskIds.push(newId);
-    }
-    
-    console.log('Added subtask IDs:', addedSubtaskIds);
-    
-    // Show a success message
-    const successMessage = document.createElement('div');
-    successMessage.className = 'ai-success-message';
-    successMessage.innerHTML = `
-      <div class="success-content">
-        <span class="success-icon">✅</span>
-        <span>${subtasksToAdd.length} subtasks added successfully!</span>
-      </div>
-    `;
-    
-    // Append to the component
-    const aiContainer = document.querySelector('.ai-task-breakdown');
-    if (aiContainer) {
-      // Clear existing content
-      aiContainer.innerHTML = '';
-      // Add success message
-      aiContainer.appendChild(successMessage);
-    }
-    
-    // Immediately hide the breakdown component after a short delay
+    const subtasksToAdd = selectedSubtasks
+      .map(k => editableSubtasks[Number(k)]?.trim())
+      .filter(Boolean);
+
+    subtasksToAdd.forEach(subtaskTitle => addSubtask(task.id, subtaskTitle));
+    setSuccess(true);
+    forceRefresh?.();
+    // Brief success, then close
     setTimeout(() => {
-      if (setShowAIBreakdown) {
-        setShowAIBreakdown(false);
-        console.log('Immediately hiding AI breakdown component after success message');
-      }
-    }, 1200);
-    
-    // Force refresh the UI multiple times with increasing delays to ensure changes are reflected
-    if (forceRefresh) {
-      // Initial refresh
-      forceRefresh();
-      
-      // Second refresh after 100ms
-      setTimeout(() => {
-        forceRefresh();
-        console.log('Forced second refresh after 100ms delay');
-        
-        // Third refresh after another 200ms (300ms total)
-        setTimeout(() => {
-          forceRefresh();
-          console.log('Forced third refresh after 300ms total delay');
-          
-          // Fourth refresh after another 300ms (600ms total)
-          setTimeout(() => {
-            forceRefresh();
-            console.log('Forced fourth refresh after 600ms total delay');
-            
-            // Try reloading all tasks from localStorage to verify subtasks exist
-            try {
-              const stored = localStorage.getItem('tasks');
-              if (stored) {
-                const parsedTasks = JSON.parse(stored);
-                const storedSubtasks = parsedTasks.filter((t: Task) => t.parentId === task.id);
-                console.log(`After 600ms: found ${storedSubtasks.length} subtasks in localStorage for task ${task.id}`);
-                console.log('Subtask IDs in localStorage:', storedSubtasks.map((t: Task) => t.id));
-                
-                // Check if all our added subtasks are in localStorage
-                const allFound = addedSubtaskIds.every(id => 
-                  storedSubtasks.some((t: Task) => t.id === id)
-                );
-                
-                console.log(`All subtasks found in localStorage: ${allFound}`);
-                
-                // After the fourth refresh, completely hide the AI breakdown component
-                setTimeout(() => {
-                  if (setShowAIBreakdown) {
-                    setShowAIBreakdown(false);
-                    console.log('Auto-hiding AI breakdown component after successful addition');
-                  }
-                }, 1000); // Give user time to see the success message
-              }
-            } catch (e) {
-              console.error('Error checking localStorage after delays:', e);
-            }
-          }, 300);
-        }, 200);
-      }, 100);
-    }
-    
-    // We need to ensure the parent task is expanded to show the subtasks
-    // Create a custom event to trigger this behavior with a longer delay
-    try {
-      // Delay the event dispatch to ensure data is fully updated first
-      setTimeout(() => {
-        const expandEvent = new CustomEvent('expandTaskSubtasks', { 
-          detail: { taskId: task.id } 
-        });
-        document.dispatchEvent(expandEvent);
-        console.log(`Triggered expandTaskSubtasks event for task ${task.id} after 700ms delay`);
-      }, 700);
-    } catch (e) {
-      console.error('Error dispatching custom event:', e);
-    }
-    
-    // Also hide the detail components immediately to reduce visual clutter
-    setGeneratedSubtasks([]);
-    setSelectedSubtasks([]);
-    setEditableSubtasks({});
-    setError(null);
-    setNeedsClarification(false);
-    setClarificationText('');
-    setAiClarificationRequest('');
+      setShowAIBreakdown?.(false);
+      // Reset everything else (defensive, but not strictly necessary)
+      setGeneratedSubtasks([]);
+      setSelectedSubtasks([]);
+      setEditableSubtasks({});
+      setSuccess(false);
+    }, 1000);
   };
 
-  // Handle saving additional task details/clarification
+  // 4. Clarification/save/cancel logic (unchanged)
   const handleSaveClarification = () => {
-    // Debug log to verify function is being called
-    console.log('Saving clarification text:', clarificationText);
-    
-    try {
-      if (updateTaskDescription && clarificationText) {
-        // Store the existing description plus the clarification
-        const currentDesc = task.description || '';
-        const updatedDesc = currentDesc ? 
-          `${currentDesc}\n\nTask clarification: ${clarificationText}` : 
-          `Task clarification: ${clarificationText}`;
-        
-        console.log('Updating task description with:', updatedDesc);
-        updateTaskDescription(task.id, updatedDesc);
-        console.log('Task description updated successfully');
-      } else {
-        console.warn('updateTaskDescription prop is not available or no clarification text');
-      }
-    } catch (error) {
-      console.error('Error in handleSaveClarification:', error);
+    if (updateTaskDescription && clarificationText) {
+      const curr = task.description || '';
+      const updated = curr ? `${curr}\n\nTask clarification: ${clarificationText}` : `Task clarification: ${clarificationText}`;
+      updateTaskDescription(task.id, updated);
     }
-    
-    // Reset state and hide component
+    // Hide and reset
+    setShowAIBreakdown?.(false);
     setGeneratedSubtasks([]);
     setSelectedSubtasks([]);
     setEditableSubtasks({});
@@ -279,79 +107,34 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
     setNeedsClarification(false);
     setClarificationText('');
     setAiClarificationRequest('');
-    setShowAIBreakdown?.(false);
   };
 
-  // Submit clarification and re-generate subtasks
   const handleSubmitClarification = async () => {
-    // Debug log
-    console.log('Submitting clarification and generating subtasks');
-    
-    if (!updateTaskDescription || !clarificationText.trim()) {
-      console.warn('Missing updateTaskDescription prop or clarification text');
-      return;
-    }
-      
-    // First update the task description
-    const currentDesc = task.description || '';
-    const updatedDesc = currentDesc ? 
-      `${currentDesc}\n\nTask details: ${clarificationText}` : 
-      `Task details: ${clarificationText}`;
-    
-    console.log('Setting updated task description:', updatedDesc);
-    updateTaskDescription(task.id, updatedDesc);
-    
-    // Then regenerate subtasks with the new description
-    console.log('Starting to generate subtasks with new description');
+    if (!updateTaskDescription || !clarificationText.trim()) return;
+    const curr = task.description || '';
+    const updated = curr ? `${curr}\n\nTask details: ${clarificationText}` : `Task details: ${clarificationText}`;
+    updateTaskDescription(task.id, updated);
     setIsLoading(true);
     setNeedsClarification(false);
-    
     try {
-      const subtasks = await breakdownTask(task.title, updatedDesc);
-      
-      console.log('Received subtasks from API:', subtasks);
-      
-      // Validate subtasks array
-      if (!subtasks || !Array.isArray(subtasks) || subtasks.length === 0) {
-        throw new Error('Invalid subtasks returned from AI service');
+      const subtasks = await breakdownTask(task.title, updated);
+      const valid = subtasks.filter(s => typeof s === 'string' && s.trim());
+      if (!valid.length) throw new Error('No valid subtasks were generated');
+      if (valid.length === 1 && valid[0].startsWith('NEEDS_CLARIFICATION')) {
+        throw new Error('Still needs more details. Try again.');
       }
-      
-      // Make sure all subtasks are valid strings
-      const validSubtasks = subtasks.filter(subtask => 
-        typeof subtask === 'string' && subtask.trim().length > 0
-      );
-      
-      console.log('Valid subtasks:', validSubtasks);
-      
-      if (validSubtasks.length === 0) {
-        throw new Error('No valid subtasks were generated');
-      }
-      
-      // Check if we're still getting a clarification request
-      if (validSubtasks.length === 1 && validSubtasks[0].startsWith('NEEDS_CLARIFICATION')) {
-        throw new Error('Still unable to generate subtasks. Please try again with more specific details.');
-      }
-      
-      // Display the subtasks for user confirmation
-      setGeneratedSubtasks(validSubtasks);
-      setSelectedSubtasks(validSubtasks.map((_, idx) => idx.toString()));
-      
-      // Initialize editable versions of the subtasks
-      const initialEditableSubtasks: {[key: number]: string} = {};
-      validSubtasks.forEach((subtask, idx) => {
-        initialEditableSubtasks[idx] = subtask;
-      });
-      setEditableSubtasks(initialEditableSubtasks);
-      
+      setGeneratedSubtasks(valid);
+      setSelectedSubtasks(valid.map((_, i) => i.toString()));
+      const edits: { [key: number]: string } = {};
+      valid.forEach((t, i) => (edits[i] = t));
+      setEditableSubtasks(edits);
     } catch (err: any) {
-      console.error('Error generating subtasks:', err);
       setError(err.message || 'Failed to generate subtasks');
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Cancel and reset state
   const handleCancel = () => {
     setGeneratedSubtasks([]);
     setSelectedSubtasks([]);
@@ -364,25 +147,17 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
     setShowAIBreakdown?.(false);
   };
 
-  console.log('generatedSubtasks:', generatedSubtasks);
-  console.log('editableSubtasks:', editableSubtasks);
-
+  // --- UI ---
   return (
     <div className="ai-task-breakdown">
-      {!generatedSubtasks.length && !isLoading && !needsClarification ? (
-        // Show button based on whether there are existing subtasks
-        <button 
+      {success ? (
+        <div className="ai-success-message">
+          <span className="success-icon">✅</span> Subtasks added!
+        </div>
+      ) : !generatedSubtasks.length && !isLoading && !needsClarification ? (
+        <button
           className="ai-breakdown-btn"
-          onClick={(e) => {
-            e.preventDefault();
-            console.log('Auto-breakdown button clicked for task:', task.id);
-            try {
-              handleGenerateSubtasks();
-            } catch (err) {
-              console.error('Error in generate subtasks:', err);
-              setError('Failed to generate subtasks. Please try again.');
-            }
-          }}
+          onClick={handleGenerateSubtasks}
           disabled={isLoading}
         >
           <span className="ai-icon">🤖</span> Break Down Task with AI
@@ -407,8 +182,7 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
           ) : needsClarification ? (
             <div className="ai-clarification">
               <h4 className="ai-clarification-heading">
-                Quick Task Context
-                <span className="ai-badge">AI</span>
+                Quick Task Context <span className="ai-badge">AI</span>
               </h4>
               <div className="ai-clarification-questions">
                 <p className="ai-clarification-text">{aiClarificationRequest}</p>
@@ -426,23 +200,13 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
                 className="ai-clarification-input"
                 placeholder="Add additional details about this task..."
                 value={clarificationText}
-                onChange={(e) => setClarificationText(e.target.value)}
+                onChange={e => setClarificationText(e.target.value)}
                 rows={4}
               />
               <div className="ai-actions">
-                <button 
-                  className="ai-cancel-btn"
-                  onClick={handleCancel}
-                >
-                  Cancel
-                </button>
-                <button 
-                  className="ai-save-btn"
-                  onClick={handleSaveClarification}
-                >
-                  Skip & Save Note
-                </button>
-                <button 
+                <button className="ai-cancel-btn" onClick={handleCancel}>Cancel</button>
+                <button className="ai-save-btn" onClick={handleSaveClarification}>Skip & Save Note</button>
+                <button
                   className="ai-generate-btn"
                   onClick={handleSubmitClarification}
                   disabled={!clarificationText.trim()}
@@ -454,16 +218,14 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
           ) : (
             <>
               <h4 className="ai-subtasks-heading">
-                AI-Suggested Subtasks
-                <span className="ai-badge">{generatedSubtasks.length}</span>
+                AI-Suggested Subtasks <span className="ai-badge">{generatedSubtasks.length}</span>
               </h4>
               <div className="ai-subtasks-notification">
                 Review and confirm these suggested subtasks
               </div>
-              
               <div className="ai-subtasks-header">
                 <div className="ai-select-all">
-                  <input 
+                  <input
                     type="checkbox"
                     id="select-all-subtasks"
                     checked={selectedSubtasks.length === generatedSubtasks.length}
@@ -471,7 +233,7 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
                       if (selectedSubtasks.length === generatedSubtasks.length) {
                         setSelectedSubtasks([]);
                       } else {
-                        setSelectedSubtasks(generatedSubtasks.map((_, idx) => idx.toString())); // Use indices as strings
+                        setSelectedSubtasks(generatedSubtasks.map((_, i) => i.toString()));
                       }
                     }}
                   />
@@ -480,40 +242,33 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
                   </label>
                 </div>
               </div>
-              
               <div className="ai-subtasks-list">
                 {generatedSubtasks.map((subtask, index) => (
                   <div key={index} className={`ai-subtask-item ${selectedSubtasks.includes(index.toString()) ? 'selected' : ''}`}>
                     <div className="ai-checkbox-container">
-                      <input 
+                      <input
                         type="checkbox"
                         id={`subtask-${index}`}
                         checked={selectedSubtasks.includes(index.toString())}
-                        onChange={() => toggleSubtaskSelection(index.toString(), index)}
+                        onChange={() => toggleSubtaskSelection(index.toString())}
                       />
                       <span className="ai-checkmark"></span>
-                      <input 
+                      <input
                         type="text"
                         className="ai-subtask-edit"
                         value={editableSubtasks[index] || ''}
-                        onChange={(e) => handleSubtaskEdit(index, e.target.value)}
+                        onChange={e => handleSubtaskEdit(index, e.target.value)}
                         disabled={!selectedSubtasks.includes(index.toString())}
-                        placeholder={editableSubtasks[index] === '' ? 'Edit subtask...' : undefined}
+                        placeholder="Edit subtask..."
                         style={{ color: '#222', background: '#fff', fontSize: 16, minWidth: 250, minHeight: 30, border: '1px solid #ccc', padding: '4px 8px', opacity: 1, zIndex: 10 }}
                       />
                     </div>
                   </div>
                 ))}
               </div>
-              
               <div className="ai-actions">
-                <button 
-                  className="ai-cancel-btn"
-                  onClick={handleCancel}
-                >
-                  Cancel
-                </button>
-                <button 
+                <button className="ai-cancel-btn" onClick={handleCancel}>Cancel</button>
+                <button
                   className="ai-add-btn"
                   onClick={handleAddSubtasks}
                   disabled={selectedSubtasks.length === 0}
