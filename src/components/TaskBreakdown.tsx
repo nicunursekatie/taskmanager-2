@@ -130,58 +130,58 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
   };
   
   return (
-    <div className="task-breakdown">
+    <div className="task-breakdown w-full">
       {/* Only show the breakdown section if showBreakdownSection is true */}
       {(!subtasks.length && !hasRunBreakdown && !showBreakdownSection) && (
         <button
-          className="btn btn-primary"
-          style={{ margin: '1em 0' }}
+          className="px-4 py-2 rounded-lg font-semibold shadow-sm bg-yellow-400 text-yellow-900 hover:bg-yellow-500 transition mb-2"
           onClick={() => setShowBreakdownSection(true)}
         >
           Break Down This Task
         </button>
       )}
       {(showBreakdownSection && !hasRunBreakdown) && (
-        <>
-          <div className="breakdown-header">
-            <h3 className="breakdown-title">
+        <div className="bg-white rounded-xl shadow p-6 border border-yellow-200 mt-2 mb-4">
+          <div className="breakdown-header flex items-center justify-between mb-4">
+            <h3 className="text-lg font-bold text-yellow-700 flex items-center gap-2">
+              <span className="inline-block w-2 h-2 rounded-full bg-yellow-400 mr-2"></span>
               Break Down This Task
-              <button 
-                className="toggle-button"
-                onClick={() => setIsExpanded(!isExpanded)}
-              >
-                {isExpanded ? '−' : '+'}
-              </button>
             </h3>
-            <div className="breakdown-progress">
-              <div className="subtask-progress">
-                <div 
-                  className="subtask-progress-bar" 
-                  style={{ width: `${progressPercentage}%` }}
-                ></div>
-              </div>
-              <div className="progress-text">
-                {totalSubtasks === 0 ? (
-                  <span className="no-subtasks-text">No subtasks yet. Break down this task into smaller steps.</span>
-                ) : (
-                  <span>{completedSubtasks} of {totalSubtasks} steps completed ({progressPercentage}%)</span>
-                )}
-              </div>
+            <button 
+              className="text-yellow-700 hover:text-yellow-900 text-2xl font-bold focus:outline-none"
+              onClick={() => setIsExpanded(!isExpanded)}
+            >
+              {isExpanded ? '−' : '+'}
+            </button>
+          </div>
+          <div className="breakdown-progress mb-4">
+            <div className="w-full bg-yellow-100 rounded-full h-2.5 mb-2">
+              <div 
+                className="bg-yellow-400 h-2.5 rounded-full transition-all"
+                style={{ width: `${progressPercentage}%` }}
+              ></div>
+            </div>
+            <div className="text-sm text-gray-500">
+              {totalSubtasks === 0 ? (
+                <span>No subtasks yet. Break down this task into smaller steps.</span>
+              ) : (
+                <span>{completedSubtasks} of {totalSubtasks} steps completed ({progressPercentage}%)</span>
+              )}
             </div>
           </div>
           {isExpanded && (
-            <>
-              <form onSubmit={handleAddSubtask} className="subtask-add-form">
-                <input
-                  type="text"
-                  value={newSubtaskTitle}
-                  onChange={(e) => setNewSubtaskTitle(e.target.value)}
-                  placeholder="Add a step to break down this task..."
-                  className="form-control"
-                />
-                <button type="submit" className="btn btn-primary">Add Step</button>
-              </form>
-            </>
+            <form onSubmit={handleAddSubtask} className="flex gap-2 mb-4">
+              <input
+                type="text"
+                value={newSubtaskTitle}
+                onChange={(e) => setNewSubtaskTitle(e.target.value)}
+                placeholder="Add a step to break down this task..."
+                className="flex-1 border border-yellow-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+              />
+              <button type="submit" className="px-4 py-2 rounded-lg font-semibold bg-yellow-400 text-yellow-900 hover:bg-yellow-500 transition">
+                Add Step
+              </button>
+            </form>
           )}
           {showAIBreakdown && !hasRunBreakdown ? (
             <AITaskBreakdown 
@@ -204,18 +204,17 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
             />
           ) : !hasRunBreakdown && (
             <button 
-              className="ai-breakdown-again-btn"
+              className="px-4 py-2 rounded-lg font-semibold bg-yellow-300 text-yellow-900 hover:bg-yellow-400 transition"
               onClick={() => setShowAIBreakdown(true)}
             >
-              <span className="ai-icon">🤖</span> Break Down with AI
+              <span className="mr-2">🤖</span> Break Down with AI
             </button>
           )}
-        </>
+        </div>
       )}
       {isExpanded && hasRunBreakdown && (
         <button
-          className="btn btn-outline"
-          style={{ margin: '1em 0' }}
+          className="px-4 py-2 rounded-lg font-semibold bg-yellow-100 text-yellow-700 border border-yellow-300 hover:bg-yellow-200 transition mb-2"
           onClick={() => {
             setHasRunBreakdown(false);
             setNewSubtaskTitle('');
@@ -226,7 +225,7 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
         </button>
       )}
       {subtasks.length > 0 && progressPercentage === 100 && (
-        <div className="completion-message">
+        <div className="text-green-600 font-semibold mt-2">
           🎉 All steps complete! You're doing great!
         </div>
       )}
