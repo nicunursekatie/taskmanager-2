@@ -30,7 +30,14 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
   // Force a refresh of subtasks when explicitly triggered by a child component
   const forceRefresh = () => {
     console.log('Force refresh triggered');
+    // Update the refresh counter to trigger a re-render
     setRefreshCounter(prev => prev + 1);
+    
+    // Also log current subtasks to verify
+    console.log('Current subtasks after refresh:', subtasks.length);
+    subtasks.forEach((st, idx) => {
+      console.log(`  ${idx+1}. "${st.title}" (ID: ${st.id}, parentID: ${st.parentId})`);
+    });
   };
   
   // Reset state when subtasks change
@@ -146,9 +153,14 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
               task={task} 
               addSubtask={(parentId, title) => {
                 console.log('Adding subtask from TaskBreakdown:', title);
+                // Add the subtask with a wrapper that ensures the UI updates
                 addSubtask(parentId, title);
-                // Instead of setTimeout, call forceRefresh immediately after all adds
-                forceRefresh();
+                
+                // Force refresh after a small delay to ensure React state has updated
+                setTimeout(() => {
+                  forceRefresh();
+                  console.log('Force refreshed after adding subtask');
+                }, 50);
               }}
               updateTaskDescription={updateTaskDescription}
               existingSubtasks={subtasks}

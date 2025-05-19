@@ -200,8 +200,9 @@ function App() {
       return;
     }
 
-    // Using a consistent ID format: plain timestamp as string - this matches useTasks.ts
-    const uniqueId = Date.now().toString();
+    // Create a unique ID with time and random component to avoid collisions
+    // when creating multiple subtasks in quick succession
+    const uniqueId = Date.now().toString() + '-' + Math.floor(Math.random() * 1000);
     console.log('Creating new subtask with ID:', uniqueId, 'title:', title, 'for parent:', parentId);
     
     const newSubtask: Task = {
@@ -222,6 +223,9 @@ function App() {
       const currentSubtasks = newTasks.filter(t => t.parentId === parentId);
       console.log(`After adding subtask, parent ${parentId} now has ${currentSubtasks.length} subtasks:`, 
         currentSubtasks.map(t => t.title));
+      
+      // Force localStorage update immediately
+      localStorage.setItem('tasks', JSON.stringify(newTasks));
       return newTasks;
     });
     
@@ -229,6 +233,18 @@ function App() {
     setTimeout(() => {
       const currentSubtasks = getTaskSubtasks(parentId);
       console.log(`Verification: parent ${parentId} has ${currentSubtasks.length} subtasks`);
+      
+      // Double-check localStorage
+      try {
+        const stored = localStorage.getItem('tasks');
+        if (stored) {
+          const parsedTasks = JSON.parse(stored);
+          const storedSubtasks = parsedTasks.filter((t: Task) => t.parentId === parentId);
+          console.log(`LocalStorage verification: parent ${parentId} has ${storedSubtasks.length} subtasks in localStorage`);
+        }
+      } catch (e) {
+        console.error('Error verifying localStorage:', e);
+      }
     }, 100);
   };
 

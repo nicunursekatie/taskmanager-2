@@ -123,18 +123,32 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
       forceRefresh();
     }
     
-    // Add each selected subtask
-    selectedSubtasks.forEach((subtaskKey) => {
-      const index = Number(subtaskKey);
-      const value = editableSubtasks[index];
-      if (value && value.trim()) {
-        addSubtask(task.id, value.trim());
-      }
+    // Add each selected subtask with a small delay between them
+    // to ensure state updates are properly captured
+    const subtasksToAdd = selectedSubtasks
+      .map(subtaskKey => {
+        const index = Number(subtaskKey);
+        const value = editableSubtasks[index];
+        return value && value.trim() ? value.trim() : null;
+      })
+      .filter(value => value !== null);
+    
+    // Log how many subtasks we're adding
+    console.log(`Adding ${subtasksToAdd.length} subtasks to task ${task.id}`);
+    
+    // Add each subtask
+    subtasksToAdd.forEach((value) => {
+      console.log(`Adding subtask: ${value}`);
+      addSubtask(task.id, value);
     });
     
-    // Final refresh to update UI
+    // Make sure to trigger a save to localStorage
     if (forceRefresh) {
+      // Double refresh after a small delay to ensure changes are saved
       forceRefresh();
+      setTimeout(() => {
+        forceRefresh();
+      }, 100);
     }
     
     // Reset UI state
@@ -146,8 +160,10 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
     setClarificationText('');
     setAiClarificationRequest('');
     
-    // Hide the AI component
-    setShowAIBreakdown?.(false);
+    // Hide the AI component, but only after ensuring subtasks are saved
+    setTimeout(() => {
+      setShowAIBreakdown?.(false);
+    }, 200);
   };
 
   // Handle saving additional task details/clarification
