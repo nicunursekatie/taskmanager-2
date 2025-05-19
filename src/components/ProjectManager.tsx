@@ -296,224 +296,30 @@ export default function ProjectManager({
           
           <div className="item-list">
             {projects.map((project) => (
-              <div key={project.id} className="item-card">
-                {editingProject === project ? (
-                  <div className="project-edit-form">
-                    <div className="form-row">
-                      <div className="input-group flex-grow">
-                        <label className="form-label">Project Name</label>
-                        <input
-                          type="text"
-                          className="form-control"
-                          value={editName}
-                          onChange={(e) => setEditName(e.target.value)}
-                          placeholder="Project name"
-                          required
-                        />
-                      </div>
-
-                      <div className="input-group color-picker">
-                        <label className="form-label">Color</label>
-                        <input
-                          type="color"
-                          className="form-control"
-                          value={editColor}
-                          onChange={(e) => setEditColor(e.target.value)}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="input-group">
-                      <label className="form-label">Description</label>
-                      <textarea
-                        className="form-control"
-                        value={editDescription}
-                        onChange={(e) => setEditDescription(e.target.value)}
-                        placeholder="Project description (optional)"
-                        rows={2}
-                      />
-                    </div>
-
-                    <div className="form-row">
-                      <div className="input-group">
-                        <label className="form-label">Due Date</label>
-                        <input
-                          type="date"
-                          className="form-control"
-                          value={editDueDate}
-                          onChange={(e) => setEditDueDate(e.target.value)}
-                        />
-                        <div className="date-shortcuts">
-                          <button
-                            type="button"
-                            className="date-shortcut-btn"
-                            onClick={() => {
-                              const today = new Date();
-                              const dateString = today.toISOString().split('T')[0];
-                              setEditDueDate(dateString);
-                            }}
-                          >
-                            Today
-                          </button>
-                          <button
-                            type="button"
-                            className="date-shortcut-btn"
-                            onClick={() => {
-                              const nextWeek = new Date();
-                              nextWeek.setDate(nextWeek.getDate() + 7);
-                              const dateString = nextWeek.toISOString().split('T')[0];
-                              setEditDueDate(dateString);
-                            }}
-                          >
-                            +1 Week
-                          </button>
-                          <button
-                            type="button"
-                            className="date-shortcut-btn"
-                            onClick={() => setEditDueDate('')}
-                          >
-                            Clear
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="input-group">
-                        <label className="form-label">Priority</label>
-                        <select
-                          className="form-control"
-                          value={editPriority || ''}
-                          onChange={(e) => setEditPriority(e.target.value as PriorityLevel || null)}
-                        >
-                          <option value="">No Priority</option>
-                          <option value="critical">Critical</option>
-                          <option value="high">High</option>
-                          <option value="medium">Medium</option>
-                          <option value="low">Low</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    <div className="form-row">
-                      <div className="input-group">
-                        <label className="form-label">Status</label>
-                        <select
-                          className="form-control"
-                          value={editStatus}
-                          onChange={(e) => setEditStatus(e.target.value as Project['status'])}
-                        >
-                          <option value="not-started">Not Started</option>
-                          <option value="in-progress">In Progress</option>
-                          <option value="on-hold">On Hold</option>
-                          <option value="completed">Completed</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    {categories.length > 0 && (
-                      <div className="input-group">
-                        <label className="form-label">Categories</label>
-                        <div className="category-selector">
-                          {categories.map(category => (
-                            <div
-                              key={category.id}
-                              className={`category-option ${editCategoryIds.includes(category.id) ? 'selected' : ''}`}
-                              style={{
-                                backgroundColor: editCategoryIds.includes(category.id) ? category.color : 'transparent',
-                                border: `1px solid ${category.color}`
-                              }}
-                              onClick={() => toggleCategory(category.id, false)}
-                            >
-                              {category.name}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="form-actions">
-                      <button
-                        type="button"
-                        className="px-5 py-2 rounded-lg font-semibold text-base transition shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 bg-primary text-white hover:bg-primary-dark active:bg-primary-dark"
-                        onClick={handleUpdateProject}
-                      >
-                        Save Changes
-                      </button>
-                      <button
-                        type="button"
-                        className="btn btn-outline"
-                        onClick={onClose}
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    <div className="item-header" style={{ borderLeft: project.color ? `4px solid ${project.color}` : undefined }}>
-                      <div className="item-title-section">
-                        <h3 className="item-title">{project.name}</h3>
-                        {project.status && project.status !== 'not-started' && (
-                          <span className={`project-status status-${project.status}`}>
-                            {project.status.replace('-', ' ')}
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex gap-sm">
-                        <button
-                          className="px-5 py-2 rounded-lg font-semibold text-base transition shadow-sm focus:outline-none focus:ring-2 focus:ring-danger focus:ring-offset-2 bg-danger text-white hover:bg-danger/90 active:bg-danger/80"
-                          onClick={() => deleteProject(project.id)}
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="item-details">
-                      {project.description && (
-                        <p className="item-description">{project.description}</p>
-                      )}
-
-                      <div className="item-meta">
-                        {project.dueDate && (
-                          <span className="item-due-date">
-                            Due: {new Date(project.dueDate).toLocaleDateString('en-US', {
-                              month: 'short',
-                              day: 'numeric',
-                              year: 'numeric',
-                              timeZone: 'UTC'
-                            })}
-                          </span>
-                        )}
-
-                        {project.priority && (
-                          <span className={`task-priority ${project.priority}`}>
-                            {project.priority === 'critical' ? 'Critical' :
-                             project.priority === 'high' ? 'High' :
-                             project.priority === 'medium' ? 'Medium' :
-                             'Low'}
-                          </span>
-                        )}
-
-                        {project.categoryIds && project.categoryIds.length > 0 && (
-                          <div className="item-categories">
-                            {project.categoryIds.map(categoryId => {
-                              const category = categories.find(c => c.id === categoryId);
-                              return category ? (
-                                <span
-                                  key={categoryId}
-                                  className="task-category"
-                                  style={{ backgroundColor: category.color }}
-                                >
-                                  {category.name}
-                                </span>
-                              ) : null;
-                            })}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </>
-                )}
+              <div key={project.id} className="flex items-start gap-4 bg-white border border-border rounded-md shadow-sm p-3 mb-3 relative">
+                {/* Project color accent */}
+                <div className="w-2 h-8 rounded-l-md" style={{ backgroundColor: project.color || '#4361ee', position: 'absolute', left: 0, top: 16 }}></div>
+                <div className="flex-1 pl-4">
+                  <div className="font-semibold text-lg text-text mb-1">{project.name}</div>
+                  {project.description && (
+                    <div className="text-sm text-text-light mb-1">{project.description}</div>
+                  )}
+                </div>
+                <div className="flex flex-col gap-2 items-end ml-2">
+                  <button
+                    className="px-4 py-1 rounded-md font-medium text-primary border border-primary bg-white hover:bg-primary/10 text-sm transition mb-1"
+                    onClick={() => editingProject === null ? onClose() : null /* parent handles edit */}
+                    disabled
+                  >
+                    Edit
+                  </button>
+                  <button
+                    className="px-4 py-1 rounded-md font-medium border border-danger text-danger bg-white hover:bg-danger hover:text-white text-sm transition"
+                    onClick={() => deleteProject(project.id)}
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
             ))}
             
