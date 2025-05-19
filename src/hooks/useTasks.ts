@@ -35,7 +35,16 @@ export function useTasks() {
   };
 
   const deleteTask = (id: string) => {
-    setTasks(prev => prev.filter(t => t.id !== id && t.parentId !== id));
+    // Enhanced debugging
+    console.log(`Deleting task ${id} and its subtasks`);
+    
+    // Use correct filter logic for the operation
+    setTasks(prev => prev.filter(t => {
+      // Keep the task if:
+      // 1. It's not the task we're deleting AND
+      // 2. It's not a subtask of the task we're deleting
+      return t.id !== id && t.parentId !== id;
+    }));
   };
 
   const updateTask = (
