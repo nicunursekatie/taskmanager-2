@@ -5,7 +5,7 @@ import '../styles/ai-task-breakdown.css';
 
 interface TaskBreakdownProps {
   task: Task;
-  subtasks: Task[];
+  subtasks: Task[];  // These are the subtasks passed from the parent
   addSubtask: (parentId: string, title: string) => void;
   toggleTask: (id: string) => void;
   updateTaskDescription?: (id: string, description: string) => void;
@@ -18,13 +18,24 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
   toggleTask,
   updateTaskDescription 
 }) => {
+  console.log(`TaskBreakdown for task ${task.id} rendered with ${subtasks.length} subtasks:`, 
+    subtasks.map(st => st.title));
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
   const [isExpanded, setIsExpanded] = useState(true);
   const [showAIBreakdown, setShowAIBreakdown] = useState(subtasks.length === 0);
   
+  // Use a forced refresh counter to ensure we re-render when needed
+  const [refreshCounter, setRefreshCounter] = useState(0);
+  
+  // Force a refresh of subtasks when explicitly triggered by a child component
+  const forceRefresh = () => {
+    console.log('Force refresh triggered');
+    setRefreshCounter(prev => prev + 1);
+  };
+  
   // Reset state when subtasks change
   useEffect(() => {
-    console.log('Subtasks updated, count:', subtasks.length);
+    console.log('Subtasks updated, count:', subtasks.length, 'refresh counter:', refreshCounter);
     
     // Print out any subtasks for debugging
     if (subtasks.length > 0) {
@@ -49,7 +60,7 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
         }
       }, 2500);
     }
-  }, [subtasks]);
+  }, [subtasks, refreshCounter]);
   
   // Calculate progress percentage
   const totalSubtasks = subtasks.length;
@@ -147,18 +158,13 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
                 // Call parent component's addSubtask function
                 addSubtask(parentId, title);
                 
-                // Force a re-render of subtasks after each addition to ensure they're visible
-                setTimeout(() => {
-                  // This is a hack to force React to re-evaluate the subtasks prop
-                  setShowAIBreakdown(true);  // This doesn't actually change the value, just triggers a re-render
-                }, 50);
-                
-                // Don't auto-hide - let the AI component handle that
-                // The verification will happen based on subtask count changes
+                // Force a refresh after each subtask
+                setTimeout(() => forceRefresh(), 50);
               }}
               updateTaskDescription={updateTaskDescription}
               existingSubtasks={subtasks}
               setShowAIBreakdown={setShowAIBreakdown}
+              forceRefresh={forceRefresh}
             />
           ) : (
             <button 

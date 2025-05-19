@@ -185,6 +185,11 @@ function App() {
     setTasks(prev => [...prev, newTask]);
   };
   
+  // Helper function to get subtasks for a specific task
+  const getTaskSubtasks = (parentId: string): Task[] => {
+    return tasks.filter(t => t.parentId === parentId);
+  };
+
   // Add new subtask
   const addSubtask = (parentId: string, title: string) => {
     // Get parent task to inherit properties
@@ -211,7 +216,20 @@ function App() {
       categories: parentTask.categories, // Inherit categories from parent
     };
 
-    setTasks(prev => [...prev, newSubtask]);
+    setTasks(prev => {
+      const newTasks = [...prev, newSubtask];
+      // Log the current subtasks after adding this one
+      const currentSubtasks = newTasks.filter(t => t.parentId === parentId);
+      console.log(`After adding subtask, parent ${parentId} now has ${currentSubtasks.length} subtasks:`, 
+        currentSubtasks.map(t => t.title));
+      return newTasks;
+    });
+    
+    // Check for confirmation after adding
+    setTimeout(() => {
+      const currentSubtasks = getTaskSubtasks(parentId);
+      console.log(`Verification: parent ${parentId} has ${currentSubtasks.length} subtasks`);
+    }, 100);
   };
 
   // Toggle task completion status

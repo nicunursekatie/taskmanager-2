@@ -9,6 +9,7 @@ interface AITaskBreakdownProps {
   updateTaskDescription?: (id: string, description: string) => void;
   existingSubtasks: Task[];
   setShowAIBreakdown?: (show: boolean) => void;
+  forceRefresh?: () => void;
 }
 
 /**
@@ -20,7 +21,8 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
   addSubtask,
   updateTaskDescription,
   existingSubtasks,
-  setShowAIBreakdown
+  setShowAIBreakdown,
+  forceRefresh
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [generatedSubtasks, setGeneratedSubtasks] = useState<string[]>([]);
@@ -94,14 +96,30 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
         const afterAllSubtasksAdded = () => {
           console.log('All subtasks added, verifying before notifying parent');
           
+          // Force a refresh in the parent to reflect the new subtasks
+          if (forceRefresh) {
+            console.log('Forcing parent refresh to update subtasks list');
+            forceRefresh();
+          }
+          
           // Verify that the subtasks were actually added before proceeding
           setTimeout(() => {
             console.log('Current existingSubtasks:', existingSubtasks.length);
-            // Only proceed if we can confirm subtasks were added or after 2 attempts
+            
+            // Force another refresh to make sure the latest subtasks are displayed
+            if (forceRefresh) {
+              console.log('Forcing another parent refresh');
+              forceRefresh();
+            }
+            
+            // Only proceed if we can confirm subtasks were added or after max attempts
             let checks = 0;
             const maxChecks = 3;
             
             const checkSubtasks = () => {
+              // Force refresh on each check
+              if (forceRefresh) forceRefresh();
+              
               if (existingSubtasks.length > 0 || checks >= maxChecks) {
                 console.log(`Subtasks verified (${existingSubtasks.length}) or max checks reached (${checks}/${maxChecks})`);
                 handleAddSubtasks();
@@ -116,24 +134,19 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
           }, 500);
         };
         
-        // Use a promise chain to add subtasks one by one with a small delay
-        validSubtasks.reduce((promise, subtask, index) => {
-          return promise.then(() => {
-            return new Promise<void>(resolve => {
-              setTimeout(() => {
-                if (subtask.trim()) {
-                  console.log(`Adding subtask ${index + 1}/${validSubtasks.length}:`, subtask);
-                  addSubtask(task.id, subtask.trim());
-                }
-                // If this is the last subtask, call the final callback
-                if (index === validSubtasks.length - 1) {
-                  afterAllSubtasksAdded();
-                }
-                resolve();
-              }, 50 * index); // Stagger with small delay
-            });
-          });
-        }, Promise.resolve());
+        // Add all subtasks in one go to reduce chance of race conditions
+        console.log(`Adding ${validSubtasks.length} subtasks to task ${task.id} all at once`);
+        
+        validSubtasks.forEach((subtask, index) => {
+          if (subtask.trim()) {
+            console.log(`Adding subtask ${index + 1}/${validSubtasks.length}:`, subtask);
+            addSubtask(task.id, subtask.trim());
+          }
+        });
+        
+        // Call the final callback after all subtasks have been added
+        console.log("All subtasks added directly, calling final callback");
+        setTimeout(() => afterAllSubtasksAdded(), 500);
         
         // Don't reset the UI state immediately - keep showing the subtasks to the user
         // This gives users time to see what subtasks were added
@@ -165,14 +178,30 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
       const afterAllSubtasksAdded = () => {
         console.log('All fallback subtasks added, verifying before notifying parent');
         
+        // Force a refresh in the parent to reflect the new subtasks
+        if (forceRefresh) {
+          console.log('Forcing parent refresh to update subtasks list (fallback)');
+          forceRefresh();
+        }
+        
         // Verify that the subtasks were actually added before proceeding
         setTimeout(() => {
-          console.log('Current existingSubtasks:', existingSubtasks.length);
+          console.log('Current existingSubtasks (fallback):', existingSubtasks.length);
+          
+          // Force another refresh to make sure the latest subtasks are displayed
+          if (forceRefresh) {
+            console.log('Forcing another parent refresh (fallback)');
+            forceRefresh();
+          }
+          
           // Only proceed if we can confirm subtasks were added or after max attempts
           let checks = 0;
           const maxChecks = 3;
           
           const checkSubtasks = () => {
+            // Force refresh on each check
+            if (forceRefresh) forceRefresh();
+            
             if (existingSubtasks.length > 0 || checks >= maxChecks) {
               console.log(`Fallback subtasks verified (${existingSubtasks.length}) or max checks reached (${checks}/${maxChecks})`);
               handleAddSubtasks();
@@ -187,16 +216,17 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
         }, 500);
       };
       
-      // Add subtasks automatically
+      // Add all fallback subtasks in one go
+      console.log(`Adding ${fallbackSubtasks.length} fallback subtasks to task ${task.id} all at once`);
+      
       fallbackSubtasks.forEach((subtask, index) => {
-        setTimeout(() => {
-          addSubtask(task.id, subtask);
-          // If this is the last subtask, call the final callback
-          if (index === fallbackSubtasks.length - 1) {
-            afterAllSubtasksAdded();
-          }
-        }, 50 * index);
+        console.log(`Adding fallback subtask ${index + 1}/${fallbackSubtasks.length}:`, subtask);
+        addSubtask(task.id, subtask);
       });
+      
+      // Call the final callback after all subtasks have been added
+      console.log("All fallback subtasks added directly, calling final callback");
+      setTimeout(() => afterAllSubtasksAdded(), 500);
     } finally {
       setIsLoading(false);
     }

@@ -17,6 +17,7 @@ export default function TaskList({
   categories,
   projects,
 }: TaskListProps) {
+  console.log('TaskList rendered with', tasks.length, 'tasks');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
   const [editDueDate, setEditDueDate] = useState<string>('');
@@ -51,7 +52,10 @@ export default function TaskList({
 
   // Get all subtasks for a given parent
   const getSubtasks = (parentId: string): Task[] => {
-    return tasks.filter(t => t.parentId === parentId);
+    const result = tasks.filter(t => t.parentId === parentId);
+    console.log(`getSubtasks(${parentId}) found ${result.length} subtasks:`, 
+      result.map(t => `${t.id}: ${t.title}`));
+    return result;
   };
 
   // Handle subtask creation
