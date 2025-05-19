@@ -1,5 +1,5 @@
 // src/components/ProjectManager.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Project, Category, PriorityLevel } from '../types';
 
 type ProjectManagerProps = {
@@ -8,6 +8,7 @@ type ProjectManagerProps = {
   addProject: (project: Omit<Project, 'id'>) => void;
   updateProject: (id: string, project: Omit<Project, 'id'>) => void;
   deleteProject: (id: string) => void;
+  editingProject: Project | null;
   onClose: () => void;
 };
 
@@ -17,6 +18,7 @@ export default function ProjectManager({
   addProject,
   updateProject,
   deleteProject,
+  editingProject,
   onClose,
 }: ProjectManagerProps) {
   // State for new project form
@@ -29,7 +31,6 @@ export default function ProjectManager({
   const [newStatus, setNewStatus] = useState<Project['status']>('not-started');
 
   // State for editing projects
-  const [editId, setEditId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
   const [editDescription, setEditDescription] = useState('');
   const [editColor, setEditColor] = useState('');
@@ -37,6 +38,27 @@ export default function ProjectManager({
   const [editPriority, setEditPriority] = useState<PriorityLevel | null>(null);
   const [editCategoryIds, setEditCategoryIds] = useState<string[]>([]);
   const [editStatus, setEditStatus] = useState<Project['status']>('not-started');
+
+  // Initialize edit state from editingProject
+  useEffect(() => {
+    if (editingProject) {
+      setEditName(editingProject.name);
+      setEditDescription(editingProject.description || '');
+      setEditColor(editingProject.color || '#4361ee');
+      setEditDueDate(editingProject.dueDate ? editingProject.dueDate.split('T')[0] : '');
+      setEditPriority(editingProject.priority || null);
+      setEditCategoryIds(editingProject.categoryIds || []);
+      setEditStatus(editingProject.status || 'not-started');
+    } else {
+      setEditName('');
+      setEditDescription('');
+      setEditColor('#4361ee');
+      setEditDueDate('');
+      setEditPriority(null);
+      setEditCategoryIds([]);
+      setEditStatus('not-started');
+    }
+  }, [editingProject]);
 
   const handleAddProject = (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,19 +90,8 @@ export default function ProjectManager({
     setNewStatus('not-started');
   };
 
-  const startEditing = (project: Project) => {
-    setEditId(project.id);
-    setEditName(project.name);
-    setEditDescription(project.description || '');
-    setEditColor(project.color || '#4361ee');
-    setEditDueDate(project.dueDate ? project.dueDate.split('T')[0] : '');
-    setEditPriority(project.priority || null);
-    setEditCategoryIds(project.categoryIds || []);
-    setEditStatus(project.status || 'not-started');
-  };
-
   const handleUpdateProject = () => {
-    if (!editId || !editName.trim()) return;
+    if (!editName.trim()) return;
 
     // Format due date properly if provided
     let formattedDueDate = null;
@@ -88,7 +99,7 @@ export default function ProjectManager({
       formattedDueDate = `${editDueDate}T00:00:00Z`;
     }
 
-    updateProject(editId, {
+    updateProject(editingProject!.id, {
       name: editName.trim(),
       description: editDescription.trim(),
       color: editColor,
@@ -98,7 +109,14 @@ export default function ProjectManager({
       status: editStatus
     });
 
-    setEditId(null);
+    // Reset form
+    setEditName('');
+    setEditDescription('');
+    setEditColor('#4361ee');
+    setEditDueDate('');
+    setEditPriority(null);
+    setEditCategoryIds([]);
+    setEditStatus('not-started');
   };
 
   // Helper function to toggle category selection
@@ -128,7 +146,7 @@ export default function ProjectManager({
         
         <div className="modal-body">
           {/* Only show Add New Project form when not editing */}
-          {editId === null && (
+          {editingProject === null && (
             <form onSubmit={handleAddProject} className="project-form">
               <h3 className="form-section-title">Add New Project</h3>
 
@@ -279,7 +297,7 @@ export default function ProjectManager({
           <div className="item-list">
             {projects.map((project) => (
               <div key={project.id} className="item-card">
-                {editId === project.id ? (
+                {editingProject === project ? (
                   <div className="project-edit-form">
                     <div className="form-row">
                       <div className="input-group flex-grow">
@@ -423,7 +441,7 @@ export default function ProjectManager({
                       <button
                         type="button"
                         className="btn btn-outline"
-                        onClick={() => setEditId(null)}
+                        onClick={onClose}
                       >
                         Cancel
                       </button>
@@ -441,12 +459,6 @@ export default function ProjectManager({
                         )}
                       </div>
                       <div className="flex gap-sm">
-                        <button
-                          className="px-5 py-2 rounded-lg font-semibold text-base transition shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 bg-primary text-white hover:bg-primary-dark active:bg-primary-dark"
-                          onClick={() => startEditing(project)}
-                        >
-                          Edit
-                        </button>
                         <button
                           className="px-5 py-2 rounded-lg font-semibold text-base transition shadow-sm focus:outline-none focus:ring-2 focus:ring-danger focus:ring-offset-2 bg-danger text-white hover:bg-danger/90 active:bg-danger/80"
                           onClick={() => deleteProject(project.id)}

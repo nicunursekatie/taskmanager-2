@@ -119,6 +119,7 @@ function App() {
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [showProjectManager, setShowProjectManager] = useState(false);
+  const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [showImportExport, setShowImportExport] = useState(false);
   const [showTaskEditModal, setShowTaskEditModal] = useState(false);
 
@@ -1053,7 +1054,10 @@ function App() {
                 <h2 className="view-title">Projects</h2>
                 <button
                   className="btn btn-primary"
-                  onClick={() => setShowProjectManager(true)}
+                  onClick={() => {
+                    setEditingProject(null);
+                    setShowProjectManager(true);
+                  }}
                 >
                   <span className="icon">+</span> New Project
                 </button>
@@ -1068,7 +1072,7 @@ function App() {
                           <button
                             className="btn btn-sm btn-outline"
                             onClick={() => {
-                              // Open project edit modal
+                              setEditingProject(project);
                               setShowProjectManager(true);
                             }}
                           >
@@ -1577,7 +1581,11 @@ function App() {
           addProject={addProject}
           updateProject={updateProject}
           deleteProject={deleteProject}
-          onClose={() => setShowProjectManager(false)}
+          editingProject={editingProject}
+          onClose={() => {
+            setShowProjectManager(false);
+            setEditingProject(null);
+          }}
         />
       )}
 
