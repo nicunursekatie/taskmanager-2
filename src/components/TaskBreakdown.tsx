@@ -29,15 +29,28 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
   
   // Force a refresh of subtasks when explicitly triggered by a child component
   const forceRefresh = () => {
-    console.log('Force refresh triggered');
+    console.log('Force refresh triggered in TaskBreakdown');
+    
+    // Check localStorage first to see what's actually been persisted
+    try {
+      const stored = localStorage.getItem('tasks');
+      if (stored) {
+        const parsedTasks = JSON.parse(stored);
+        const storedSubtasks = parsedTasks.filter(t => t.parentId === task.id);
+        console.log(`TaskBreakdown localStorage check: parent ${task.id} has ${storedSubtasks.length} subtasks`);
+        storedSubtasks.forEach((st, idx) => {
+          console.log(`  ${idx+1}. "${st.title}" (ID: ${st.id})`);
+        });
+      }
+    } catch (e) {
+      console.error('Error checking localStorage in TaskBreakdown:', e);
+    }
+    
     // Update the refresh counter to trigger a re-render
     setRefreshCounter(prev => prev + 1);
     
-    // Also log current subtasks to verify
-    console.log('Current subtasks after refresh:', subtasks.length);
-    subtasks.forEach((st, idx) => {
-      console.log(`  ${idx+1}. "${st.title}" (ID: ${st.id}, parentID: ${st.parentId})`);
-    });
+    // Also log passed subtasks to verify
+    console.log('Current subtasks array in props:', subtasks.length);
   };
   
   // Reset state when subtasks change
@@ -152,15 +165,32 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
             <AITaskBreakdown 
               task={task} 
               addSubtask={(parentId, title) => {
-                console.log('Adding subtask from TaskBreakdown:', title);
-                // Add the subtask with a wrapper that ensures the UI updates
-                addSubtask(parentId, title);
+                console.log('Adding subtask from TaskBreakdown wrapper:', title);
                 
-                // Force refresh after a small delay to ensure React state has updated
+                // Call the passed addSubtask function
+                const subtaskId = addSubtask(parentId, title);
+                console.log('Added subtask with ID:', subtaskId);
+                
+                // Force an immediate forceRefresh
+                forceRefresh();
+                
+                // Force another refresh after a short delay
                 setTimeout(() => {
                   forceRefresh();
-                  console.log('Force refreshed after adding subtask');
-                }, 50);
+                  console.log('Forced second refresh after delay');
+                  
+                  // Try reloading all tasks from localStorage
+                  try {
+                    const stored = localStorage.getItem('tasks');
+                    if (stored) {
+                      const parsedTasks = JSON.parse(stored);
+                      const parentSubtasks = parsedTasks.filter(t => t.parentId === parentId);
+                      console.log(`Recheck - parent ${parentId} has ${parentSubtasks.length} subtasks in localStorage`);
+                    }
+                  } catch (e) {
+                    console.error('Error rechecking localStorage:', e);
+                  }
+                }, 250);
               }}
               updateTaskDescription={updateTaskDescription}
               existingSubtasks={subtasks}

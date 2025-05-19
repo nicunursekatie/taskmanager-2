@@ -72,15 +72,40 @@ function App() {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      } catch {}
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          console.log(`Loaded ${parsed.length} tasks from localStorage on startup`);
+          return parsed;
+        }
+      } catch (e) {
+        console.error('Error parsing tasks from localStorage:', e);
+      }
     }
     // Return empty array instead of preloaded data
+    console.log('No tasks found in localStorage, starting with empty array');
     return [];
   });
   
+  // Function to reload tasks directly from localStorage
+  const reloadTasksFromStorage = () => {
+    try {
+      const saved = localStorage.getItem('tasks');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          console.log(`Reloading ${parsed.length} tasks from localStorage`);
+          setTasks(parsed);
+          return true;
+        }
+      }
+    } catch (e) {
+      console.error('Error reloading tasks from localStorage:', e);
+    }
+    return false;
+  };
+  
   // Save tasks to localStorage when they change
   useEffect(() => {
+    console.log('Tasks changed, saving to localStorage:', tasks.length);
     localStorage.setItem('tasks', JSON.stringify(tasks));
   }, [tasks]);
   
@@ -190,62 +215,85 @@ function App() {
     return tasks.filter(t => t.parentId === parentId);
   };
 
-  // Add new subtask
+  // Add new subtask with direct localStorage persistence
   const addSubtask = (parentId: string, title: string) => {
+    console.log(`DIRECT addSubtask called with parentId=${parentId}, title="${title}"`);
+    
     // Get parent task to inherit properties
     const parentTask = tasks.find(t => t.id === parentId);
-
     if (!parentTask) {
-      console.error("Parent task not found");
+      console.error("Parent task not found for ID:", parentId);
       return;
     }
-
-    // Create a unique ID with time and random component to avoid collisions
-    // when creating multiple subtasks in quick succession
-    const uniqueId = Date.now().toString() + '-' + Math.floor(Math.random() * 1000);
-    console.log('Creating new subtask with ID:', uniqueId, 'title:', title, 'for parent:', parentId);
     
+    // Create a unique ID that avoids collisions
+    const uniqueId = `st_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+    
+    // Create the new subtask
     const newSubtask: Task = {
       id: uniqueId,
       title,
       status: 'pending',
-      parentId, // Set the parent ID
+      parentId,
       // Inherit properties from parent
-      dueDate: parentTask.dueDate, // Inherit due date from parent
-      dueTime: parentTask.dueTime, // Inherit due time from parent
-      projectId: parentTask.projectId, // Inherit project from parent
-      categories: parentTask.categories, // Inherit categories from parent
+      dueDate: parentTask.dueDate,
+      dueTime: parentTask.dueTime,
+      projectId: parentTask.projectId,
+      categories: parentTask.categories,
     };
-
-    setTasks(prev => {
-      const newTasks = [...prev, newSubtask];
-      // Log the current subtasks after adding this one
-      const currentSubtasks = newTasks.filter(t => t.parentId === parentId);
-      console.log(`After adding subtask, parent ${parentId} now has ${currentSubtasks.length} subtasks:`, 
-        currentSubtasks.map(t => t.title));
-      
-      // Force localStorage update immediately
-      localStorage.setItem('tasks', JSON.stringify(newTasks));
-      return newTasks;
-    });
     
-    // Check for confirmation after adding
+    console.log("Created new subtask object:", JSON.stringify(newSubtask));
+    
+    // First get existing tasks from localStorage to make sure we have the latest
+    let currentTasks: Task[] = [];
+    try {
+      const stored = localStorage.getItem('tasks');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) {
+          currentTasks = parsed;
+        }
+      }
+    } catch (e) {
+      console.error("Error reading current tasks from localStorage:", e);
+      // Fall back to the tasks in state
+      currentTasks = [...tasks];
+    }
+    
+    // Add our new subtask
+    const updatedTasks = [...currentTasks, newSubtask];
+    
+    // Log before saving
+    console.log(`Before saving: ${currentTasks.length} tasks → ${updatedTasks.length} tasks`);
+    
+    // Save directly to localStorage first
+    try {
+      localStorage.setItem('tasks', JSON.stringify(updatedTasks));
+      console.log("SAVED TO LOCALSTORAGE:", updatedTasks.length, "tasks");
+    } catch (e) {
+      console.error("Error saving to localStorage:", e);
+    }
+    
+    // Now reload the tasks from localStorage to ensure consistency
+    reloadTasksFromStorage();
+    
+    // For good measure, double check after a delay
     setTimeout(() => {
-      const currentSubtasks = getTaskSubtasks(parentId);
-      console.log(`Verification: parent ${parentId} has ${currentSubtasks.length} subtasks`);
+      reloadTasksFromStorage();
       
-      // Double-check localStorage
       try {
         const stored = localStorage.getItem('tasks');
         if (stored) {
           const parsedTasks = JSON.parse(stored);
           const storedSubtasks = parsedTasks.filter((t: Task) => t.parentId === parentId);
-          console.log(`LocalStorage verification: parent ${parentId} has ${storedSubtasks.length} subtasks in localStorage`);
+          console.log(`VERIFICATION: parent ${parentId} has ${storedSubtasks.length} subtasks in localStorage`);
         }
       } catch (e) {
-        console.error('Error verifying localStorage:', e);
+        console.error('Error in verification:', e);
       }
-    }, 100);
+    }, 300);
+    
+    return uniqueId; // Return the ID of the created subtask
   };
 
   // Toggle task completion status
