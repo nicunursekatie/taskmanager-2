@@ -609,37 +609,37 @@ function App() {
         <h1 className="text-3xl font-extrabold text-primary tracking-tight relative after:absolute after:left-0 after:-bottom-1 after:w-16 after:h-1 after:bg-primary-light after:rounded-full after:content-['']">Task Manager</h1>
         <nav className="flex gap-2 ml-8">
           <button 
-            className={`px-4 py-2 rounded-lg font-semibold transition text-text hover:bg-primary/10 hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary ${activeTab === 'dashboard' ? 'bg-primary text-white shadow' : ''}`}
+            className={`px-4 py-2 rounded-md font-bold transition focus:outline-none focus:ring-2 focus:ring-primary ${activeTab === 'dashboard' ? 'bg-primary text-white shadow' : 'bg-white text-gray-600 border border-border font-medium hover:bg-gray-100 hover:text-primary'}`}
             onClick={() => setActiveTab('dashboard')}
           >
             Dashboard
           </button>
           <button 
-            className={`px-4 py-2 rounded-lg font-semibold transition text-text hover:bg-primary/10 hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary ${activeTab === 'all-tasks' ? 'bg-primary text-white shadow' : ''}`}
+            className={`px-4 py-2 rounded-md font-bold transition focus:outline-none focus:ring-2 focus:ring-primary ${activeTab === 'all-tasks' ? 'bg-primary text-white shadow' : 'bg-white text-gray-600 border border-border font-medium hover:bg-gray-100 hover:text-primary'}`}
             onClick={() => setActiveTab('all-tasks')}
           >
             All Tasks
           </button>
           <button 
-            className={`px-4 py-2 rounded-lg font-semibold transition text-text hover:bg-primary/10 hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary ${activeTab === 'projects' ? 'bg-primary text-white shadow' : ''}`}
+            className={`px-4 py-2 rounded-md font-bold transition focus:outline-none focus:ring-2 focus:ring-primary ${activeTab === 'projects' ? 'bg-primary text-white shadow' : 'bg-white text-gray-600 border border-border font-medium hover:bg-gray-100 hover:text-primary'}`}
             onClick={() => setActiveTab('projects')}
           >
             Projects
           </button>
           <button 
-            className={`px-4 py-2 rounded-lg font-semibold transition text-text hover:bg-primary/10 hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary ${activeTab === 'categories' ? 'bg-primary text-white shadow' : ''}`}
+            className={`px-4 py-2 rounded-md font-bold transition focus:outline-none focus:ring-2 focus:ring-primary ${activeTab === 'categories' ? 'bg-primary text-white shadow' : 'bg-white text-gray-600 border border-border font-medium hover:bg-gray-100 hover:text-primary'}`}
             onClick={() => setActiveTab('categories')}
           >
             Categories
           </button>
           <button 
-            className={`px-4 py-2 rounded-lg font-semibold transition text-text hover:bg-primary/10 hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary ${activeTab === 'calendar' ? 'bg-primary text-white shadow' : ''}`}
+            className={`px-4 py-2 rounded-md font-bold transition focus:outline-none focus:ring-2 focus:ring-primary ${activeTab === 'calendar' ? 'bg-primary text-white shadow' : 'bg-white text-gray-600 border border-border font-medium hover:bg-gray-100 hover:text-primary'}`}
             onClick={() => setActiveTab('calendar')}
           >
             Calendar
           </button>
           <button 
-            className={`px-4 py-2 rounded-lg font-semibold transition text-text hover:bg-primary/10 hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary ${activeTab === 'daily-planner' ? 'bg-primary text-white shadow' : ''}`}
+            className={`px-4 py-2 rounded-md font-bold transition focus:outline-none focus:ring-2 focus:ring-primary ${activeTab === 'daily-planner' ? 'bg-primary text-white shadow' : 'bg-white text-gray-600 border border-border font-medium hover:bg-gray-100 hover:text-primary'}`}
             onClick={() => setActiveTab('daily-planner')}
           >
             Daily Planner
