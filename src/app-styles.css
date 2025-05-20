@@ -323,7 +323,8 @@ body {
 }
 
 .project-card {
-  background-color: var(--card-bg);
+  background-color: #fff !important;
+  color: #222 !important;
   border-radius: var(--border-radius);
   padding: var(--space-md);
   box-shadow: var(--shadow-md);
