@@ -455,7 +455,7 @@ export default function TaskList({
                 
                 <div className="task-actions">
                   <button 
-                    className="btn btn-sm btn-outline"
+                    className="btn btn-sm btn-outline text-primary border-primary"
                     onClick={() => {
                       // Automatically expand the task when adding a subtask
                       if (collapsedTasks[task.id]) {
