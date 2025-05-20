@@ -437,7 +437,8 @@ export default function TaskList({
                   )}
                   
                   <h3 
-                    className={`task-title text-text ${task.status === 'completed' ? 'completed' : ''}`}
+                    className={`task-title ${task.status === 'completed' ? 'completed' : ''}`}
+                    style={{ color: task.status === 'completed' ? '#888' : '#222', fontWeight: 500 }}
                     onClick={() => {
                       setEditingId(task.id);
                       setEditTitle(task.title);
@@ -477,7 +478,7 @@ export default function TaskList({
               
               <div className="task-meta">
                 {task.dueDate && (
-                  <span className="task-date text-text-light">
+                  <span className="task-date" style={{ color: '#444' }}>
                     {/* Apply consistent date formatting with timezone handling */}
                     {new Date(task.dueDate).toLocaleDateString(undefined, {
                       year: 'numeric',
@@ -495,7 +496,7 @@ export default function TaskList({
 
                 {/* Display priority indicator */}
                 {task.priority && (
-                  <span className={`priority-badge ${task.priority} text-text`}>
+                  <span className={`priority-badge ${task.priority}`} style={{ color: '#222' }}>
                     {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
                   </span>
                 )}
@@ -516,8 +517,8 @@ export default function TaskList({
                     return category ? (
                       <span
                         key={categoryId}
-                        className="task-category text-white"
-                        style={{ backgroundColor: category.color }}
+                        className="task-category"
+                        style={{ backgroundColor: category.color, color: '#fff' }}
                       >
                         {category.name}
                       </span>
@@ -526,7 +527,7 @@ export default function TaskList({
                 }
 
                 {task.projectId && (
-                  <span className="task-project text-primary">
+                  <span className="task-project" style={{ color: '#4361ee' }}>
                     {projects.find(p => p.id === task.projectId)?.name || 'Unknown Project'}
                   </span>
                 )}
