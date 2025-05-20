@@ -673,7 +673,7 @@ function App() {
             tasks={tasks}
             toggleTask={toggleTask}
             deleteTask={deleteTask}
-            updateTask={updateTask}
+            updateTask={(id: string, title: string, dueDate: string | null, categories?: string[], projectId?: string | null, dependsOn?: string[], priority?: PriorityLevel | null) => updateTask(id, title, dueDate, categories, projectId, dependsOn, priority)}
             addSubtask={addSubtask}
             categories={categories}
             projects={projects}
@@ -914,7 +914,7 @@ function App() {
                     return (
                       <div
                         key={project.id}
-                        className={`bg-background border border-border rounded-md shadow-sm p-3 mb-4 flex flex-col gap-2 ${urgencyClass}`}
+                        className={`bg-white border border-border rounded-md shadow-sm p-3 mb-4 flex flex-col gap-2 ${urgencyClass}`}
                         onClick={() => {
                           setActiveTab('projects');
                           setTimeout(() => {
@@ -1522,8 +1522,8 @@ function App() {
                   )}
                 </div>
               </div>
-            );
-          })()}
+            </div>
+          )}
         </div>
         </>
         )}
