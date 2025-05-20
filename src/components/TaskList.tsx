@@ -437,7 +437,7 @@ export default function TaskList({
                   )}
                   
                   <h3 
-                    className={`task-title ${task.status === 'completed' ? 'completed' : ''}`}
+                    className={`task-title text-text ${task.status === 'completed' ? 'completed' : ''}`}
                     onClick={() => {
                       setEditingId(task.id);
                       setEditTitle(task.title);
@@ -477,7 +477,7 @@ export default function TaskList({
               
               <div className="task-meta">
                 {task.dueDate && (
-                  <span className="task-date">
+                  <span className="task-date text-text-light">
                     {/* Apply consistent date formatting with timezone handling */}
                     {new Date(task.dueDate).toLocaleDateString(undefined, {
                       year: 'numeric',
@@ -495,7 +495,7 @@ export default function TaskList({
 
                 {/* Display priority indicator */}
                 {task.priority && (
-                  <span className={`priority-badge ${task.priority}`}>
+                  <span className={`priority-badge ${task.priority} text-text`}>
                     {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
                   </span>
                 )}
@@ -516,7 +516,7 @@ export default function TaskList({
                     return category ? (
                       <span
                         key={categoryId}
-                        className="task-category"
+                        className="task-category text-white"
                         style={{ backgroundColor: category.color }}
                       >
                         {category.name}
@@ -526,7 +526,7 @@ export default function TaskList({
                 }
 
                 {task.projectId && (
-                  <span className="task-project">
+                  <span className="task-project text-primary">
                     {projects.find(p => p.id === task.projectId)?.name || 'Unknown Project'}
                   </span>
                 )}
