@@ -3119,3 +3119,9 @@ input[type="checkbox"] {
   color: var(--text-light);
   font-size: 0.9em;
 }
+
+.project-quick-add input[type="text"] {
+  background-color: #fff !important;
+  color: #222 !important;
+  border: 1px solid #d8e0e9 !important;
+}
