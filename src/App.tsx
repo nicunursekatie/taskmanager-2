@@ -13,6 +13,7 @@ import './styles/focus-mode.css';
 import './styles/time-estimator.css';
 import './styles/reminders.css';
 import './styles/task-highlights.css';
+import { useCategories } from './hooks/useCategories';
 
 // Component imports
 import TaskList from './components/TaskList';
@@ -117,16 +118,13 @@ function App() {
   } = useTimeBlocks();
 
   // Categories state
-  const [categories, setCategories] = useState<Category[]>(() => {
-    const saved = localStorage.getItem('categories');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      } catch {}
-    }
-    return [];
-  });
+  const {
+    categories,
+    setCategories,
+    addCategory,
+    updateCategory,
+    deleteCategory
+  } = useCategories(setTasks);
 
   // Save categories to localStorage when they change
   useEffect(() => {
@@ -142,37 +140,7 @@ function App() {
     deleteProject
   } = useProjects(setTasks);
 
-  // Add a new category
-  const addCategory = (category: Omit<Category, 'id'>) => {
-    const id = Date.now().toString();
-    const newCategory: Category = { id, ...category };
-    setCategories(prev => [...prev, newCategory]);
-  };
 
-  // Update a category
-  const updateCategory = (id: string, category: Omit<Category, 'id'>) => {
-    setCategories(prev =>
-      prev.map(cat =>
-        cat.id === id
-          ? { ...cat, ...category }
-          : cat
-      )
-    );
-  };
-
-  // Delete a category
-  const deleteCategory = (id: string) => {
-    // Remove the category from all tasks
-    setTasks(prev =>
-      prev.map(task => ({
-        ...task,
-        categories: task.categories ? task.categories.filter(catId => catId !== id) : []
-      }))
-    );
-
-    // Remove the category itself
-    setCategories(prev => prev.filter(cat => cat.id !== id));
-  };
 
   // Start editing a category
   const startEditing = (category: Category) => {
