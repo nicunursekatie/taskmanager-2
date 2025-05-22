@@ -115,3 +115,13 @@ body {
   color: var(--primary-color);
   border-color: var(--primary-color);
 }
+
+.main-wrapper {
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 20px;
+  padding-right: 20px;
+  width: 100%;
+  box-sizing: border-box;
+}
