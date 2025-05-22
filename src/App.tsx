@@ -329,7 +329,7 @@ function App() {
           />
         </div>
       </header>
-      <main style={{ maxWidth: '1600px', background: 'lightpink' }} className="w-full mx-auto px-8 py-10">
+      <main className="w-full px-8 py-10">
         {/* Render Focus Mode when active, otherwise show normal UI */}
         {focusModeActive ? (
           <FocusMode
