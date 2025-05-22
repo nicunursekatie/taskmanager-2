@@ -91,3 +91,16 @@
     color: rgba(255, 255, 255, 0.95) !important;
   }
 }
+
+/* Fix invisible text in compact category cards */
+.compact-category-card,
+.compact-category-card * {
+  color: #222 !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  .compact-category-card,
+  .compact-category-card * {
+    color: rgba(255, 255, 255, 0.95) !important;
+  }
+}
