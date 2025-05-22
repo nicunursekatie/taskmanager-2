@@ -713,7 +713,7 @@ function App() {
           {/* Projects View */}
           {activeTab === 'projects' && (
             <div className="projects-view">
-              <div className="projects-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="projects-grid">
                 {projects.length > 0 ? (
                   projects.map((project) => (
                     <div id={`project-${project.id}`} key={project.id} className="project-card">
@@ -813,49 +813,6 @@ function App() {
                     >
                       Create Project
                     </button>
-                  </div>
-                )}
-                
-                {/* No Project Tasks Section */}
-                {tasks.filter(t => !t.projectId).length > 0 && (
-                  <div id="unassigned-tasks" className="project-card no-project-card">
-                    <div className="project-header">
-                      <h2 className="project-title">Unassigned Tasks</h2>
-                    </div>
-                    
-                    <div className="project-task-section">
-                      <h3 className="task-section-title">Tasks</h3>
-                      {tasks.filter(t => !t.projectId && t.status !== 'completed').length > 0 ? (
-                        <TaskList 
-                          tasks={tasks.filter(t => !t.projectId && t.status !== 'completed')} 
-                          toggleTask={toggleTask} 
-                          deleteTask={deleteTask} 
-                          updateTask={updateTask}
-                          updateTaskDescription={updateTaskDescription}
-                          addSubtask={addSubtask}
-                          categories={categories}
-                          projects={projects}
-                        />
-                      ) : (
-                        <p className="empty-message">No unassigned tasks</p>
-                      )}
-                    </div>
-                    
-                    {tasks.filter(t => !t.projectId && t.status === 'completed').length > 0 && (
-                      <div className="project-task-section">
-                        <h3 className="task-section-title">Completed</h3>
-                        <TaskList 
-                          tasks={tasks.filter(t => !t.projectId && t.status === 'completed')} 
-                          toggleTask={toggleTask} 
-                          deleteTask={deleteTask} 
-                          updateTask={updateTask}
-                          updateTaskDescription={updateTaskDescription}
-                          addSubtask={addSubtask}
-                          categories={categories}
-                          projects={projects}
-                        />
-                      </div>
-                    )}
                   </div>
                 )}
               </div>

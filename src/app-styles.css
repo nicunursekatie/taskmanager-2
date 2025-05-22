@@ -133,9 +133,9 @@ body {
 }
 
 .projects-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 24px;
+  display: grid !important;
+  grid-template-columns: 1fr 1fr 1fr !important;
+  gap: 24px !important;
 }
 
 @media (min-width: 768px) {
@@ -160,6 +160,8 @@ body {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  min-height: 340px;
+  justify-content: space-between;
 }
 
 body {
@@ -210,8 +212,6 @@ body {
 
 /* Make all main content areas consistent */
 main, .content-area, .projects-view, .dashboard-view, .all-tasks-view {
-  width: 100vw !important;
-  max-width: 100vw !important;
   margin: 0 !important;
   padding: 0 24px !important;
   box-sizing: border-box !important;
@@ -225,4 +225,19 @@ main, .content-area, .projects-view, .dashboard-view, .all-tasks-view {
 .project-card textarea {
   background: #fff !important;
   color: #222 !important;
+}
+
+.project-quick-add {
+  margin-top: auto;
+  padding-top: 12px;
+}
+
+.project-quick-add form {
+  display: flex;
+  gap: 8px;
+}
+
+.project-quick-add input[type="text"] {
+  flex: 1;
+  min-width: 0;
 }
