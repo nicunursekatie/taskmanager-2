@@ -160,7 +160,7 @@ export default function CategoryManager({
             ))}
             
             {categories.length === 0 && (
-              <div className="text-center text-light mt-lg">
+              <div className="text-center">
                 No categories yet. Add one above to get started.
               </div>
             )}

@@ -179,7 +179,7 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
                 placeholder="Add a step to break down this task..."
                 className="flex-1 border border-gray-300 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               />
-              <button type="submit" className="px-4 py-1 rounded-md font-semibold bg-primary text-white hover:bg-primary-dark text-sm transition">
+              <button type="submit" className="px-4 py-1 rounded-md font-semibold bg-primary text-sm transition">
                 Add Step
               </button>
             </form>

@@ -268,7 +268,7 @@ function App() {
   return (
     <div className="min-h-screen bg-background font-sans">
       {/* Top Navigation */}
-      <header className="sticky top-0 z-30 bg-card shadow-md flex items-center justify-between px-8 py-4 border-b border-border">
+      <header className="sticky top-0 z-30 shadow-md flex items-center justify-between px-8 py-4 border-b border-border">
         <h1 className="text-3xl font-extrabold text-primary tracking-tight relative after:absolute after:left-0 after:-bottom-1 after:w-16 after:h-1 after:bg-primary-light after:rounded-full after:content-['']">Task Manager</h1>
         <nav className="flex gap-2 ml-8">
           <button 
@@ -345,7 +345,7 @@ function App() {
         ) : (
           <>
         {/* Capture Bar */}
-        <div className="bg-card rounded-2xl shadow-lg p-8 mb-8">
+        <div className="rounded-2xl shadow-lg p-8 mb-8">
           <form className="flex flex-wrap gap-4 items-start" onSubmit={handleTaskSubmit}>
             <div className="flex-1 min-w-[300px]">
               <input
@@ -612,7 +612,7 @@ function App() {
                             <div 
                               className="h-full bg-primary transition-all duration-300"
                               style={{ width: `${progressPercentage}%` }}
-                            />
+                            ></div>
                           </div>
                           <p className="text-sm text-text-light mt-1">{progressPercentage}% complete</p>
                         </div>
@@ -713,19 +713,7 @@ function App() {
           {/* Projects View */}
           {activeTab === 'projects' && (
             <div className="projects-view">
-              <div className="view-header">
-                <h2 className="view-title">Projects</h2>
-                <button
-                  className="btn btn-primary"
-                  onClick={() => {
-                    setEditingProject(null);
-                    setShowProjectManager(true);
-                  }}
-                >
-                  <span className="icon">+</span> New Project
-                </button>
-              </div>
-              <div className="projects-grid">
+              <div className="projects-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {projects.length > 0 ? (
                   projects.map((project) => (
                     <div id={`project-${project.id}`} key={project.id} className="project-card">
@@ -808,10 +796,10 @@ function App() {
                         }}>
                           <input 
                             type="text" 
-                            className="form-control"
+                            className="form-control text-gray-900"
                             placeholder={`Add task to ${project.name}...`}
                           />
-                          <button type="submit" className="btn btn-sm btn-primary">Add</button>
+                          <button type="submit" className="btn btn-sm btn-primary text-white">Add</button>
                         </form>
                       </div>
                     </div>
@@ -905,12 +893,6 @@ function App() {
                       project.categoryIds && project.categoryIds.includes(category.id)
                     ).length;
 
-                    // Generate a lighter version of the category color for the background
-                    const bgColorStyle = {
-                      backgroundColor: `${category.color}15`, // 15 is hex for 8% opacity
-                      borderColor: category.color
-                    };
-
                     // Find the most recent active task (if any)
                     const recentTasks = tasks
                       .filter(t => t.categories?.includes(category.id) && t.status !== 'completed')
@@ -921,7 +903,6 @@ function App() {
                       <div
                         key={category.id}
                         className="compact-category-card"
-                        style={bgColorStyle}
                         onClick={() => {
                           console.log("Setting selected category ID to:", category.id);
                           setSelectedCategoryId(category.id);
