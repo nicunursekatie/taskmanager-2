@@ -48,6 +48,7 @@ function App() {
   
   const {
     tasks,
+    setTasks,
     addTask,
     toggleTask,
     deleteTask,
@@ -58,7 +59,7 @@ function App() {
     updateTaskEstimate,
     startTaskTimer,
     completeTaskTimer,
-    updateTaskDescription // ← this is the fix
+    updateTaskDescription
   } = useTasks();
 
   // Check API key status on component mount (with error handling)
