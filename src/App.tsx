@@ -108,7 +108,7 @@ function App() {
   const [editTaskProjectId, setEditTaskProjectId] = useState<string | null>(null);
   const [editTaskPriority, setEditTaskPriority] = useState<PriorityLevel | null>(null);
   
-  // Time blocks state
+  // Time blocks state (from useTimeBlocks hook)
   const {
     timeBlocks,
     currentDate,
