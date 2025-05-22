@@ -1,6 +1,7 @@
 // src/App.tsx
 import { useState, useEffect, useRef } from 'react';
 import { useTasks } from './hooks/useTasks';
+import { useProjects } from './hooks/useProjects';
 import './styles/calendar-view.css';
 import './compact-styles.css';
 import './app-styles.css';
@@ -132,55 +133,13 @@ function App() {
   }, [categories]);
   
   // Projects state
-  const [projects, setProjects] = useState<Project[]>(() => {
-    const saved = localStorage.getItem('projects');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      } catch {}
-    }
-    return [];
-  });
-
-  // Save projects to localStorage when they change
-  useEffect(() => {
-    localStorage.setItem('projects', JSON.stringify(projects));
-  }, [projects]);
-  
-  
-  // Add a new project
-  const addProject = (project: Omit<Project, 'id'>) => {
-    const id = Date.now().toString();
-    const newProject: Project = { id, ...project };
-    setProjects(prev => [...prev, newProject]);
-  };
-
-  // Update a project
-  const updateProject = (id: string, project: Omit<Project, 'id'>) => {
-    setProjects(prev =>
-      prev.map(p =>
-        p.id === id
-          ? { ...p, ...project }
-          : p
-      )
-    );
-  };
-
-  // Delete a project
-  const deleteProject = (id: string) => {
-    // Update tasks that were associated with this project
-    setTasks(prev =>
-      prev.map(task =>
-        task.projectId === id
-          ? { ...task, projectId: null }
-          : task
-      )
-    );
-    
-    // Remove the project
-    setProjects(prev => prev.filter(p => p.id !== id));
-  };
+  const {
+    projects,
+    setProjects,
+    addProject,
+    updateProject,
+    deleteProject
+  } = useProjects(setTasks);
 
   // Add a new category
   const addCategory = (category: Omit<Category, 'id'>) => {
