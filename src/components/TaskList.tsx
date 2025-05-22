@@ -198,7 +198,7 @@ export default function TaskList({
         className={
           [
             depth === 0
-              ? "bg-white rounded-xl shadow-md p-6 mb-6 border border-gray-100 hover:shadow-lg transition-all"
+              ? "task-list-item py-2 px-0 border-b border-gray-200 last:border-b-0"
               : "bg-blue-50 border-l-4 border-blue-400 rounded-md mt-1 mb-2 ml-4 p-3",
           ].join(' ')
         }
