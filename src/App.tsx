@@ -58,8 +58,10 @@ function App() {
     updateTaskPriority,
     updateTaskEstimate,
     startTaskTimer,
-    completeTaskTimer
+    completeTaskTimer,
+    updateTaskDescription // ← this is the fix
   } = useTasks();
+  
   // Check API key status on component mount (with error handling)
   useEffect(() => {
     try {
