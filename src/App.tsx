@@ -48,7 +48,6 @@ function App() {
   
   const {
     tasks,
-    setTasks,
     addTask,
     toggleTask,
     deleteTask,
@@ -329,7 +328,7 @@ function App() {
           />
         </div>
       </header>
-      <main className="max-w-7xl mx-auto w-full px-4 py-8">
+      <main style={{ maxWidth: '1600px', background: 'lightpink' }} className="w-full mx-auto px-8 py-10">
         {/* Render Focus Mode when active, otherwise show normal UI */}
         {focusModeActive ? (
           <FocusMode
