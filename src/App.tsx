@@ -1,5 +1,6 @@
 // src/App.tsx
 import { useState, useEffect, useRef } from 'react';
+import { useTasks } from './hooks/useTasks';
 import './styles/calendar-view.css';
 import './compact-styles.css';
 import './app-styles.css';
@@ -43,6 +44,19 @@ function App() {
   const [focusModeActive, setFocusModeActive] = useState(false);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   
+  const {
+    tasks,
+    addTask,
+    toggleTask,
+    deleteTask,
+    updateTask,
+    addSubtask,
+    updateTaskContext,
+    updateTaskPriority,
+    updateTaskEstimate,
+    startTaskTimer,
+    completeTaskTimer
+  } = useTasks();
   // Check API key status on component mount (with error handling)
   useEffect(() => {
     try {
@@ -67,48 +81,6 @@ function App() {
   const dateInputRef = useRef<HTMLInputElement>(null);
   const timeInputRef = useRef<HTMLInputElement>(null);
   
-  // State management for tasks
-  const [tasks, setTasks] = useState<Task[]>(() => {
-    const saved = localStorage.getItem('tasks');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          console.log(`Loaded ${parsed.length} tasks from localStorage on startup`);
-          return parsed;
-        }
-      } catch (e) {
-        console.error('Error parsing tasks from localStorage:', e);
-      }
-    }
-    // Return empty array instead of preloaded data
-    console.log('No tasks found in localStorage, starting with empty array');
-    return [];
-  });
-  
-  // Function to reload tasks directly from localStorage
-  const reloadTasksFromStorage = () => {
-    try {
-      const saved = localStorage.getItem('tasks');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) {
-          console.log(`Reloading ${parsed.length} tasks from localStorage`);
-          setTasks(parsed);
-          return true;
-        }
-      }
-    } catch (e) {
-      console.error('Error reloading tasks from localStorage:', e);
-    }
-    return false;
-  };
-  
-  // Save tasks to localStorage when they change
-  useEffect(() => {
-    console.log('Tasks changed, saving to localStorage:', tasks.length);
-    localStorage.setItem('tasks', JSON.stringify(tasks));
-  }, [tasks]);
   
   // State for parent task selection
   const [newParent, setNewParent] = useState<string>('');
@@ -176,245 +148,6 @@ function App() {
     localStorage.setItem('projects', JSON.stringify(projects));
   }, [projects]);
   
-  // Add new task
-  const addTask = (
-    title: string,
-    dueDate: string | null,
-    parentId?: string,
-    categoryIds?: string[],
-    projectId?: string | null,
-    priority?: PriorityLevel
-  ) => {
-    const id = Date.now().toString();
-
-    // Extract time if it's included in the date string
-    let dueTime = null;
-    let dateOnly = dueDate;
-
-    if (dueDate && dueDate.includes('T')) {
-      // If there's a "T" separator, extract the time part
-      const [datePart, timePart] = dueDate.split('T');
-      dateOnly = datePart;
-      dueTime = timePart;
-    }
-
-    const newTask: Task = {
-      id,
-      title,
-      dueDate: dateOnly,
-      dueTime,
-      status: 'pending',
-      parentId,
-      categories: categoryIds || [],
-      projectId: projectId || null,
-      priority: priority || null,
-    };
-    setTasks(prev => [...prev, newTask]);
-  };
-  
-  // Helper function to get subtasks for a specific task
-  const getTaskSubtasks = (parentId: string): Task[] => {
-    return tasks.filter(t => t.parentId === parentId);
-  };
-
-  // Add new subtask with direct localStorage persistence
-  const addSubtask = (parentId: string, title: string) => {
-    console.log(`DIRECT addSubtask called with parentId=${parentId}, title="${title}"`);
-    
-    // Get parent task to inherit properties
-    const parentTask = tasks.find(t => t.id === parentId);
-    if (!parentTask) {
-      console.error("Parent task not found for ID:", parentId);
-      return;
-    }
-    
-    // Create a unique ID that avoids collisions
-    const uniqueId = `st_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
-    
-    // Create the new subtask
-    const newSubtask: Task = {
-      id: uniqueId,
-      title,
-      status: 'pending',
-      parentId,
-      // Inherit properties from parent
-      dueDate: parentTask.dueDate,
-      dueTime: parentTask.dueTime,
-      projectId: parentTask.projectId,
-      categories: parentTask.categories,
-    };
-    
-    console.log("Created new subtask object:", JSON.stringify(newSubtask));
-    
-    // First get existing tasks from localStorage to make sure we have the latest
-    let currentTasks: Task[] = [];
-    try {
-      const stored = localStorage.getItem('tasks');
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) {
-          currentTasks = parsed;
-        }
-      }
-    } catch (e) {
-      console.error("Error reading current tasks from localStorage:", e);
-      // Fall back to the tasks in state
-      currentTasks = [...tasks];
-    }
-    
-    // Add our new subtask
-    const updatedTasks = [...currentTasks, newSubtask];
-    
-    // Log before saving
-    console.log(`Before saving: ${currentTasks.length} tasks → ${updatedTasks.length} tasks`);
-    
-    // Save directly to localStorage first
-    try {
-      localStorage.setItem('tasks', JSON.stringify(updatedTasks));
-      console.log("SAVED TO LOCALSTORAGE:", updatedTasks.length, "tasks");
-    } catch (e) {
-      console.error("Error saving to localStorage:", e);
-    }
-    
-    // Now reload the tasks from localStorage to ensure consistency
-    reloadTasksFromStorage();
-    
-    // For good measure, double check after a delay
-    setTimeout(() => {
-      reloadTasksFromStorage();
-      
-      try {
-        const stored = localStorage.getItem('tasks');
-        if (stored) {
-          const parsedTasks = JSON.parse(stored);
-          const storedSubtasks = parsedTasks.filter((t: Task) => t.parentId === parentId);
-          console.log(`VERIFICATION: parent ${parentId} has ${storedSubtasks.length} subtasks in localStorage`);
-        }
-      } catch (e) {
-        console.error('Error in verification:', e);
-      }
-    }, 300);
-    
-    return uniqueId; // Return the ID of the created subtask
-  };
-
-  // Toggle task completion status
-  const toggleTask = (id: string) => {
-    setTasks(prev =>
-      prev.map(task =>
-        task.id === id
-          ? { ...task, status: task.status === 'pending' ? 'completed' : 'pending' }
-          : task
-      )
-    );
-  };
-  
-  // Delete a task
-  const deleteTask = (id: string) => {
-    setTasks(prev => prev.filter(task => task.id !== id && task.parentId !== id));
-  };
-  
-  // Update task estimate
-  const updateTaskEstimate = (id: string, estimatedMinutes: number | null) => {
-    setTasks(prev =>
-      prev.map(task =>
-        task.id === id
-          ? {
-              ...task,
-              estimatedMinutes: estimatedMinutes
-            }
-          : task
-      )
-    );
-  };
-  
-  // Start task timer
-  const startTaskTimer = (id: string) => {
-    const now = new Date().toISOString();
-    setTasks(prev =>
-      prev.map(task =>
-        task.id === id
-          ? {
-              ...task,
-              timeStarted: now
-            }
-          : task
-      )
-    );
-  };
-  
-  // Complete task timer
-  const completeTaskTimer = (id: string) => {
-    const now = new Date();
-    setTasks(prev =>
-      prev.map(task => {
-        if (task.id === id && task.timeStarted) {
-          const startTime = new Date(task.timeStarted);
-          const diffMs = now.getTime() - startTime.getTime();
-          const diffMinutes = Math.ceil(diffMs / (1000 * 60)); // Round up to nearest minute
-          
-          return {
-            ...task,
-            timeCompleted: now.toISOString(),
-            actualMinutes: diffMinutes
-          };
-        }
-        return task;
-      })
-    );
-  };
-
-  // Update a task
-  const updateTask = (
-    id: string,
-    title: string,
-    dueDate: string | null,
-    categories?: string[],
-    projectId?: string | null,
-    dependsOn?: string[],
-    priority?: PriorityLevel | null
-  ) => {
-    // Extract time if it's included in the date string
-    let dueTime = null;
-    let dateOnly = dueDate;
-
-    if (dueDate && dueDate.includes('T')) {
-      // If there's a "T" separator, extract the time part
-      const [datePart, timePart] = dueDate.split('T');
-      dateOnly = datePart;
-      dueTime = timePart;
-    }
-
-    setTasks(prev =>
-      prev.map(task =>
-        task.id === id
-          ? {
-              ...task,
-              title,
-              dueDate: dateOnly,
-              dueTime,
-              categories: categories || task.categories,
-              projectId: projectId !== undefined ? projectId : task.projectId,
-              priority: priority !== undefined ? priority : task.priority,
-            }
-          : task
-      )
-    );
-  };
-  
-  // Update task description
-  const updateTaskDescription = (id: string, description: string) => {
-    setTasks(prev =>
-      prev.map(task =>
-        task.id === id
-          ? {
-              ...task,
-              description
-            }
-          : task
-      )
-    );
-  };
   
   // Add a new project
   const addProject = (project: Omit<Project, 'id'>) => {
