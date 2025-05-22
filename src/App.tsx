@@ -47,6 +47,7 @@ function App() {
   
   const {
     tasks,
+    setTasks,
     addTask,
     toggleTask,
     deleteTask,
