@@ -80,3 +80,14 @@
     margin-right: 3px !important;
     border-radius: 10px !important;
   }
+
+  /* Fix unreadable text on compact category cards */
+.compact-category-card {
+  color: #222 !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  .compact-category-card {
+    color: rgba(255, 255, 255, 0.95) !important;
+  }
+}
