@@ -103,3 +103,15 @@ body {
 .section-card:hover {
   color: var(--text-color);
 }
+
+.btn-outline {
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+}
+
+.btn-outline:hover {
+  background-color: rgba(var(--primary-color-rgb), 0.1);
+  color: var(--primary-color);
+  border-color: var(--primary-color);
+}
