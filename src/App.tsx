@@ -770,6 +770,21 @@ function App() {
                           >
                             Edit
                           </button>
+                          <button
+                            className="btn btn-sm btn-outline danger"
+                            onClick={() => {
+                              const removedProjectId = deleteProject(project.id);
+                              setTasks(prev =>
+                                prev.map(task =>
+                                  task.projectId === removedProjectId
+                                    ? { ...task, projectId: null }
+                                    : task
+                                )
+                              );
+                            }}
+                          >
+                            Delete
+                          </button>
                         </div>
                       </div>
                       
