@@ -595,15 +595,22 @@ export default function TaskList({
       <ul className="divide-y divide-border">
         {topLevelTasks.map(task => (
           <li key={task.id} className="flex items-center px-6 py-4 gap-4 hover:bg-background transition">
-            <input
-              type="checkbox"
-              checked={task.status === 'completed'}
-              onChange={() => toggleTask(task.id)}
-              className="form-control mr-3"
-            />
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="font-semibold text-base text-text" style={{ textDecoration: task.status === 'completed' ? 'line-through' : 'none', opacity: task.status === 'completed' ? 0.6 : 1 }}>{task.title}</span>
+            <div className="flex-shrink-0 w-6 flex items-center justify-center">
+              <input
+                type="checkbox"
+                checked={task.status === 'completed'}
+                onChange={() => toggleTask(task.id)}
+                className="form-control"
+              />
+            </div>
+            <div className="flex flex-col flex-grow min-w-0">
+              <span className="font-semibold text-base text-text truncate" style={{ textDecoration: task.status === 'completed' ? 'line-through' : 'none', opacity: task.status === 'completed' ? 0.6 : 1 }}>{task.title}</span>
+              <div className="flex flex-wrap gap-2 items-center text-xs text-light mt-1 truncate">
+                {task.dueDate && (
+                  <span>
+                    {new Date(task.dueDate).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                  </span>
+                )}
                 {task.categories && task.categories.length > 0 && (
                   <span className="flex gap-1">
                     {task.categories.map(catId => {
@@ -619,17 +626,10 @@ export default function TaskList({
                     {projects.find(p => p.id === task.projectId)?.name}
                   </span>
                 )}
-              </div>
-              <div className="text-xs text-light mt-1 flex gap-2 flex-wrap">
-                {task.dueDate && (
-                  <span>
-                    {new Date(task.dueDate).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
-                  </span>
-                )}
                 {/* Add links/tags here if needed */}
               </div>
             </div>
-            <div className="flex items-center gap-2 ml-2">
+            <div className="flex items-center gap-2 ml-2 flex-shrink-0">
               <button className="btn btn-outline btn-sm" onClick={() => addSubtask(task.id, 'New Subtask')}>Add Subtask</button>
               <button className="btn btn-outline btn-sm" onClick={() => deleteTask(task.id)}>Delete</button>
               <button className="btn btn-primary btn-sm" onClick={() => {/* handle breakdown */}}>Break Down</button>
