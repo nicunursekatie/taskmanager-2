@@ -364,43 +364,13 @@ export default function CalendarView({ tasks, toggleTask, categories, projects }
               {displayTasks.length > 0 ? (
                 <div className="tasks-list">
                   {displayTasks.map(task => (
-                    <div 
-                      key={task.id} 
-                      className={`day-task ${task.status === 'completed' ? 'completed' : ''}`}
-                    >
-                      <div className="task-header">
-                        <div className="task-checkbox-title">
-                          <input 
-                            type="checkbox" 
-                            checked={task.status === 'completed'} 
-                            onChange={() => toggleTask(task.id)}
-                          />
-                          <span className="task-title">{task.title}</span>
-                        </div>
-                        
-                        <div className="task-meta">
-                          {task.categories && task.categories.length > 0 && 
-                            task.categories.map(categoryId => {
-                              const category = categories.find(c => c.id === categoryId);
-                              return category ? (
-                                <span
-                                  key={categoryId}
-                                  className="task-category"
-                                  style={{ backgroundColor: category.color }}
-                                >
-                                  {category.name}
-                                </span>
-                              ) : null;
-                            })
-                          }
-                          
-                          {task.projectId && (
-                            <span className="task-project">
-                              {projects.find(p => p.id === task.projectId)?.name || 'Unknown Project'}
-                            </span>
-                          )}
-                        </div>
-                      </div>
+                    <div key={task.id} className="task-list-item">
+                      <input
+                        type="checkbox"
+                        checked={task.status === 'completed'}
+                        onChange={() => toggleTask(task.id)}
+                      />
+                      <span className={task.status === 'completed' ? 'completed' : ''}>{task.title}</span>
                     </div>
                   ))}
                 </div>

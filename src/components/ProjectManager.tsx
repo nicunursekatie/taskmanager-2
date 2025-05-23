@@ -298,29 +298,17 @@ export default function ProjectManager({
           
           <div className="item-list">
             {projects.map((project) => (
-              <div key={project.id} className="flex items-start gap-4 bg-white border border-border rounded-md shadow-sm p-3 mb-3 relative">
-                {/* Project color accent */}
-                <div className="w-2 h-8 rounded-l-md" style={{ backgroundColor: project.color || '#4361ee', position: 'absolute', left: 0, top: 16 }}></div>
-                <div className="flex-1 pl-4">
-                  <div className="font-semibold text-lg text-text mb-1">{project.name}</div>
-                  {project.description && (
-                    <div className="text-sm text-text-light mb-1">{project.description}</div>
-                  )}
+              <div key={project.id} className="project-card">
+                <div className="project-header">
+                  <h2 className="project-title">{project.name}</h2>
+                  <div className="project-actions">
+                    <button className="btn btn-sm btn-outline" onClick={() => onEdit(project)}>Edit</button>
+                    <button className="btn btn-sm btn-danger" onClick={() => deleteProject(project.id)}>Delete</button>
+                  </div>
                 </div>
-                <div className="flex flex-col gap-2 items-end ml-2">
-                  <button
-                    className="px-4 py-1 rounded-md font-medium text-primary border border-primary bg-white hover:bg-primary/10 text-sm transition mb-1"
-                    onClick={() => onEdit(project)}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    className="px-4 py-1 rounded-md font-medium border border-danger text-danger bg-white hover:bg-danger hover:text-white text-sm transition"
-                    onClick={() => deleteProject(project.id)}
-                  >
-                    Delete
-                  </button>
-                </div>
+                {project.description && (
+                  <p className="project-description">{project.description}</p>
+                )}
               </div>
             ))}
             

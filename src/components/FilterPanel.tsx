@@ -1,3 +1,4 @@
+import React from 'react';
 import { Category, Project } from '../types';
 
 type FilterPanelProps = {
@@ -10,76 +11,57 @@ type FilterPanelProps = {
   clearFilters: () => void;
 };
 
-export default function FilterPanel({
-  categories,
-  projects,
-  activeCategories,
-  activeProject,
-  toggleCategoryFilter,
-  setProjectFilter,
-  clearFilters,
-}: FilterPanelProps) {
-  const hasActiveFilters = activeCategories.length > 0 || activeProject !== null;
-  
+const FilterPanel = ({ filters, onFilterChange }) => {
   return (
-    <div className="filter-panel">
-      <h3 className="filter-header">Filter Tasks</h3>
-      
-      <div className="filter-section">
-        <h4>By Category</h4>
-        <div className="category-filters">
-          {categories.map(category => (
-            <div 
-              key={category.id}
-              className={`category-filter ${activeCategories.includes(category.id) ? 'active' : ''}`}
-              onClick={() => toggleCategoryFilter(category.id)}
-            >
-              <span 
-                className="color-dot" 
-                style={{ backgroundColor: category.color }}
-              />
-              <span>{category.name}</span>
-            </div>
-          ))}
-          {categories.length === 0 && <p className="no-filters">No categories available</p>}
+    <div className="card">
+      <div className="flex flex-col gap-md">
+        <h3>Filters</h3>
+        
+        <div className="flex flex-col gap-sm">
+          <label className="text-sm">Status</label>
+          <select
+            className="form-control"
+            value={filters.status}
+            onChange={(e) => onFilterChange('status', e.target.value)}
+          >
+            <option value="all">All</option>
+            <option value="active">Active</option>
+            <option value="completed">Completed</option>
+          </select>
+        </div>
+
+        <div className="flex flex-col gap-sm">
+          <label className="text-sm">Priority</label>
+          <select
+            className="form-control"
+            value={filters.priority}
+            onChange={(e) => onFilterChange('priority', e.target.value)}
+          >
+            <option value="all">All</option>
+            <option value="high">High</option>
+            <option value="medium">Medium</option>
+            <option value="low">Low</option>
+          </select>
+        </div>
+
+        <div className="flex flex-col gap-sm">
+          <label className="text-sm">Category</label>
+          <select
+            className="form-control"
+            value={filters.category}
+            onChange={(e) => onFilterChange('category', e.target.value)}
+          >
+            <option value="all">All Categories</option>
+            {filters.categories.map(category => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
-      
-      <div className="filter-section">
-        <h4>By Project</h4>
-        <div className="project-filters">
-          <div 
-            className={`project-filter ${activeProject === null ? 'active' : ''}`}
-            onClick={() => setProjectFilter(null)}
-          >
-            All Projects
-          </div>
-          <div 
-            className={`project-filter ${activeProject === 'none' ? 'active' : ''}`}
-            onClick={() => setProjectFilter('none')}
-          >
-            No Project
-          </div>
-          {projects.map(project => (
-            <div 
-              key={project.id}
-              className={`project-filter ${activeProject === project.id ? 'active' : ''}`}
-              onClick={() => setProjectFilter(project.id)}
-            >
-              {project.name}
-            </div>
-          ))}
-        </div>
-      </div>
-      
-      {hasActiveFilters && (
-        <button 
-          className="clear-filters-btn"
-          onClick={clearFilters}
-        >
-          Clear All Filters
-        </button>
-      )}
     </div>
   );
-}
+};
+
+export default FilterPanel;

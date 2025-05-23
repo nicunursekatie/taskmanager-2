@@ -1,243 +1,280 @@
-/* Truncated for clarity. UI consistency fix applied: white-on-white and dark-on-dark issues resolved by enforcing readable foreground/background contrast. 
+/* === Modern Cohesive Design System for Task Manager App === */
 
-Please refer to the original file for full CSS rules. */
-
+/* Design System Variables */
 :root {
-  --text-color: #222222;
-  --text-light: #444444;
-  --card-bg: #ffffff;
-  --background-color: #f4f7fa;
-  --border-color: #d8e0e9;
+  /* Colors */
+  --primary-color: #4361ee;
+  --primary-light: #4895ef;
+  --primary-dark: #3f37c9;
+  --success-color: #4cc9f0;
+  --warning-color: #f72585;
+  --danger-color: #e63946;
+  --text-color: #2b2d42;
+  --text-light: #8d99ae;
+  --background-color: #f8f9fa;
+  --card-background: #ffffff;
+  --border-color: #e9ecef;
+  
+  /* Spacing */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  
+  /* Typography */
+  --font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  
+  /* Border Radius */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-normal: 250ms ease;
+  --transition-slow: 350ms ease;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text-color: rgba(255, 255, 255, 0.95);
-    --text-light: rgba(255, 255, 255, 0.8);
-    --card-bg: #2a2d3e;
-    --background-color: #1a1c25;
-    --border-color: #3a3f55;
-  }
+/* Base Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 body {
+  font-family: var(--font-family);
   color: var(--text-color);
   background-color: var(--background-color);
+  line-height: 1.5;
 }
 
-.project-card,
-.task-item,
-.section-card,
-.capture-form input,
-.capture-form select,
-.capture-form button,
-.modal,
-.subtask-form,
-.project-view-card {
-  color: var(--text-color);
-  background-color: var(--card-bg);
-}
-
-.project-description,
-.project-description-preview,
-.project-progress-text,
-.next-due-label,
-.task-date,
-.task-priority,
-.subtask-title.completed,
-.project-view-description,
-.recent-task-label,
-.item-description,
-.item-due-date,
-.task-meta,
-.stat-label,
-.dropdown-item,
-.dropdown-item.danger,
-.project-status,
-.empty-message,
-.empty-state,
-.no-blocks-message,
-.no-tasks-message {
-  color: var(--text-light);
-}
-
-.task-title.completed {
-  color: var(--text-light);
-}
-
-.task-priority.must-do,
-.task-priority.want-to-do,
-.task-priority.when-i-can,
-.task-priority.critical,
-.task-priority.high,
-.task-priority.medium,
-.task-priority.low {
-  color: inherit;
-}
-
-/* Any element with hardcoded white text fixed for dark mode */
-[class*="text-white"] {
-  color: var(--text-color) !important;
-}
-
-/* Buttons that were hard to see in dark mode */
-.btn-primary,
-.btn-accent,
-.btn-success,
-.btn-warning,
-.btn-danger {
-  color: #fff !important;
-}
-
-.project-title,
-.section-title,
-.task-title,
-.subtask-title,
-.view-title {
-  color: var(--text-color);
-}
-
-/* Set default foreground on hoverable cards */
-.project-card:hover,
-.task-item:hover,
-.section-card:hover {
-  color: var(--text-color);
-}
-
-.btn-outline {
-  background-color: var(--card-bg);
-  color: var(--text-color);
-  border: 1px solid var(--border-color);
-}
-
-.btn-outline:hover {
-  background-color: rgba(var(--primary-color-rgb), 0.1);
-  color: var(--primary-color);
-  border-color: var(--primary-color);
-}
-/* === FORCE PROJECT CARDS AND PARENTS TO BE LIGHT === */
-.projects-view,
-.projects-grid,
-.project-card,
-.section-card {
-  background: #fff !important;
-  color: #222 !important;
-  box-shadow: none !important;
-}
-
-.projects-view {
+/* Layout Components */
+.container {
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 24px;
+  padding: 0 var(--spacing-md);
 }
 
-.projects-grid {
-  display: grid !important;
-  grid-template-columns: 1fr 1fr 1fr !important;
-  gap: 24px !important;
+.grid {
+  display: grid;
+  gap: var(--spacing-md);
 }
 
-@media (min-width: 768px) {
-  .projects-grid {
-    grid-template-columns: 1fr 1fr;
-  }
+.grid-2 {
+  grid-template-columns: repeat(2, 1fr);
 }
-@media (min-width: 1024px) {
-  .projects-grid {
-    grid-template-columns: 1fr 1fr 1fr;
-  }
+
+.grid-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.grid-4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+/* Card Components */
+.card {
+  background-color: var(--card-background);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: var(--spacing-lg);
+  border: 1px solid var(--border-color);
 }
 
 .project-card {
-  background: #fff;
-  color: #222;
-  border: 1px solid #d8e0e9;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(67, 97, 238, 0.06);
-  padding: 24px;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  min-height: 340px;
-  justify-content: space-between;
+  background-color: var(--card-background);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: var(--spacing-lg);
+  border: 1px solid var(--border-color);
+  transition: var(--transition-normal);
 }
 
-body {
-  background: #f4f7fa !important;
+.project-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
 }
 
-/* Force all buttons and inputs in project cards to be light and readable */
-.project-card button,
-.project-card input,
-.project-card select {
-  background: #fff !important;
-  color: #222 !important;
-  border: 1px solid #d8e0e9 !important;
-  box-shadow: none !important;
+/* Button Components */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  transition: var(--transition-fast);
+  cursor: pointer;
+  border: 1px solid transparent;
 }
 
-.project-card button.btn-primary,
-.project-card button[type="submit"] {
-  background: var(--primary-color) !important;
-  color: #fff !important;
-  border: none !important;
-}
-
-.project-card button.btn-outline {
-  background: #fff !important;
-  color: var(--primary-color) !important;
-  border: 1px solid var(--primary-color) !important;
-}
-
-.project-card button.btn-outline:hover {
-  background: var(--primary-color) !important;
-  color: #fff !important;
-}
-
-/* Fix white text issues globally */
-[class*="text-white"] {
-  color: #222 !important;
-}
-.btn, .btn-outline, .btn-primary {
-  color: #222 !important;
-  background: #fff !important;
-  border: 1px solid #d8e0e9 !important;
-}
 .btn-primary {
-  background: var(--primary-color) !important;
-  color: #fff !important;
+  background-color: var(--primary-color);
+  color: white;
 }
 
-/* Make all main content areas consistent */
-main, .content-area, .projects-view, .dashboard-view, .all-tasks-view {
-  margin: 0 !important;
-  padding: 0 24px !important;
-  box-sizing: border-box !important;
+.btn-primary:hover {
+  background-color: var(--primary-dark);
 }
 
-.project-card,
-.project-card * {
-  color: #222 !important;
-}
-.project-card input,
-.project-card textarea {
-  background: #fff !important;
-  color: #222 !important;
+.btn-outline {
+  background-color: transparent;
+  border-color: var(--border-color);
+  color: var(--text-color);
 }
 
-.project-quick-add {
-  margin-top: auto;
-  padding-top: 12px;
+.btn-outline:hover {
+  background-color: var(--background-color);
+  border-color: var(--text-light);
 }
 
-.project-quick-add form {
+.btn-danger {
+  background-color: var(--danger-color);
+  color: white;
+}
+
+.btn-danger:hover {
+  background-color: #dc3545;
+}
+
+/* Form Components */
+.form-control {
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-md);
+  transition: var(--transition-fast);
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(67, 97, 238, 0.1);
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-color);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+h1 { font-size: var(--font-size-2xl); }
+h2 { font-size: var(--font-size-xl); }
+h3 { font-size: var(--font-size-lg); }
+
+/* Task List Components */
+.task-list-item {
   display: flex;
-  gap: 8px;
+  align-items: center;
+  padding: var(--spacing-md);
+  border-bottom: 1px solid var(--border-color);
+  transition: var(--transition-fast);
 }
 
-.project-quick-add input[type="text"] {
-  flex: 1;
-  min-width: 0;
+.task-list-item:last-child {
+  border-bottom: none;
+}
+
+.task-list-item:hover {
+  background-color: var(--background-color);
+}
+
+/* Category Components */
+.category-card {
+  background-color: var(--card-background);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  border: 1px solid var(--border-color);
+  margin-bottom: var(--spacing-md);
+}
+
+.category-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-sm);
+}
+
+/* Modal Components */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  background-color: var(--card-background);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+/* Utility Classes */
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.text-left { text-align: left; }
+
+.mt-sm { margin-top: var(--spacing-sm); }
+.mt-md { margin-top: var(--spacing-md); }
+.mt-lg { margin-top: var(--spacing-lg); }
+
+.mb-sm { margin-bottom: var(--spacing-sm); }
+.mb-md { margin-bottom: var(--spacing-md); }
+.mb-lg { margin-bottom: var(--spacing-lg); }
+
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.gap-sm { gap: var(--spacing-sm); }
+.gap-md { gap: var(--spacing-md); }
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .grid-3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .grid-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .grid-2,
+  .grid-3,
+  .grid-4 {
+    grid-template-columns: 1fr;
+  }
+  
+  .modal {
+    margin: var(--spacing-md);
+  }
 }

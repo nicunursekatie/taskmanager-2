@@ -713,107 +713,36 @@ function App() {
           {/* Projects View */}
           {activeTab === 'projects' && (
             <div className="projects-view">
-              <div className="projects-grid">
+              <div className="grid grid-3">
                 {projects.length > 0 ? (
                   projects.map((project) => (
                     <div id={`project-${project.id}`} key={project.id} className="project-card">
                       <div className="project-header">
                         <h2 className="project-title">{project.name}</h2>
                         <div className="project-actions">
-                          <button
-                            className="btn btn-sm btn-outline"
-                            onClick={() => {
-                              setEditingProject(project);
-                              setShowProjectManager(true);
-                            }}
-                          >
-                            Edit
-                          </button>
-                          <button
-                            className="btn btn-sm btn-outline danger"
-                            onClick={() => {
-                              const removedProjectId = deleteProject(project.id);
-                              setTasks(prev =>
-                                prev.map(task =>
-                                  task.projectId === removedProjectId
-                                    ? { ...task, projectId: null }
-                                    : task
-                                )
-                              );
-                            }}
-                          >
-                            Delete
-                          </button>
+                          <button className="btn btn-sm btn-outline" onClick={() => startEditing(project)}>Edit</button>
+                          <button className="btn btn-sm btn-danger" onClick={() => deleteProject(project.id)}>Delete</button>
                         </div>
                       </div>
-                      
                       {project.description && (
                         <p className="project-description">{project.description}</p>
                       )}
-                      
-                      <div className="project-task-section">
-                        <h3 className="task-section-title">Tasks</h3>
-                        {tasks.filter(t => t.projectId === project.id && t.status !== 'completed').length > 0 ? (
-                          <TaskList 
-                            tasks={tasks.filter(t => t.projectId === project.id && t.status !== 'completed')} 
-                            toggleTask={toggleTask} 
-                            deleteTask={deleteTask} 
-                            updateTask={updateTask}
-                            updateTaskDescription={updateTaskDescription}
-                            addSubtask={addSubtask}
-                            categories={categories}
-                            projects={projects}
-                          />
-                        ) : (
-                          <p className="empty-message">No active tasks in this project</p>
-                        )}
-                      </div>
-                      
-                      {tasks.filter(t => t.projectId === project.id && t.status === 'completed').length > 0 && (
-                        <div className="project-task-section">
-                          <h3 className="task-section-title">Completed</h3>
-                          <TaskList 
-                            tasks={tasks.filter(t => t.projectId === project.id && t.status === 'completed')} 
-                            toggleTask={toggleTask} 
-                            deleteTask={deleteTask} 
-                            updateTask={updateTask}
-                            updateTaskDescription={updateTaskDescription}
-                            addSubtask={addSubtask}
-                            categories={categories}
-                            projects={projects}
-                          />
-                        </div>
-                      )}
-                      
-                      <div className="project-quick-add">
-                        <form onSubmit={(e) => {
-                          e.preventDefault();
-                          const input = e.currentTarget.querySelector('input') as HTMLInputElement;
-                          if (input && input.value.trim()) {
-                            addTask(input.value.trim(), null, undefined, [], project.id);
-                            input.value = '';
-                          }
-                        }}>
-                          <input 
-                            type="text" 
-                            className="form-control text-gray-900"
-                            placeholder={`Add task to ${project.name}...`}
-                          />
-                          <button type="submit" className="btn btn-sm btn-primary text-white">Add</button>
-                        </form>
+                      <div className="project-tasks">
+                        {tasks.filter(task => task.projectId === project.id).map(task => (
+                          <div key={task.id} className="task-list-item">
+                            <input
+                              type="checkbox"
+                              checked={task.status === 'completed'}
+                              onChange={() => toggleTask(task.id)}
+                            />
+                            <span className={task.status === 'completed' ? 'completed' : ''}>{task.title}</span>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   ))
                 ) : (
-                  <div className="empty-projects">
-                    <p>No projects yet. Create your first project to organize related tasks.</p>
-                    <button 
-                      className="btn btn-primary"
-                      onClick={() => setShowProjectManager(true)}
-                    >
-                      Create Project
-                    </button>
-                  </div>
+                  <div className="empty-message">No projects yet. Create one to get started.</div>
                 )}
               </div>
             </div>

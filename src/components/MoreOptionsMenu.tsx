@@ -1,49 +1,37 @@
-import { useState } from 'react';
+import React from 'react';
 
-type MoreOptionsMenuProps = {
-  onManageCategories: () => void;
-  onImportExport: () => void;
-  onLoadSample: () => void;
-  onResetData: () => void;
-};
+interface MoreOptionsMenuProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+  onArchive: () => void;
+}
 
-const MoreOptionsMenu = ({ 
-  onManageCategories, 
-  onImportExport, 
-  onLoadSample, 
-  onResetData 
-}: MoreOptionsMenuProps) => {
-  const [isOpen, setIsOpen] = useState(false);
-  
-  const toggleMenu = () => setIsOpen(!isOpen);
-  
+const MoreOptionsMenu: React.FC<MoreOptionsMenuProps> = ({
+  isOpen,
+  onClose,
+  onEdit,
+  onDelete,
+  onArchive
+}) => {
+  if (!isOpen) return null;
+
   return (
-    <div className="dropdown-container">
-      <button 
-        className="btn btn-outline dropdown-toggle"
-        onClick={toggleMenu}
-        aria-haspopup="true"
-        aria-expanded={isOpen}
-      >
-        More Options
-      </button>
-      
-      {isOpen && (
-        <div className="dropdown-menu">
-          <button className="dropdown-item" onClick={() => { onManageCategories(); toggleMenu(); }}>
-            Manage Categories
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal" onClick={e => e.stopPropagation()}>
+        <div className="flex flex-col gap-sm">
+          <button onClick={onEdit} className="btn btn-outline">
+            Edit
           </button>
-          <button className="dropdown-item" onClick={() => { onImportExport(); toggleMenu(); }}>
-            Import/Export
+          <button onClick={onArchive} className="btn btn-outline">
+            Archive
           </button>
-          <button className="dropdown-item" onClick={() => { onLoadSample(); toggleMenu(); }}>
-            Load Sample Data
-          </button>
-          <button className="dropdown-item danger" onClick={() => { onResetData(); toggleMenu(); }}>
-            Reset Data
+          <button onClick={onDelete} className="btn btn-danger">
+            Delete
           </button>
         </div>
-      )}
+      </div>
     </div>
   );
 };

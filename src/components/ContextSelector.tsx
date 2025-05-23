@@ -58,13 +58,6 @@ const ContextSelector: React.FC<ContextSelectorProps> = ({
           <div
             key={context}
             className={`context-option ${selectedContext === context ? 'selected' : ''}`}
-            style={{
-              backgroundColor: selectedContext === context 
-                ? contextColors[context] 
-                : 'transparent',
-              borderColor: contextColors[context],
-              color: selectedContext === context ? 'white' : 'inherit'
-            }}
             onClick={() => onChange(context === selectedContext ? null : context)}
           >
             <span className="context-icon">{contextIcons[context]}</span>

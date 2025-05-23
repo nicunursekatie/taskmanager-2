@@ -112,7 +112,7 @@ const FocusMode: React.FC<FocusModeProps> = ({
       </div>
       
       <div className="focus-timer-container">
-        <div className={`focus-timer ${timerType}`}>
+        <div className="focus-timer">
           <div className="timer-label">
             {timerType === 'focus' ? '🎯 Focus Session' : '☕ Break Time'}
           </div>

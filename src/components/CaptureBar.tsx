@@ -66,29 +66,18 @@ export default function CaptureBar({
   return (
     <div className="capture-bar">
       <form className="capture-form" onSubmit={handleSubmit}>
-        <input
-          type="text"
-          className="form-control"
-          placeholder="Quick capture..."
-          value={text}
-          onChange={e => setText(e.target.value)}
-        />
-        
-        <input
-          type="date"
-          className="form-control"
-          value={dueDate}
-          onChange={e => setDueDate(e.target.value)}
-        />
-        
-        <input
-          type="time"
-          className="form-control"
-          value={dueTime}
-          onChange={e => setDueTime(e.target.value)}
-        />
-        
-        <button type="submit" className="btn btn-primary">Add</button>
+        <div className="flex gap-md">
+          <input
+            type="text"
+            className="form-control flex-1"
+            placeholder="What needs to be done?"
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+          />
+          <button type="submit" className="btn btn-primary">
+            Add Task
+          </button>
+        </div>
       </form>
       
       {showAdditionalOptions ? (
