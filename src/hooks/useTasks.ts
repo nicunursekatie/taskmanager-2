@@ -205,6 +205,7 @@ export function useTasks() {
 
   return { 
     tasks, 
+    setTasks,
     addTask, 
     toggleTask, 
     deleteTask, 
