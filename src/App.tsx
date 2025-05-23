@@ -26,6 +26,7 @@ import ImportExport from './components/ImportExport';
 import CalendarView from './components/CalendarView';
 import DailyPlanner from './components/DailyPlanner';
 import MoreOptionsMenu from './components/MoreOptionsMenu';
+import CaptureBar from './components/CaptureBar';
 
 // Utilities
 import { loadSampleData } from './utils/sampleData';
@@ -346,84 +347,14 @@ function App() {
         ) : (
           <>
         {/* Capture Bar */}
-        <div className="rounded-2xl shadow-lg p-8 mb-8">
-          <form className="flex flex-wrap gap-4 items-start" onSubmit={handleTaskSubmit}>
-            <div className="flex-1 min-w-[300px]">
-              <input
-                type="text"
-                className="w-full px-4 py-2 rounded-lg border border-border bg-background text-text placeholder-text-light focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                placeholder="Quick capture a new task..."
-                ref={titleInputRef}
-              />
-            </div>
-
-            <div className="flex gap-4">
-              <div className="flex flex-col gap-2">
-                <input
-                  type="date"
-                  className="px-4 py-2 rounded-lg border border-border bg-background text-text focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                  ref={dateInputRef}
-                />
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    className="px-3 py-1 text-sm rounded-md bg-primary/10 text-primary hover:bg-primary/20 transition"
-                    onClick={() => {
-                      if (dateInputRef.current) {
-                        const today = new Date();
-                        const dateString = today.toISOString().split('T')[0];
-                        dateInputRef.current.value = dateString;
-                      }
-                    }}
-                  >
-                    Today
-                  </button>
-                  <button
-                    type="button"
-                    className="px-3 py-1 text-sm rounded-md bg-primary/10 text-primary hover:bg-primary/20 transition"
-                    onClick={() => {
-                      if (dateInputRef.current) {
-                        const tomorrow = new Date();
-                        tomorrow.setDate(tomorrow.getDate() + 1);
-                        const dateString = tomorrow.toISOString().split('T')[0];
-                        dateInputRef.current.value = dateString;
-                      }
-                    }}
-                  >
-                    Tomorrow
-                  </button>
-                </div>
-              </div>
-              <input
-                type="time"
-                className="px-4 py-2 rounded-lg border border-border bg-background text-text focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                ref={timeInputRef}
-              />
-            </div>
-            
-            <div className="w-[180px]">
-              <select 
-                className="w-full px-4 py-2 rounded-lg border border-border bg-background text-text focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                value={newParent}
-                onChange={(e) => setNewParent(e.target.value)}
-              >
-                <option value="">No Parent Task</option>
-                {parentOptions.map(o => (
-                  <option key={o.id} value={o.id}>
-                    {o.title}  
-                  </option>
-                ))}
-              </select>
-            </div>
-            
-            <button 
-              type="submit" 
-              className="px-5 py-2 rounded-lg font-semibold text-base transition shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-primary text-white hover:bg-primary-dark active:bg-primary-dark"
-            >
-              Add Task
-            </button>
-          </form>
-        </div>
+        <CaptureBar
+          addTask={addTask}
+          newParent={newParent}
+          setNewParent={setNewParent}
+          parentOptions={parentOptions}
+          categories={categories}
+          projects={projects}
+        />
         
         {/* Main Content Area */}
         <div className="content-area">
