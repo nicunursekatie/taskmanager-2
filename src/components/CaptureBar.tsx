@@ -68,25 +68,25 @@ export default function CaptureBar({
       <form className="flex flex-nowrap items-center gap-3 w-full overflow-x-auto" onSubmit={handleSubmit}>
         <input
           type="text"
-          className="form-control flex-1 min-w-0"
+          className="form-control flex-1 min-w-[220px]"
           placeholder="Quick capture a new task..."
           value={text}
           onChange={(e) => setText(e.target.value)}
         />
         <input
           type="date"
-          className="form-control w-[110px]"
+          className="form-control w-[90px]"
           value={dueDate}
           onChange={e => setDueDate(e.target.value)}
         />
         <input
           type="time"
-          className="form-control w-[90px]"
+          className="form-control w-[70px]"
           value={dueTime}
           onChange={e => setDueTime(e.target.value)}
         />
         <select
-          className="form-control w-[120px]"
+          className="form-control w-[110px]"
           value={newParent}
           onChange={e => setNewParent(e.target.value)}
         >
@@ -95,7 +95,7 @@ export default function CaptureBar({
             <option key={o.id} value={o.id}>{o.title}</option>
           ))}
         </select>
-        <button type="submit" className="btn btn-primary h-[40px] px-5 min-w-[100px]">
+        <button type="submit" className="btn btn-primary h-[40px] px-4 min-w-[90px]">
           Add Task
         </button>
       </form>
