@@ -3,17 +3,19 @@ import React from 'react';
 interface MoreOptionsMenuProps {
   isOpen: boolean;
   onClose: () => void;
-  onEdit: () => void;
-  onDelete: () => void;
-  onArchive: () => void;
+  onManageCategories: () => void;
+  onImportExport: () => void;
+  onLoadSample: () => void;
+  onResetData: () => void;
 }
 
 const MoreOptionsMenu: React.FC<MoreOptionsMenuProps> = ({
   isOpen,
   onClose,
-  onEdit,
-  onDelete,
-  onArchive
+  onManageCategories,
+  onImportExport,
+  onLoadSample,
+  onResetData
 }) => {
   if (!isOpen) return null;
 
@@ -21,14 +23,17 @@ const MoreOptionsMenu: React.FC<MoreOptionsMenuProps> = ({
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={e => e.stopPropagation()}>
         <div className="flex flex-col gap-sm">
-          <button onClick={onEdit} className="btn btn-outline">
-            Edit
+          <button onClick={() => { onManageCategories(); onClose(); }} className="btn btn-outline">
+            Manage Categories
           </button>
-          <button onClick={onArchive} className="btn btn-outline">
-            Archive
+          <button onClick={() => { onImportExport(); onClose(); }} className="btn btn-outline">
+            Import/Export Data
           </button>
-          <button onClick={onDelete} className="btn btn-danger">
-            Delete
+          <button onClick={() => { onLoadSample(); onClose(); }} className="btn btn-outline">
+            Load Sample Data
+          </button>
+          <button onClick={() => { onResetData(); onClose(); }} className="btn btn-danger">
+            Reset Data
           </button>
         </div>
       </div>

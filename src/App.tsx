@@ -99,6 +99,7 @@ function App() {
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [showImportExport, setShowImportExport] = useState(false);
   const [showTaskEditModal, setShowTaskEditModal] = useState(false);
+  const [isMoreOptionsOpen, setIsMoreOptionsOpen] = useState(false);
 
   // State for editing tasks in the modal
   const [editTaskTitle, setEditTaskTitle] = useState('');
@@ -321,12 +322,12 @@ function App() {
           >
             <span className="mr-1">🎯</span> Focus Mode
           </button>
-          <MoreOptionsMenu
-            onManageCategories={() => setShowCategoryManager(true)}
-            onImportExport={() => setShowImportExport(true)}
-            onLoadSample={() => loadSampleData(setTasks, setCategories, setProjects)}
-            onResetData={() => clearAllData(setTasks, setCategories, setProjects)}
-          />
+          <button
+            className="btn btn-outline"
+            onClick={() => setIsMoreOptionsOpen(true)}
+          >
+            <span className="mr-1">⚙️</span> More Options
+          </button>
         </div>
       </header>
       <main className="w-full px-8 py-10">
@@ -1356,6 +1357,16 @@ function App() {
           </div>
         </div>
       )}
+
+      {/* More Options Menu */}
+      <MoreOptionsMenu
+        isOpen={isMoreOptionsOpen}
+        onClose={() => setIsMoreOptionsOpen(false)}
+        onManageCategories={() => setShowCategoryManager(true)}
+        onImportExport={() => setShowImportExport(true)}
+        onLoadSample={() => loadSampleData(setTasks, setCategories, setProjects)}
+        onResetData={() => clearAllData(setTasks, setCategories, setProjects)}
+      />
     </div>
   );
 }
