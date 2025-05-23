@@ -587,56 +587,56 @@ export default function TaskList({
   };
 
   return (
-    <div>
-      <h2 className="mb-md text-xl font-bold text-primary">All Tasks</h2>
-      <div className="flex flex-col gap-md">
-        {topLevelTasks.length === 0 && (
-          <div className="card text-center text-light py-lg">No tasks yet. Add your first task above.</div>
-        )}
+    <div className="bg-white border border-border rounded-lg p-0">
+      <h2 className="px-6 pt-6 pb-2 text-xl font-bold text-primary">All Tasks</h2>
+      {topLevelTasks.length === 0 && (
+        <div className="text-center text-light py-lg">No tasks yet. Add your first task above.</div>
+      )}
+      <ul className="divide-y divide-border">
         {topLevelTasks.map(task => (
-          <div key={task.id} className="card task-list-item flex flex-col gap-sm mb-md">
-            <div className="flex items-center justify-between gap-md">
-              <div className="flex items-center gap-md flex-1">
-                <input
-                  type="checkbox"
-                  checked={task.status === 'completed'}
-                  onChange={() => toggleTask(task.id)}
-                  className="form-control"
-                />
-                <div>
-                  <span className="font-semibold text-lg text-text" style={{ textDecoration: task.status === 'completed' ? 'line-through' : 'none', opacity: task.status === 'completed' ? 0.6 : 1 }}>{task.title}</span>
-                  {task.dueDate && (
-                    <span className="block text-sm text-light mt-xs">
-                      {new Date(task.dueDate).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
-                    </span>
-                  )}
-                  {task.categories && task.categories.length > 0 && (
-                    <span className="block mt-xs">
-                      {task.categories.map(catId => {
-                        const cat = categories.find(c => c.id === catId);
-                        return cat ? (
-                          <span key={catId} className="inline-block text-xs px-2 py-1 rounded-full mr-xs" style={{ background: cat.color, color: '#fff' }}>{cat.name}</span>
-                        ) : null;
-                      })}
-                    </span>
-                  )}
-                  {task.projectId && (
-                    <span className="block text-xs text-primary mt-xs">
-                      {projects.find(p => p.id === task.projectId)?.name}
-                    </span>
-                  )}
-                </div>
+          <li key={task.id} className="flex items-center px-6 py-4 gap-4 hover:bg-background transition">
+            <input
+              type="checkbox"
+              checked={task.status === 'completed'}
+              onChange={() => toggleTask(task.id)}
+              className="form-control mr-3"
+            />
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-base text-text" style={{ textDecoration: task.status === 'completed' ? 'line-through' : 'none', opacity: task.status === 'completed' ? 0.6 : 1 }}>{task.title}</span>
+                {task.categories && task.categories.length > 0 && (
+                  <span className="flex gap-1">
+                    {task.categories.map(catId => {
+                      const cat = categories.find(c => c.id === catId);
+                      return cat ? (
+                        <span key={catId} className="inline-block text-xs px-2 py-0.5 rounded-full" style={{ background: cat.color, color: '#fff' }}>{cat.name}</span>
+                      ) : null;
+                    })}
+                  </span>
+                )}
+                {task.projectId && (
+                  <span className="text-xs text-primary ml-2">
+                    {projects.find(p => p.id === task.projectId)?.name}
+                  </span>
+                )}
               </div>
-              <div className="flex items-center gap-sm">
-                <button className="btn btn-outline btn-sm" onClick={() => addSubtask(task.id, 'New Subtask')}>Add Subtask</button>
-                <button className="btn btn-outline btn-sm" onClick={() => deleteTask(task.id)}>Delete</button>
-                <button className="btn btn-primary btn-sm" onClick={() => {/* handle breakdown */}}>Break Down</button>
+              <div className="text-xs text-light mt-1 flex gap-2 flex-wrap">
+                {task.dueDate && (
+                  <span>
+                    {new Date(task.dueDate).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                  </span>
+                )}
+                {/* Add links/tags here if needed */}
               </div>
             </div>
-            {/* Optionally, show subtasks or breakdown here */}
-          </div>
+            <div className="flex items-center gap-2 ml-2">
+              <button className="btn btn-outline btn-sm" onClick={() => addSubtask(task.id, 'New Subtask')}>Add Subtask</button>
+              <button className="btn btn-outline btn-sm" onClick={() => deleteTask(task.id)}>Delete</button>
+              <button className="btn btn-primary btn-sm" onClick={() => {/* handle breakdown */}}>Break Down</button>
+            </div>
+          </li>
         ))}
-      </div>
+      </ul>
     </div>
   );
 }
