@@ -1,1 +1,0 @@
-import './compact-styles.css';
