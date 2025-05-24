@@ -27,6 +27,7 @@ import CalendarView from './components/CalendarView';
 import DailyPlanner from './components/DailyPlanner';
 import MoreOptionsMenu from './components/MoreOptionsMenu';
 import CaptureBar from './components/CaptureBar';
+import Settings from './components/Settings';
 
 // Utilities
 import { loadSampleData } from './utils/sampleData';
@@ -102,6 +103,7 @@ function App() {
   const [showImportExport, setShowImportExport] = useState(false);
   const [showTaskEditModal, setShowTaskEditModal] = useState(false);
   const [isMoreOptionsOpen, setIsMoreOptionsOpen] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
 
   // State for editing tasks in the modal
   const [editTaskTitle, setEditTaskTitle] = useState('');
@@ -1273,6 +1275,13 @@ function App() {
         onImportExport={() => setShowImportExport(true)}
         onLoadSample={() => loadSampleData(setTasks, setCategories, setProjects)}
         onResetData={() => clearAllData(setTasks, setCategories, setProjects)}
+        onOpenSettings={() => setShowSettings(true)}
+      />
+
+      {/* Settings Modal */}
+      <Settings
+        isOpen={showSettings}
+        onClose={() => setShowSettings(false)}
       />
     </div>
   );

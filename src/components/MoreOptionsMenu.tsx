@@ -7,6 +7,7 @@ interface MoreOptionsMenuProps {
   onImportExport: () => void;
   onLoadSample: () => void;
   onResetData: () => void;
+  onOpenSettings: () => void;
 }
 
 const MoreOptionsMenu: React.FC<MoreOptionsMenuProps> = ({
@@ -15,7 +16,8 @@ const MoreOptionsMenu: React.FC<MoreOptionsMenuProps> = ({
   onManageCategories,
   onImportExport,
   onLoadSample,
-  onResetData
+  onResetData,
+  onOpenSettings
 }) => {
   if (!isOpen) return null;
 
@@ -23,6 +25,9 @@ const MoreOptionsMenu: React.FC<MoreOptionsMenuProps> = ({
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={e => e.stopPropagation()}>
         <div className="flex flex-col gap-sm">
+          <button onClick={() => { onOpenSettings(); onClose(); }} className="btn btn-outline">
+            Settings
+          </button>
           <button onClick={() => { onManageCategories(); onClose(); }} className="btn btn-outline">
             Manage Categories
           </button>
