@@ -90,3 +90,28 @@
   margin-top: 4px;
   box-shadow: 0 1px 3px rgba(33,150,243,0.07);
 }
+
+/* Add this to your main CSS file */
+.task-list-item.subtask {
+  background: #f7faff;
+  margin: 4px 0;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 0.95em;
+  border-left: 2px solid #e0e0e0;
+  margin-left: 24px;
+}
+
+.subtask-list {
+  list-style: none;
+  padding-left: 0;
+}
+
+/* Make subtask titles visually distinct */
+.task-list-item.subtask .task-title {
+  font-size: 1rem;         /* smaller than parent task */
+  color: #6c6f7e;          /* lighter color */
+  font-weight: 400;        /* less bold */
+  margin-left: 8px;        /* slight indent */
+  line-height: 1.3;
+}

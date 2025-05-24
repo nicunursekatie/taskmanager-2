@@ -16,6 +16,7 @@ export default function TaskList({
   completeTaskTimer,
   categories,
   projects,
+  moveTaskToParent,
 }: TaskListProps) {
   console.log('TaskList rendered with', tasks.length, 'tasks');
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -29,7 +30,7 @@ export default function TaskList({
   
   // States for subtask creation
   const [addingSubtaskFor, setAddingSubtaskFor] = useState<string | null>(null);
-  const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
+  const [subtaskTitles, setSubtaskTitles] = useState<{ [parentId: string]: string }>({});
   
   // State for expanded/collapsed tasks
   // Initialize with all tasks that have subtasks already expanded
@@ -164,18 +165,21 @@ export default function TaskList({
 
   // Handle subtask creation
   const handleAddSubtask = (parentId: string) => {
-    if (newSubtaskTitle.trim()) {
-      addSubtask(parentId, newSubtaskTitle.trim());
-      setNewSubtaskTitle('');
+    const title = subtaskTitles[parentId]?.trim();
+    if (title) {
+      addSubtask(parentId, title);
+      setSubtaskTitles(prev => {
+        const updated = { ...prev };
+        delete updated[parentId];
+        return updated;
+      });
       setAddingSubtaskFor(null);
-      
-      // Auto-expand the parent when adding a subtask
-      setCollapsedTasks(prev => ({
-        ...prev,
-        [parentId]: false
-      }));
     }
   };
+  
+  // State for converting a task to a subtask
+  const [convertTaskId, setConvertTaskId] = useState<string | null>(null);
+  const [selectedParentId, setSelectedParentId] = useState<string | null>(null);
   
   // Render a task and its subtasks recursively
   const renderTask = (task: Task, depth = 0) => {
@@ -199,9 +203,10 @@ export default function TaskList({
           [
             depth === 0
               ? "task-list-item py-2 px-0 border-b border-gray-200 last:border-b-0"
-              : "bg-blue-50 border-l-4 border-blue-400 rounded-md mt-1 mb-2 ml-4 p-3",
+              : "task-list-item subtask",
           ].join(' ')
         }
+        style={isSubtask ? { marginLeft: depth * 24, background: '#f7faff', padding: '6px 12px', borderRadius: 4, fontSize: '0.95em', borderLeft: '2px solid #e0e0e0', marginTop: 4, marginBottom: 4 } : {}}
       >
         <div
           id={`task-${task.id}`}
@@ -409,7 +414,10 @@ export default function TaskList({
                   <input
                     type="checkbox"
                     checked={task.status === 'completed'}
-                    onChange={() => toggleTask(task.id)}
+                    onChange={(e) => {
+                      e.stopPropagation();
+                      toggleTask(task.id);
+                    }}
                   />
                   {isSubtask && (
                     <span
@@ -435,7 +443,6 @@ export default function TaskList({
                       {isCollapsed ? '+' : '-'}
                     </span>
                   )}
-                  
                   <h3 
                     className={`task-title ${task.status === 'completed' ? 'completed' : ''}`}
                     style={{ color: task.status === 'completed' ? '#888' : '#222', fontWeight: 500 }}
@@ -452,20 +459,21 @@ export default function TaskList({
                     {task.title}
                   </h3>
                 </div>
-                
+                {/* Show actions for both top-level tasks and subtasks */}
                 <div className="task-actions">
-                  <button 
-                    className="btn btn-sm btn-outline text-primary border-primary"
-                    onClick={() => {
-                      // Automatically expand the task when adding a subtask
-                      if (collapsedTasks[task.id]) {
-                        toggleCollapsed(task.id);
-                      }
-                      setAddingSubtaskFor(task.id);
-                    }}
-                  >
-                    Add Subtask
-                  </button>
+                  {!isSubtask && (
+                    <button
+                      className="btn btn-sm btn-outline"
+                      onClick={() => {
+                        setAddingSubtaskFor(task.id);
+                        if (isCollapsed) {
+                          toggleCollapsed(task.id);
+                        }
+                      }}
+                    >
+                      Add Subtask
+                    </button>
+                  )}
                   <button 
                     onClick={() => deleteTask(task.id)} 
                     className="btn btn-sm btn-muted" 
@@ -473,13 +481,65 @@ export default function TaskList({
                   >
                     🗑️
                   </button>
+                  {/* Convert to Subtask button - only for top-level tasks */}
+                  {!isSubtask && (
+                    <button
+                      className="btn btn-sm btn-outline"
+                      style={{ marginLeft: 8 }}
+                      onClick={() => {
+                        setConvertTaskId(task.id);
+                        setSelectedParentId(null);
+                      }}
+                    >
+                      Convert to Subtask
+                    </button>
+                  )}
                 </div>
               </div>
-              
+              {/* Convert to Subtask dropdown */}
+              {!isSubtask && convertTaskId === task.id && (
+                <div className="convert-subtask-dropdown" style={{ marginTop: 8 }}>
+                  <select
+                    className="form-control"
+                    value={selectedParentId || ''}
+                    onChange={e => setSelectedParentId(e.target.value)}
+                  >
+                    <option value="">Select parent task...</option>
+                    {topLevelTasks
+                      .filter(t => t.id !== task.id) // Exclude self
+                      .map(t => (
+                        <option key={t.id} value={t.id}>{t.title}</option>
+                      ))}
+                  </select>
+                  <button
+                    className="btn btn-sm btn-primary"
+                    style={{ marginLeft: 8 }}
+                    disabled={!selectedParentId}
+                    onClick={() => {
+                      if (selectedParentId) {
+                        moveTaskToParent(task.id, selectedParentId);
+                        setConvertTaskId(null);
+                        setSelectedParentId(null);
+                      }
+                    }}
+                  >
+                    Confirm
+                  </button>
+                  <button
+                    className="btn btn-sm btn-outline"
+                    style={{ marginLeft: 4 }}
+                    onClick={() => {
+                      setConvertTaskId(null);
+                      setSelectedParentId(null);
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              )}
               <div className="task-meta">
                 {task.dueDate && (
                   <span className="task-date" style={{ color: '#444' }}>
-                    {/* Apply consistent date formatting with timezone handling */}
                     {new Date(task.dueDate).toLocaleDateString(undefined, {
                       year: 'numeric',
                       month: 'short',
@@ -493,16 +553,12 @@ export default function TaskList({
                     )}
                   </span>
                 )}
-
-                {/* Display priority indicator */}
                 {task.priority && (
                   <span className={`priority-badge ${task.priority}`} style={{ color: '#222' }}>
                     {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
                   </span>
                 )}
-                
-                {/* Add time estimator component */}
-                {updateTaskEstimate && startTaskTimer && completeTaskTimer && (
+                {updateTaskEstimate && startTaskTimer && completeTaskTimer && !isSubtask && (
                   <TimeEstimator
                     task={task}
                     updateTaskEstimate={updateTaskEstimate}
@@ -510,7 +566,6 @@ export default function TaskList({
                     completeTaskTimer={completeTaskTimer}
                   />
                 )}
-
                 {task.categories && task.categories.length > 0 &&
                   task.categories.map(categoryId => {
                     const category = categories.find(c => c.id === categoryId);
@@ -525,25 +580,28 @@ export default function TaskList({
                     ) : null;
                   })
                 }
-
-                {task.projectId && (
+                {task.projectId && !isSubtask && (
                   <span className="task-project" style={{ color: '#4361ee' }}>
                     {projects.find(p => p.id === task.projectId)?.name || 'Unknown Project'}
                   </span>
                 )}
               </div>
-              
-              {/* Add subtask form */}
-              {addingSubtaskFor === task.id && (
+              {/* Add subtask form only for top-level tasks */}
+              {!isSubtask && addingSubtaskFor === task.id && (
                 <div className="subtask-form">
                   <div className="flex gap-sm">
-                    <input 
-                      type="text"
-                      className="form-control"
-                      placeholder="New subtask..."
-                      value={newSubtaskTitle}
-                      onChange={(e) => setNewSubtaskTitle(e.target.value)}
-                    />
+                  <input 
+                    type="text"
+                    className="form-control"
+                    placeholder="New subtask..."
+                    value={subtaskTitles[task.id] || ''}
+                    onChange={(e) =>
+                      setSubtaskTitles(prev => ({
+                        ...prev,
+                        [task.id]: e.target.value,
+                      }))
+                    }
+                  />
                     <button 
                       className="btn btn-sm btn-primary"
                       onClick={() => handleAddSubtask(task.id)}
@@ -554,7 +612,11 @@ export default function TaskList({
                       className="btn btn-sm btn-outline"
                       onClick={() => {
                         setAddingSubtaskFor(null);
-                        setNewSubtaskTitle('');
+                        setSubtaskTitles(prev => {
+                          const updated = { ...prev };
+                          delete updated[task.id];
+                          return updated;
+                        });
                       }}
                     >
                       Cancel
@@ -575,12 +637,15 @@ export default function TaskList({
             </>
           )}
         </div>
-
-        {/* Render subtasks */}
+        {/* Render subtasks as a nested list */}
         {hasChildren && !isCollapsed && (
-          <div className="subtasks">
-            {taskSubtasks.map(subtask => renderTask(subtask, depth + 1))}
-          </div>
+          <ul className="subtask-list" style={{ listStyle: 'none', paddingLeft: 0 }}>
+            {taskSubtasks.map(subtask => (
+              <li key={subtask.id}>
+                {renderTask(subtask, depth + 1)}
+              </li>
+            ))}
+          </ul>
         )}
       </div>
     );
@@ -589,54 +654,13 @@ export default function TaskList({
   return (
     <div className="bg-white border border-border rounded-lg p-0">
       <h2 className="px-6 pt-6 pb-2 text-xl font-bold text-primary">All Tasks</h2>
-      {topLevelTasks.length === 0 && (
+      {topLevelTasks.length === 0 ? (
         <div className="text-center text-light py-lg">No tasks yet. Add your first task above.</div>
+      ) : (
+        <div className="tasks-container">
+          {topLevelTasks.map(task => renderTask(task))}
+        </div>
       )}
-      <ul className="divide-y divide-border">
-        {topLevelTasks.map(task => (
-          <li key={task.id} className="flex items-center px-6 py-4 gap-4 hover:bg-background transition">
-            <div className="flex-shrink-0 w-6 flex items-center justify-center">
-              <input
-                type="checkbox"
-                checked={task.status === 'completed'}
-                onChange={() => toggleTask(task.id)}
-                className="form-control"
-              />
-            </div>
-            <div className="flex flex-col flex-grow min-w-0">
-              <span className="font-semibold text-base text-text truncate" style={{ textDecoration: task.status === 'completed' ? 'line-through' : 'none', opacity: task.status === 'completed' ? 0.6 : 1 }}>{task.title}</span>
-              <div className="flex flex-wrap gap-2 items-center text-xs text-light mt-1 truncate">
-                {task.dueDate && (
-                  <span>
-                    {new Date(task.dueDate).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
-                  </span>
-                )}
-                {task.categories && task.categories.length > 0 && (
-                  <span className="flex gap-1">
-                    {task.categories.map(catId => {
-                      const cat = categories.find(c => c.id === catId);
-                      return cat ? (
-                        <span key={catId} className="inline-block text-xs px-2 py-0.5 rounded-full" style={{ background: cat.color, color: '#fff' }}>{cat.name}</span>
-                      ) : null;
-                    })}
-                  </span>
-                )}
-                {task.projectId && (
-                  <span className="text-xs text-primary ml-2">
-                    {projects.find(p => p.id === task.projectId)?.name}
-                  </span>
-                )}
-                {/* Add links/tags here if needed */}
-              </div>
-            </div>
-            <div className="flex items-center gap-2 ml-2 flex-shrink-0">
-              <button className="btn btn-outline btn-sm" onClick={() => addSubtask(task.id, 'New Subtask')}>Add Subtask</button>
-              <button className="btn btn-outline btn-sm" onClick={() => deleteTask(task.id)}>Delete</button>
-              <button className="btn btn-primary btn-sm" onClick={() => {/* handle breakdown */}}>Break Down</button>
-            </div>
-          </li>
-        ))}
-      </ul>
     </div>
   );
 }

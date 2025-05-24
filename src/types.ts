@@ -103,6 +103,7 @@ export type TaskListProps = {
   updateTaskEstimate?: (id: string, estimatedMinutes: number | null) => void;
   startTaskTimer?: (id: string) => void;
   completeTaskTimer?: (id: string) => void;
+  moveTaskToParent: (id: string, parentId: string | null) => void;
   categories: Category[];
   projects: Project[];
 };
@@ -133,4 +134,16 @@ export type ContextWizardProps = {
   tasks: Task[];
   onClose: () => void;
   generalTasks: string[];
+};
+
+type DailyPlannerProps = {
+  tasks: Task[];
+  timeBlocks: TimeBlock[];
+  addTimeBlock: (block: Omit<TimeBlock, 'id'>) => void;
+  updateTimeBlock: (id: string, block: Partial<TimeBlock>) => void;
+  deleteTimeBlock: (id: string) => void;
+  assignTaskToBlock: (taskId: string, blockId: string | null) => void;
+  date: Date;
+  setDate: (date: Date) => void;
+  updateTaskEstimate?: (id: string, estimatedMinutes: number | null) => void;
 };

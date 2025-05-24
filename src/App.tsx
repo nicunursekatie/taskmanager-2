@@ -60,7 +60,8 @@ function App() {
     updateTaskEstimate,
     startTaskTimer,
     completeTaskTimer,
-    updateTaskDescription
+    updateTaskDescription,
+    moveTaskToParent
   } = useTasks();
 
   // Check API key status on component mount (with error handling)
@@ -144,7 +145,18 @@ function App() {
     deleteProject
   } = useProjects(setTasks);
 
-
+  useEffect(() => {
+    const handler = (e: any) => {
+      if (e.detail && e.detail.title) {
+        addTask({
+          title: e.detail.title,
+          status: 'pending'
+        });
+      }
+    };
+    window.addEventListener('quickAddTask', handler);
+    return () => window.removeEventListener('quickAddTask', handler);
+  }, [addTask]);
 
   // Start editing a category
   const startEditing = (category: Category) => {
@@ -178,7 +190,12 @@ function App() {
         dueDate = `${dateValue}T${timeValue}`;
       }
 
-      addTask(title, dueDate, newParent);
+      addTask({
+        title,
+        status: 'pending',
+        dueDate,
+        parentId: newParent || undefined
+      });
 
       // Clear inputs
       titleInputRef.current.value = '';
@@ -370,6 +387,7 @@ function App() {
                 assignTaskToBlock={assignTaskToBlock}
                 date={currentDate}
                 setDate={setCurrentDate}
+                updateTaskEstimate={updateTaskEstimate}
               />
             </div>
           )}
@@ -406,6 +424,7 @@ function App() {
                     updateTaskEstimate={updateTaskEstimate}
                     startTaskTimer={startTaskTimer}
                     completeTaskTimer={completeTaskTimer}
+                    moveTaskToParent={moveTaskToParent}
                     categories={categories}
                     projects={projects}
                   />
@@ -608,14 +627,15 @@ function App() {
             <div className="all-tasks-view">
               <div className="section-card">
                 <h2 className="section-title">All Tasks</h2>
-                {tasks.filter(task => task.status !== 'completed' && !task.parentId).length > 0 ? (
+                {tasks.filter(task => task.status !== 'completed').length > 0 ? (
                   <TaskList 
-                    tasks={tasks.filter(task => task.status !== 'completed' && !task.parentId)} 
+                    tasks={tasks.filter(task => task.status !== 'completed')} 
                     toggleTask={toggleTask} 
                     deleteTask={deleteTask} 
                     updateTask={updateTask}
                     updateTaskDescription={updateTaskDescription}
                     addSubtask={addSubtask}
+                    moveTaskToParent={moveTaskToParent}
                     categories={categories}
                     projects={projects}
                   />
@@ -634,6 +654,7 @@ function App() {
                     updateTask={updateTask}
                     updateTaskDescription={updateTaskDescription}
                     addSubtask={addSubtask}
+                    moveTaskToParent={moveTaskToParent}
                     categories={categories}
                     projects={projects}
                   />
@@ -645,34 +666,59 @@ function App() {
           {/* Projects View */}
           {activeTab === 'projects' && (
             <div className="projects-view">
-              <div className="grid grid-3">
+              <div className="grid grid-3 gap-lg">
                 {projects.length > 0 ? (
-                  projects.map((project) => (
-                    <div id={`project-${project.id}`} key={project.id} className="project-card">
-                      <div className="project-header">
-                        <h2 className="project-title">{project.name}</h2>
-                        <div className="project-actions">
-                          <button className="btn btn-sm btn-outline" onClick={() => startEditing(project)}>Edit</button>
-                          <button className="btn btn-sm btn-danger" onClick={() => deleteProject(project.id)}>Delete</button>
-                        </div>
-                      </div>
-                      {project.description && (
-                        <p className="project-description">{project.description}</p>
-                      )}
-                      <div className="project-tasks">
-                        {tasks.filter(task => task.projectId === project.id).map(task => (
-                          <div key={task.id} className="task-list-item">
-                            <input
-                              type="checkbox"
-                              checked={task.status === 'completed'}
-                              onChange={() => toggleTask(task.id)}
-                            />
-                            <span className={task.status === 'completed' ? 'completed' : ''}>{task.title}</span>
+                  projects.map((project) => {
+                    const projectTasks = tasks.filter(t => t.projectId === project.id);
+                    const completedCount = projectTasks.filter(t => t.status === 'completed').length;
+                    const activeCount = projectTasks.filter(t => t.status !== 'completed').length;
+                    const progressPercentage = projectTasks.length > 0 ? Math.round((completedCount / projectTasks.length) * 100) : 0;
+                    return (
+                      <div id={`project-${project.id}`} key={project.id} className="project-card flex flex-col gap-md p-lg mb-md shadow-md border border-border rounded-xl bg-white">
+                        <div className="flex items-start justify-between mb-2">
+                          <div>
+                            <h3 className="text-lg font-bold text-primary mb-xs">{project.name}</h3>
+                            {project.description && (
+                              <p className="text-sm text-light mb-xs">{project.description}</p>
+                            )}
                           </div>
-                        ))}
+                          <div className="flex gap-2">
+                            <button className="btn btn-sm btn-outline" onClick={() => startEditing(project)}>Edit</button>
+                            <button className="btn btn-sm btn-danger" onClick={() => deleteProject(project.id)}>Delete</button>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-xs text-success">{activeCount} active</span>
+                          {completedCount > 0 && <span className="text-xs text-light">{completedCount} done</span>}
+                          {project.dueDate && (
+                            <span className="text-xs text-warning">Due: {new Date(project.dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
+                          )}
+                        </div>
+                        {/* Progress bar */}
+                        <div className="w-full h-2 bg-background rounded-full overflow-hidden mb-2">
+                          <div className="h-full bg-primary" style={{ width: `${progressPercentage}%` }}></div>
+                        </div>
+                        <div className="flex items-center justify-between text-xs text-light">
+                          <span>{progressPercentage}% complete</span>
+                          <span>{projectTasks.length} tasks</span>
+                        </div>
+                        {/* List a few tasks */}
+                        {projectTasks.length > 0 && (
+                          <div className="mt-md">
+                            <div className="text-xs text-light mb-xs">Sample tasks:</div>
+                            <ul className="flex flex-col gap-xs">
+                              {projectTasks.slice(0, 3).map(task => (
+                                <li key={task.id} className="flex items-center gap-2">
+                                  <input type="checkbox" checked={task.status === 'completed'} onChange={() => toggleTask(task.id)} />
+                                  <span className={task.status === 'completed' ? 'line-through text-light' : ''}>{task.title}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  ))
+                    );
+                  })
                 ) : (
                   <div className="empty-message">No projects yet. Create one to get started.</div>
                 )}
@@ -887,6 +933,7 @@ function App() {
                       updateTask={updateTask}
                       updateTaskDescription={updateTaskDescription}
                       addSubtask={addSubtask}
+                      moveTaskToParent={moveTaskToParent}
                       categories={categories}
                       projects={projects}
                     />
@@ -982,6 +1029,7 @@ function App() {
                       updateTask={updateTask}
                       updateTaskDescription={updateTaskDescription}
                       addSubtask={addSubtask}
+                      moveTaskToParent={moveTaskToParent}
                       categories={categories}
                       projects={projects}
                     />
@@ -1072,16 +1120,15 @@ function App() {
       {/* Task Edit Modal */}
       {showTaskEditModal && editingTaskId && (
         <div className="modal-overlay">
-          <div className="modal">
-            <div className="modal-header">
-              <h2 className="modal-title">Edit Task</h2>
+          <div className="modal p-6 rounded-xl shadow-lg max-w-md w-full">
+            <div className="modal-header flex items-center justify-between mb-md">
+              <h2 className="modal-title text-xl font-bold">Edit Task</h2>
               <button className="btn btn-sm btn-outline" onClick={() => setShowTaskEditModal(false)}>×</button>
             </div>
-
             <div className="modal-body">
-              <div className="task-edit-form">
-                <div className="input-group">
-                  <label className="form-label">Title</label>
+              <form className="flex flex-col gap-md">
+                <div>
+                  <label className="form-label mb-xs">Title</label>
                   <input
                     type="text"
                     className="form-control"
@@ -1089,25 +1136,18 @@ function App() {
                     onChange={e => setEditTaskTitle(e.target.value)}
                   />
                 </div>
-                
-                {/* Display subtask count */}
                 {(() => {
                   const subtaskCount = tasks.filter(t => t.parentId === editingTaskId).length;
                   if (subtaskCount > 0) {
                     return (
-                      <div className="subtask-count-display">
-                        <span className="subtask-count">
-                          {subtaskCount} subtask{subtaskCount !== 1 ? 's' : ''}
-                        </span>
-                      </div>
+                      <div className="text-xs text-light mb-xs">{subtaskCount} subtask{subtaskCount !== 1 ? 's' : ''}</div>
                     );
                   }
                   return null;
                 })()}
-
-                <div className="input-group">
-                  <label className="form-label">Due Date & Time</label>
-                  <div className="date-time-flex">
+                <div>
+                  <label className="form-label mb-xs">Due Date & Time</label>
+                  <div className="flex gap-2 mb-xs">
                     <input
                       type="date"
                       className="form-control"
@@ -1122,64 +1162,24 @@ function App() {
                       placeholder="Optional time"
                     />
                   </div>
-                  <div className="date-shortcuts">
-                    <button
-                      type="button"
-                      className={`date-shortcut-btn ${editTaskDueDate === new Date().toISOString().split('T')[0] ? 'active' : ''}`}
-                      onClick={() => {
-                        const today = new Date();
-                        const dateString = today.toISOString().split('T')[0];
-                        setEditTaskDueDate(dateString);
-                      }}
-                    >
-                      Today
-                    </button>
-                    <button
-                      type="button"
-                      className="date-shortcut-btn"
-                      onClick={() => {
-                        const tomorrow = new Date();
-                        tomorrow.setDate(tomorrow.getDate() + 1);
-                        const dateString = tomorrow.toISOString().split('T')[0];
-                        setEditTaskDueDate(dateString);
-                      }}
-                    >
-                      Tomorrow
-                    </button>
-                    <button
-                      type="button"
-                      className="date-shortcut-btn"
-                      onClick={() => {
-                        const nextWeek = new Date();
-                        nextWeek.setDate(nextWeek.getDate() + 7);
-                        const dateString = nextWeek.toISOString().split('T')[0];
-                        setEditTaskDueDate(dateString);
-                      }}
-                    >
-                      Next Week
-                    </button>
-                    <button
-                      type="button"
-                      className="date-shortcut-btn"
-                      onClick={() => {
-                        setEditTaskDueDate('');
-                        setEditTaskDueTime('');
-                      }}
-                    >
-                      No Date
-                    </button>
+                  <div className="flex gap-2 flex-wrap">
+                    <button type="button" className={`btn btn-sm btn-outline ${editTaskDueDate === new Date().toISOString().split('T')[0] ? 'bg-primary/10 text-primary' : ''}`} onClick={() => setEditTaskDueDate(new Date().toISOString().split('T')[0])}>Today</button>
+                    <button type="button" className="btn btn-sm btn-outline" onClick={() => { const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1); setEditTaskDueDate(tomorrow.toISOString().split('T')[0]); }}>Tomorrow</button>
+                    <button type="button" className="btn btn-sm btn-outline" onClick={() => { const nextWeek = new Date(); nextWeek.setDate(nextWeek.getDate() + 7); setEditTaskDueDate(nextWeek.toISOString().split('T')[0]); }}>Next Week</button>
+                    <button type="button" className="btn btn-sm btn-outline" onClick={() => { setEditTaskDueDate(''); setEditTaskDueTime(''); }}>No Date</button>
                   </div>
                 </div>
-
-                <div className="input-group">
-                  <label className="form-label">Categories</label>
-                  <div className="category-selector">
+                <div>
+                  <label className="form-label mb-xs">Categories</label>
+                  <div className="flex flex-wrap gap-2">
                     {categories.map(category => (
-                      <div
+                      <button
+                        type="button"
                         key={category.id}
-                        className={`category-option ${editTaskCategories.includes(category.id) ? 'selected' : ''}`}
+                        className={`px-3 py-1 rounded-full text-xs font-medium border transition ${editTaskCategories.includes(category.id) ? '' : 'bg-white'} `}
                         style={{
                           backgroundColor: editTaskCategories.includes(category.id) ? category.color : 'transparent',
+                          color: editTaskCategories.includes(category.id) ? '#fff' : category.color,
                           border: `1px solid ${category.color}`
                         }}
                         onClick={() => {
@@ -1191,13 +1191,12 @@ function App() {
                         }}
                       >
                         {category.name}
-                      </div>
+                      </button>
                     ))}
                   </div>
                 </div>
-
-                <div className="input-group">
-                  <label className="form-label">Project</label>
+                <div>
+                  <label className="form-label mb-xs">Project</label>
                   <select
                     className="form-control"
                     value={editTaskProjectId || ''}
@@ -1205,85 +1204,62 @@ function App() {
                   >
                     <option value="">No Project</option>
                     {projects.map(project => (
-                      <option key={project.id} value={project.id}>
-                        {project.name}
-                      </option>
+                      <option key={project.id} value={project.id}>{project.name}</option>
                     ))}
                   </select>
                 </div>
-
-                <div className="input-group">
-                  <label className="form-label">Priority</label>
-                  <div className="priority-selector">
-                    <div 
-                      className={`priority-option critical ${editTaskPriority === 'critical' ? 'selected' : ''}`}
-                      onClick={() => setEditTaskPriority('critical')}
-                    >
-                      Critical
-                    </div>
-                    <div 
-                      className={`priority-option high ${editTaskPriority === 'high' ? 'selected' : ''}`}
-                      onClick={() => setEditTaskPriority('high')}
-                    >
-                      High
-                    </div>
-                    <div 
-                      className={`priority-option medium ${editTaskPriority === 'medium' ? 'selected' : ''}`}
-                      onClick={() => setEditTaskPriority('medium')}
-                    >
-                      Medium
-                    </div>
-                    <div 
-                      className={`priority-option low ${editTaskPriority === 'low' ? 'selected' : ''}`}
-                      onClick={() => setEditTaskPriority('low')}
-                    >
-                      Low
-                    </div>
-                    <div 
-                      className={`priority-option ${!editTaskPriority ? 'selected' : ''}`}
-                      onClick={() => setEditTaskPriority(null)}
-                    >
-                      None
-                    </div>
+                <div>
+                  <label className="form-label mb-xs">Priority</label>
+                  <div className="flex gap-2 flex-wrap">
+                    {['critical', 'high', 'medium', 'low', null].map(priority => (
+                      <button
+                        type="button"
+                        key={priority ?? 'none'}
+                        className={`px-3 py-1 rounded-full text-xs font-semibold border transition ${editTaskPriority === priority ? 'bg-primary text-white border-primary' : 'bg-white text-primary border-border'}`}
+                        onClick={() => setEditTaskPriority(priority)}
+                      >
+                        {priority ? priority.charAt(0).toUpperCase() + priority.slice(1) : 'None'}
+                      </button>
+                    ))}
                   </div>
                 </div>
-              </div>
-            </div>
-
-            <div className="modal-footer">
-              <button
-                className="btn btn-primary"
-                onClick={() => {
-                  if (editingTaskId && editTaskTitle.trim()) {
-                    // Format date based on whether time is provided
-                    let formattedDueDate = null;
-                    if (editTaskDueDate) {
-                      formattedDueDate = editTaskDueTime
-                        ? `${editTaskDueDate}T${editTaskDueTime}`
-                        : editTaskDueDate;
-                    }
-
-                    updateTask(
-                      editingTaskId,
-                      editTaskTitle.trim(),
-                      formattedDueDate,
-                      editTaskCategories,
-                      editTaskProjectId,
-                      undefined, // dependsOn parameter (not used here)
-                      editTaskPriority
-                    );
-                    setShowTaskEditModal(false);
-                  }
-                }}
-              >
-                Save
-              </button>
-              <button
-                className="btn btn-outline"
-                onClick={() => setShowTaskEditModal(false)}
-              >
-                Cancel
-              </button>
+                <div className="flex gap-3 justify-end mt-md">
+                  <button
+                    type="button"
+                    className="btn btn-outline"
+                    onClick={() => setShowTaskEditModal(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                    onClick={e => {
+                      e.preventDefault();
+                      if (editingTaskId && editTaskTitle.trim()) {
+                        let formattedDueDate = null;
+                        if (editTaskDueDate) {
+                          formattedDueDate = editTaskDueTime
+                            ? `${editTaskDueDate}T${editTaskDueTime}`
+                            : editTaskDueDate;
+                        }
+                        updateTask(
+                          editingTaskId,
+                          editTaskTitle.trim(),
+                          formattedDueDate,
+                          editTaskCategories,
+                          editTaskProjectId,
+                          undefined,
+                          editTaskPriority
+                        );
+                        setShowTaskEditModal(false);
+                      }
+                    }}
+                  >
+                    Save
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         </div>
