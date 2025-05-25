@@ -190,17 +190,18 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
               addSubtask={(parentId, title) => {
                 const subtaskId = addSubtask(parentId, title);
                 forceRefresh();
-                setHasRunBreakdown(true);
-                setShowBreakdownSection(false);
-                setTimeout(() => {
-                  forceRefresh();
-                  setTimeout(() => forceRefresh(), 200);
-                }, 100);
+                // Do NOT set hasRunBreakdown or hide the section here; let the AI component handle closing
                 return subtaskId;
               }}
               updateTaskDescription={updateTaskDescription}
               existingSubtasks={subtasks}
-              setShowAIBreakdown={setShowAIBreakdown}
+              setShowAIBreakdown={(show) => {
+                setShowAIBreakdown(show);
+                if (!show) {
+                  setHasRunBreakdown(true);
+                  setShowBreakdownSection(false);
+                }
+              }}
               forceRefresh={forceRefresh}
             />
           ) : !hasRunBreakdown && (

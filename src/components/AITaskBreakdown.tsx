@@ -23,7 +23,6 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [generatedSubtasks, setGeneratedSubtasks] = useState<string[]>([]);
-  console.log('Debug check:', logEnvironment());
   const [selectedSubtasks, setSelectedSubtasks] = useState<string[]>([]);
   const [editableSubtasks, setEditableSubtasks] = useState<{ [key: number]: string }>({});
   const [error, setError] = useState<string | null>(null);
@@ -37,11 +36,7 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
     setIsLoading(true);
     setError(null);
     setNeedsClarification(false);
-
-    
-
     try {
-      console.log('Debug check:', logEnvironment());
       const subtasks = await breakdownTask(task.title, task.description || '');
       if (!subtasks || !Array.isArray(subtasks) || subtasks.length === 0)
         throw new Error('No subtasks returned from AI');
@@ -60,7 +55,12 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
         setEditableSubtasks(edits);
       }
     } catch (err: any) {
-      setError(err.message || 'Error generating subtasks');
+      // Custom error messages for API key issues
+      if (err.message && err.message.toLowerCase().includes('api key')) {
+        setError('Your Groq API key is missing or invalid. Please set it in Settings and try again.');
+      } else {
+        setError(err.message || 'Error generating subtasks');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -122,7 +122,6 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
     setIsLoading(true);
     setNeedsClarification(false);
     try {
-      console.log('Debug check:', logEnvironment());
       const subtasks = await breakdownTask(task.title, updated);
       const valid = subtasks.filter(s => typeof s === 'string' && s.trim());
       if (!valid.length) throw new Error('No valid subtasks were generated');
@@ -150,6 +149,7 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
     setClarificationText('');
     setAiClarificationRequest('');
     setIsLoading(false);
+    setSuccess(false);
     setShowAIBreakdown?.(false);
   };
 
@@ -178,10 +178,10 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
           ) : error ? (
             <div className="ai-error">
               <p>{error}</p>
-              <button onClick={handleGenerateSubtasks} className="retry-btn">
+              <button onClick={handleGenerateSubtasks} className="retry-btn" disabled={isLoading}>
                 Try Again
               </button>
-              <button onClick={handleCancel} className="ai-cancel-btn">
+              <button onClick={handleCancel} className="ai-cancel-btn" disabled={isLoading}>
                 Cancel
               </button>
             </div>

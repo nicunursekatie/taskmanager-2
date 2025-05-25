@@ -2,7 +2,10 @@
 function safeEnv() {
   // In production builds, import.meta.env might be undefined or incomplete
   try {
-    const rawKey = import.meta.env.VITE_GROQ_API_KEY || '';
+    // Check both environment variables and localStorage
+    const envKey = import.meta.env.VITE_GROQ_API_KEY || '';
+    const localKey = localStorage.getItem('GROQ_API_KEY') || '';
+    const rawKey = envKey || localKey;
     const apiKey = rawKey.trim();
     
     // Log the environment for debugging
@@ -13,7 +16,8 @@ function safeEnv() {
       apiKeyPrefix: apiKey.substring(0, 8) + '...',
       rawKeyLength: rawKey.length,
       hasWhitespace: rawKey !== rawKey.trim(),
-      encoding: Buffer.from(apiKey).toString('base64').substring(0, 20) + '...'
+      encoding: Buffer.from(apiKey).toString('base64').substring(0, 20) + '...',
+      source: envKey ? 'env' : localKey ? 'localStorage' : 'none'
     });
     
     return {
