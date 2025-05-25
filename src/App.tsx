@@ -447,6 +447,7 @@ function App() {
                 ) : (
                   <p className="text-text-light italic text-center py-4">No tasks due today.</p>
                 )}
+              </div>
               <div className="section-card">
                 <div className="section-card-header">
                   <h2 className="section-title">Today's Tasks</h2>
@@ -662,6 +663,7 @@ function App() {
                   })}
                 </div>
               </div>
+            </div>
             </div>
           )}
           
@@ -1084,6 +1086,7 @@ function App() {
         </div>
         </>
         )}
+      </main>
       
       {/* Reminder System - always visible regardless of focus mode */}
       <ReminderSystem 
