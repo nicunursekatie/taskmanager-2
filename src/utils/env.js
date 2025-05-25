@@ -49,8 +49,9 @@ export function logEnvironment() {
     console.error('Error in logEnvironment:', e);
   }
   
+  const userApiKey = localStorage.getItem('user_groq_api_key');
   return {
-    available: Boolean(ENV.GROQ_API_KEY),
+    available: Boolean(userApiKey || ENV.GROQ_API_KEY),
     mode: ENV.MODE
   };
 }

@@ -39,7 +39,7 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
     try {
       const subtasks = await breakdownTask(task.title, task.description || '');
       if (!subtasks || !Array.isArray(subtasks) || subtasks.length === 0)
-        throw new Error('No subtasks returned from AI');
+        throw new Error('No subtasks returned');
       const valid = subtasks.filter(s => typeof s === 'string' && s.trim());
       if (!valid.length) throw new Error('No valid subtasks generated');
       if (valid.length === 1 && valid[0].startsWith('NEEDS_CLARIFICATION')) {
@@ -59,7 +59,8 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
       if (err.message && err.message.toLowerCase().includes('api key')) {
         setError('Your Groq API key is missing or invalid. Please set it in Settings and try again.');
       } else {
-        setError(err.message || 'Error generating subtasks');
+        console.error('Task breakdown error:', err);
+      setError(err.message || 'Error generating subtasks');
       }
     } finally {
       setIsLoading(false);
@@ -177,13 +178,23 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
             </div>
           ) : error ? (
             <div className="ai-error">
-              <p>{error}</p>
-              <button onClick={handleGenerateSubtasks} className="retry-btn" disabled={isLoading}>
-                Try Again
-              </button>
-              <button onClick={handleCancel} className="ai-cancel-btn" disabled={isLoading}>
-                Cancel
-              </button>
+              <div className="error-icon">⚠️</div>
+              <p className="error-message">{error}</p>
+              <div className="error-help">
+                {error.includes('API key') ? (
+                  <p className="error-tip">The AI service is currently unavailable. You can still add subtasks manually below.</p>
+                ) : (
+                  <p className="error-tip">Don't worry - you can still break down tasks manually or try the AI again.</p>
+                )}
+              </div>
+              <div className="error-actions">
+                <button onClick={handleGenerateSubtasks} className="retry-btn" disabled={isLoading}>
+                  Try AI Again
+                </button>
+                <button onClick={handleCancel} className="ai-cancel-btn" disabled={isLoading}>
+                  Add Manually Instead
+                </button>
+              </div>
             </div>
           ) : needsClarification ? (
             <div className="ai-clarification">

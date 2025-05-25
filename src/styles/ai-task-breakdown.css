@@ -6,6 +6,59 @@
   border-top: 1px dashed var(--border-color);
 }
 
+/* Error handling styles */
+.ai-error {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  padding: 16px;
+  margin: 10px 0;
+}
+
+.error-icon {
+  font-size: 24px;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.error-message {
+  color: #dc2626;
+  font-weight: 500;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.error-help {
+  margin-bottom: 12px;
+}
+
+.error-tip {
+  color: #6b7280;
+  font-size: 14px;
+  text-align: center;
+  margin: 0;
+}
+
+.error-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.retry-btn {
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.retry-btn:hover {
+  background-color: #2563eb;
+}
+
 .ai-breakdown-btn, .ai-breakdown-again-btn {
   display: flex;
   align-items: center;

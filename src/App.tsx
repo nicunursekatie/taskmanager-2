@@ -2,6 +2,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTasks } from './hooks/useTasks';
 import { useProjects } from './hooks/useProjects';
+import './styles/design-system.css';
+import './styles/layout-system.css';
+import './styles/task-list-redesign.css';
+import './styles/task-breakdown-redesign.css';
 import './styles/calendar-view.css';
 import './compact-styles.css';
 import './app-styles.css';
@@ -13,6 +17,7 @@ import './styles/focus-mode.css';
 import './styles/time-estimator.css';
 import './styles/reminders.css';
 import './styles/task-highlights.css';
+import './styles/settings.css';
 import { useCategories } from './hooks/useCategories';
 
 // Component imports
@@ -28,6 +33,7 @@ import DailyPlanner from './components/DailyPlanner';
 import MoreOptionsMenu from './components/MoreOptionsMenu';
 import CaptureBar from './components/CaptureBar';
 import Settings from './components/Settings';
+import Settings from './components/Settings';
 
 // Utilities
 import { loadSampleData } from './utils/sampleData';
@@ -40,7 +46,7 @@ import { Task, Category, Project, PriorityLevel } from './types';
 // Hooks
 import { useTimeBlocks } from './hooks/useTimeBlocks';
 
-type TabType = 'dashboard' | 'all-tasks' | 'projects' | 'categories' | 'calendar' | 'daily-planner';
+type TabType = 'dashboard' | 'all-tasks' | 'projects' | 'categories' | 'calendar' | 'daily-planner' | 'settings';
 
 function App() {
   // Navigation state
@@ -393,6 +399,13 @@ function App() {
               />
             </div>
           )}
+
+          {/* Settings View */}
+          {activeTab === 'settings' && (
+            <div className="settings-view">
+              <Settings />
+            </div>
+          )}
           
           {/* Calendar View */}
           {activeTab === 'calendar' && (
@@ -412,6 +425,7 @@ function App() {
           {/* Dashboard View */}
           {activeTab === 'dashboard' && (
             <div className="space-y-8">
+            <div className="dashboard-grid">
               {/* Today's Tasks Section */}
               <div className="bg-white border border-border rounded-lg shadow-sm p-4 mb-6">
                 <h2 className="text-lg font-bold text-primary mb-2 border-b border-border pb-1">Today's Tasks</h2>
@@ -433,6 +447,33 @@ function App() {
                 ) : (
                   <p className="text-text-light italic text-center py-4">No tasks due today.</p>
                 )}
+              <div className="section-card">
+                <div className="section-card-header">
+                  <h2 className="section-title">Today's Tasks</h2>
+                </div>
+                <div className="section-card-body">
+                  {todayTasks.length > 0 ? (
+                    <TaskList
+                      tasks={todayTasks}
+                      toggleTask={toggleTask}
+                      deleteTask={deleteTask}
+                      updateTask={updateTask}
+                      updateTaskDescription={updateTaskDescription}
+                      addSubtask={addSubtask}
+                      updateTaskEstimate={updateTaskEstimate}
+                      startTaskTimer={startTaskTimer}
+                      completeTaskTimer={completeTaskTimer}
+                      categories={categories}
+                      projects={projects}
+                    />
+                  ) : (
+                    <div className="empty-state">
+                      <div className="empty-state-icon">📅</div>
+                      <div className="empty-state-title">No tasks due today</div>
+                      <div className="empty-state-description">Great! You have a clear schedule for today.</div>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Upcoming Tasks Section */}
@@ -1043,7 +1084,6 @@ function App() {
         </div>
         </>
         )}
-      </main>
       
       {/* Reminder System - always visible regardless of focus mode */}
       <ReminderSystem 

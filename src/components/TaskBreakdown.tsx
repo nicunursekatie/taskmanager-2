@@ -21,7 +21,7 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
   console.log(`TaskBreakdown for task ${task.id} rendered with ${subtasks.length} subtasks:`, 
     subtasks.map(st => st.title));
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [showAIBreakdown, setShowAIBreakdown] = useState(false);
   const [hasRunBreakdown, setHasRunBreakdown] = useState(false);
   const [showBreakdownSection, setShowBreakdownSection] = useState(false);
@@ -129,6 +129,39 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
     }
   };
   
+  // Only show the breakdown component when there are subtasks OR when actively expanded
+  const hasContent = subtasks.length > 0 || isExpanded || showAIBreakdown;
+  
+  // If no content and not expanded, show a compact inline button
+  if (!hasContent) {
+    return (
+      <div className="ai-breakdown-compact">
+        <button 
+          className="ai-breakdown-compact-btn"
+          onClick={() => {
+            console.log('AI breakdown button clicked for task:', task.id);
+            try {
+              setShowAIBreakdown(true);
+              setIsExpanded(true);
+            } catch (err) {
+              console.error('Error showing AI breakdown:', err);
+              alert('There was an error opening the AI breakdown. Please try again.');
+            }
+          }}
+        >
+          <span className="ai-icon">🤖</span> Break down with AI
+        </button>
+        <span className="text-muted" style={{ fontSize: 'var(--text-xs)' }}>or</span>
+        <button 
+          className="btn btn-xs btn-ghost"
+          onClick={() => setIsExpanded(true)}
+        >
+          Add manually
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="task-breakdown w-full">
       {/* Only show the breakdown section if showBreakdownSection is true and this is a top-level task */}

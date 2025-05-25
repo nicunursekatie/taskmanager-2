@@ -1,0 +1,267 @@
+/* ========================================
+   TASK BREAKDOWN REDESIGN - COMPACT VERSION
+   ======================================== */
+
+.task-breakdown {
+  margin-top: var(--space-3);
+}
+
+/* Only show the breakdown header when there are subtasks OR when expanded */
+.task-breakdown.has-content {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background-color: var(--surface);
+  overflow: hidden;
+}
+
+.breakdown-header {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border);
+  background-color: var(--gray-50);
+}
+
+.breakdown-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.toggle-button {
+  background: none;
+  border: none;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-size: var(--text-sm);
+  font-weight: var(--font-bold);
+}
+
+.toggle-button:hover {
+  background-color: var(--gray-100);
+  color: var(--text-primary);
+}
+
+.breakdown-progress {
+  margin-top: var(--space-3);
+}
+
+.subtask-progress {
+  height: 4px;
+  background-color: var(--gray-200);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  margin-bottom: var(--space-1);
+}
+
+.subtask-progress-bar {
+  height: 100%;
+  background-color: var(--success-500);
+  border-radius: var(--radius-full);
+  transition: width var(--transition);
+}
+
+.progress-text {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.no-subtasks-text {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* Subtask form */
+.subtask-add-form {
+  padding: var(--space-3) var(--space-4);
+  display: flex;
+  gap: var(--space-2);
+  align-items: end;
+  border-bottom: 1px solid var(--border);
+  background-color: var(--surface);
+}
+
+.subtask-add-form .form-control {
+  flex: 1;
+}
+
+.subtask-add-form .btn {
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-xs);
+}
+
+/* Subtasks list */
+.subtasks-list {
+  padding: var(--space-3) var(--space-4);
+}
+
+.subtasks-list ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.subtask-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background-color: var(--surface);
+  transition: all var(--transition-fast);
+}
+
+.subtask-item:hover {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-sm);
+}
+
+.subtask-item.completed {
+  opacity: 0.7;
+  background-color: var(--gray-50);
+}
+
+.subtask-item input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background-color: var(--surface);
+  cursor: pointer;
+  margin: 0;
+  position: relative;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.subtask-item input[type="checkbox"]:checked {
+  background-color: var(--success-500);
+  border-color: var(--success-500);
+}
+
+.subtask-item input[type="checkbox"]:checked::after {
+  content: '✓';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 10px;
+  font-weight: bold;
+}
+
+.subtask-label {
+  flex: 1;
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  cursor: pointer;
+  margin: 0;
+}
+
+.subtask-item.completed .subtask-label {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+
+/* Empty state */
+.empty-subtasks {
+  text-align: center;
+  padding: var(--space-8) var(--space-4);
+  color: var(--text-muted);
+}
+
+.empty-subtasks p {
+  margin: 0 0 var(--space-2) 0;
+  font-size: var(--text-sm);
+}
+
+.empty-subtasks p:last-child {
+  margin-bottom: 0;
+}
+
+/* Completion message */
+.completion-message {
+  background-color: var(--success-50);
+  border: 1px solid var(--success-200);
+  color: var(--success-700);
+  padding: var(--space-4);
+  border-radius: var(--radius);
+  margin-top: var(--space-4);
+  text-align: center;
+  font-weight: var(--font-medium);
+}
+
+/* Compact AI Breakdown button - now inline */
+.ai-breakdown-compact {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.ai-breakdown-compact-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  background-color: var(--primary-50);
+  border: 1px solid var(--primary-200);
+  border-radius: var(--radius-sm);
+  color: var(--primary-700);
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-decoration: none;
+}
+
+.ai-breakdown-compact-btn:hover {
+  background-color: var(--primary-100);
+  border-color: var(--primary-300);
+  color: var(--primary-800);
+}
+
+.ai-breakdown-compact-btn .ai-icon {
+  font-size: var(--text-xs);
+}
+
+/* Hide the old large button style when in compact mode */
+.task-breakdown.compact .ai-breakdown-again-btn {
+  display: none;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .breakdown-header,
+  .subtask-add-form,
+  .subtasks-list {
+    padding: var(--space-4);
+  }
+  
+  .subtask-add-form {
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+  
+  .subtask-add-form .btn {
+    width: 100%;
+  }
+  
+  .ai-breakdown-again-btn {
+    margin: var(--space-4);
+    width: calc(100% - var(--space-8));
+  }
+}
