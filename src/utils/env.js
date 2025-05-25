@@ -25,15 +25,21 @@ export const ENV = safeEnv();
 // Debug utility for checking environment variables
 export function logEnvironment() {
   try {
+    const userApiKey = localStorage.getItem('user_groq_api_key');
+    const hasUserKey = Boolean(userApiKey);
+    const hasEnvKey = Boolean(ENV.GROQ_API_KEY);
+    
     console.log('Environment mode:', ENV.MODE);
-    console.log('GROQ API key available:', Boolean(ENV.GROQ_API_KEY));
-    console.log('GROQ API key length:', ENV.GROQ_API_KEY ? ENV.GROQ_API_KEY.length : 0);
+    console.log('User API key available:', hasUserKey);
+    console.log('Environment API key available:', hasEnvKey);
+    console.log('Total API key length:', userApiKey ? userApiKey.length : (ENV.GROQ_API_KEY ? ENV.GROQ_API_KEY.length : 0));
   } catch (e) {
     console.error('Error in logEnvironment:', e);
   }
   
+  const userApiKey = localStorage.getItem('user_groq_api_key');
   return {
-    available: Boolean(ENV.GROQ_API_KEY),
+    available: Boolean(userApiKey || ENV.GROQ_API_KEY),
     mode: ENV.MODE
   };
 }

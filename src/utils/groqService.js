@@ -21,15 +21,15 @@ export async function breakdownTask(taskTitle, taskDescription = '') {
     console.error('Error logging environment:', e);
   }
   
-  // Always use the fallback key to ensure functionality
-  // This is a workaround for environment variable issues
-  const GROQ_API_KEY = FALLBACK_GROQ_API_KEY;
+  // Try user-provided key first, then environment variable, then fallback
+  const userApiKey = localStorage.getItem('user_groq_api_key');
+  const GROQ_API_KEY = userApiKey || ENV.GROQ_API_KEY || FALLBACK_GROQ_API_KEY;
   console.log('Using API key of length:', GROQ_API_KEY.length);
   
   // Don't use fallbacks, just throw an error
   if (!GROQ_API_KEY) {
     console.error('Missing API key');
-    throw new Error('API key not configured');
+    throw new Error('AI service not configured. Please add a valid GROQ API key.');
   }
   
   console.log('Using API key for task breakdown');
@@ -58,26 +58,36 @@ CRITICAL INSTRUCTIONS:
 4. Assume reasonable defaults based on common scenarios rather than asking for every detail.
 5. Keep subtasks action-oriented, clear, and focused.
 6. Each subtask must be a concrete, standalone step.
-7. Provide 3-5 subtasks for any given task.
+7. Provide 5-10 subtasks for any given task to ensure thorough breakdown.
 8. Avoid creating subtasks that are just decision points or questions.
 
 EXAMPLES:
 - For "Clean the house" → Create practical cleaning subtasks, not clarification requests.
-  1. Vacuum floors in main living areas
-  2. Clean bathroom surfaces and toilet
-  3. Dust furniture and shelves
-  4. Take out all trash
-  5. Wash dishes and clean kitchen counters
+  1. Declutter all rooms and put items in proper places
+  2. Vacuum or sweep floors in all rooms
+  3. Clean bathroom thoroughly (toilet, sink, shower/tub, mirror)
+  4. Dust all furniture, shelves, and surfaces
+  5. Clean kitchen (wipe counters, clean appliances, sink)
+  6. Take out all trash and recycling
+  7. Mop hard floors
+  8. Make beds and tidy bedrooms
+  9. Clean windows and mirrors
+  10. Do a final walkthrough and touch-ups
 
 - For "Write a report" → Create general writing process subtasks:
-  1. Create outline with main sections and key points 
-  2. Gather necessary research and reference materials
-  3. Write first draft of content
-  4. Create any charts or visuals needed
-  5. Proofread and finalize formatting
+  1. Define report purpose, audience, and key objectives
+  2. Create detailed outline with main sections and subsections
+  3. Gather all necessary research materials and data
+  4. Write introduction and executive summary
+  5. Draft the main body content section by section
+  6. Create any charts, graphs, or visual elements needed
+  7. Write conclusion and recommendations
+  8. Review content for accuracy and completeness
+  9. Edit for clarity, flow, and professional tone
+  10. Finalize formatting, citations, and submit
 
 FORMAT: 
-- Return 3-5 numbered subtasks with NO introduction.
+- Return 5-10 numbered subtasks with NO introduction.
   1. [first subtask]
   2. [second subtask]
   etc.
@@ -90,12 +100,16 @@ FORMAT:
           }
         ],
         temperature: 0.1,  // Lower temperature for more consistent results
-        max_tokens: 300
+        max_tokens: 500
       })
     });
 
     if (!response.ok) {
-      throw new Error(`API error: ${response.status}`);
+      const errorData = await response.json().catch(() => null);
+      if (response.status === 401 || (errorData && errorData.error && errorData.error.code === 'invalid_api_key')) {
+        throw new Error('AI service API key is invalid. Please configure a valid GROQ API key.');
+      }
+      throw new Error(`AI service error: ${response.status}. Please try again later.`);
     }
 
     const data = await response.json();
@@ -212,9 +226,106 @@ FORMAT:
     return subtasks;
   } catch (error) {
     console.error('Error calling Groq API:', error);
-    // Don't fall back, just propagate the error
-    throw new Error(`AI task breakdown failed: ${error.message}`);
+    // Provide fallback task breakdown when AI is unavailable
+    return fallbackBreakdownTask(taskTitle, taskDescription);
   }
 }
 
-// End of file - no fallback function needed
+// Fallback function for when AI service is unavailable
+function fallbackBreakdownTask(taskTitle, taskDescription = '') {
+  console.log('Using fallback task breakdown for:', taskTitle);
+  
+  // Generate generic but useful subtasks based on common task patterns
+  const lowerTitle = taskTitle.toLowerCase();
+  const combined = `${taskTitle} ${taskDescription}`.toLowerCase();
+  
+  // Pattern-based suggestions
+  if (combined.includes('clean') || combined.includes('organize')) {
+    return [
+      'Gather all necessary cleaning supplies and tools',
+      'Declutter and put items in their proper places',
+      'Dust all surfaces, furniture, and shelves',
+      'Vacuum or sweep all floors',
+      'Clean bathrooms (toilet, sink, shower, mirror)',
+      'Clean kitchen (counters, appliances, sink)',
+      'Take out trash and recycling',
+      'Mop hard floors and spot clean carpets',
+      'Make beds and organize bedrooms',
+      'Final walkthrough and touch-ups'
+    ];
+  }
+  
+  if (combined.includes('write') || combined.includes('report') || combined.includes('document')) {
+    return [
+      'Define purpose, audience, and objectives',
+      'Create detailed outline with main sections',
+      'Gather all necessary research and reference materials',
+      'Write introduction and executive summary',
+      'Draft the main body content section by section',
+      'Create any charts, graphs, or visual elements',
+      'Write conclusion and recommendations',
+      'Review content for accuracy and completeness',
+      'Edit for clarity, flow, and professional tone',
+      'Finalize formatting, citations, and submit'
+    ];
+  }
+  
+  if (combined.includes('study') || combined.includes('learn') || combined.includes('research')) {
+    return [
+      'Identify key topics and learning objectives',
+      'Gather textbooks, materials, and online resources',
+      'Create a structured study schedule and timeline',
+      'Read and take notes on foundational concepts',
+      'Practice with exercises, problems, or examples',
+      'Create summary notes and study guides',
+      'Review and reinforce difficult concepts',
+      'Test understanding with practice quizzes',
+      'Seek help or clarification on challenging areas',
+      'Prepare for final assessment or application'
+    ];
+  }
+  
+  if (combined.includes('plan') || combined.includes('prepare')) {
+    return [
+      'Define clear goals, objectives, and success criteria',
+      'Research available options and alternatives',
+      'Identify potential challenges and constraints',
+      'Create detailed timeline with key milestones',
+      'Break down into specific action steps',
+      'Identify and gather necessary resources',
+      'Assign responsibilities and roles (if applicable)',
+      'Create contingency plans for major risks',
+      'Review and get feedback on the plan',
+      'Finalize and communicate the plan to stakeholders'
+    ];
+  }
+  
+  if (combined.includes('fix') || combined.includes('repair') || combined.includes('debug')) {
+    return [
+      'Identify and clearly document the specific problem',
+      'Gather relevant error logs or diagnostic information',
+      'Research known solutions and troubleshooting guides',
+      'Try the most common or likely fixes first',
+      'Test each potential solution systematically',
+      'Isolate the root cause if initial fixes fail',
+      'Implement the final solution carefully',
+      'Verify the fix works completely',
+      'Test for any side effects or new issues',
+      'Document the solution and prevention steps'
+    ];
+  }
+  
+  // Generic breakdown for any task
+  return [
+    'Understand the task requirements and objectives',
+    'Break task into smaller, manageable components',
+    'Identify and gather necessary tools and resources',
+    'Create a step-by-step action plan',
+    'Set up workspace and prepare materials',
+    'Complete the first phase of work',
+    'Complete the main body of work',
+    'Review progress and make necessary adjustments',
+    'Finalize and polish the work',
+    'Test or verify completion and mark as done'
+  ];
+}

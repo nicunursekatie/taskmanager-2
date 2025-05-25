@@ -21,7 +21,7 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
   console.log(`TaskBreakdown for task ${task.id} rendered with ${subtasks.length} subtasks:`, 
     subtasks.map(st => st.title));
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [showAIBreakdown, setShowAIBreakdown] = useState(false);
   
   // Use a forced refresh counter to ensure we re-render when needed
@@ -130,11 +130,44 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
     }
   };
   
+  // Only show the breakdown component when there are subtasks OR when actively expanded
+  const hasContent = subtasks.length > 0 || isExpanded || showAIBreakdown;
+  
+  // If no content and not expanded, show a compact inline button
+  if (!hasContent) {
+    return (
+      <div className="ai-breakdown-compact">
+        <button 
+          className="ai-breakdown-compact-btn"
+          onClick={() => {
+            console.log('AI breakdown button clicked for task:', task.id);
+            try {
+              setShowAIBreakdown(true);
+              setIsExpanded(true);
+            } catch (err) {
+              console.error('Error showing AI breakdown:', err);
+              alert('There was an error opening the AI breakdown. Please try again.');
+            }
+          }}
+        >
+          <span className="ai-icon">🤖</span> Break down with AI
+        </button>
+        <span className="text-muted" style={{ fontSize: 'var(--text-xs)' }}>or</span>
+        <button 
+          className="btn btn-xs btn-ghost"
+          onClick={() => setIsExpanded(true)}
+        >
+          Add manually
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <div className="task-breakdown">
+    <div className={`task-breakdown ${hasContent ? 'has-content' : ''}`}>
       <div className="breakdown-header">
         <h3 className="breakdown-title">
-          Break Down This Task
+          Subtasks {subtasks.length > 0 && `(${subtasks.length})`}
           <button 
             className="toggle-button"
             onClick={() => setIsExpanded(!isExpanded)}
@@ -142,21 +175,19 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
             {isExpanded ? '−' : '+'}
           </button>
         </h3>
-        <div className="breakdown-progress">
-          <div className="subtask-progress">
-            <div 
-              className="subtask-progress-bar" 
-              style={{ width: `${progressPercentage}%` }}
-            ></div>
+        {subtasks.length > 0 && (
+          <div className="breakdown-progress">
+            <div className="subtask-progress">
+              <div 
+                className="subtask-progress-bar" 
+                style={{ width: `${progressPercentage}%` }}
+              ></div>
+            </div>
+            <div className="progress-text">
+              <span>{completedSubtasks} of {totalSubtasks} completed ({progressPercentage}%)</span>
+            </div>
           </div>
-          <div className="progress-text">
-            {totalSubtasks === 0 ? (
-              <span className="no-subtasks-text">No subtasks yet. Break down this task into smaller steps.</span>
-            ) : (
-              <span>{completedSubtasks} of {totalSubtasks} steps completed ({progressPercentage}%)</span>
-            )}
-          </div>
-        </div>
+        )}
       </div>
       
       {isExpanded && (

@@ -1,5 +1,9 @@
 // src/App.tsx
 import { useState, useEffect, useRef } from 'react';
+import './styles/design-system.css';
+import './styles/layout-system.css';
+import './styles/task-list-redesign.css';
+import './styles/task-breakdown-redesign.css';
 import './styles/calendar-view.css';
 import './compact-styles.css';
 import './app-styles.css';
@@ -11,6 +15,7 @@ import './styles/focus-mode.css';
 import './styles/time-estimator.css';
 import './styles/reminders.css';
 import './styles/task-highlights.css';
+import './styles/settings.css';
 
 // Component imports
 import TaskList from './components/TaskList';
@@ -23,6 +28,7 @@ import ImportExport from './components/ImportExport';
 import CalendarView from './components/CalendarView';
 import DailyPlanner from './components/DailyPlanner';
 import MoreOptionsMenu from './components/MoreOptionsMenu';
+import Settings from './components/Settings';
 
 // Utilities
 import { loadSampleData } from './utils/sampleData';
@@ -35,7 +41,7 @@ import { Task, Category, Project, PriorityLevel } from './types';
 // Hooks
 import { useTimeBlocks } from './hooks/useTimeBlocks';
 
-type TabType = 'dashboard' | 'all-tasks' | 'projects' | 'categories' | 'calendar' | 'daily-planner';
+type TabType = 'dashboard' | 'all-tasks' | 'projects' | 'categories' | 'calendar' | 'daily-planner' | 'settings';
 
 function App() {
   // Navigation state
@@ -602,51 +608,58 @@ function App() {
   }));
 
   return (
-    <div className="app-container full-width">
+    <div className="app-container">
       {/* Top Navigation */}
       <header className="top-nav">
-        <h1 className="app-title">Task Manager</h1>
-        <nav className="main-nav">
-          <button 
-            className={`nav-button ${activeTab === 'dashboard' ? 'active' : ''}`}
-            onClick={() => setActiveTab('dashboard')}
-          >
-            Dashboard
-          </button>
-          <button 
-            className={`nav-button ${activeTab === 'all-tasks' ? 'active' : ''}`}
-            onClick={() => setActiveTab('all-tasks')}
-          >
-            All Tasks
-          </button>
-          <button 
-            className={`nav-button ${activeTab === 'projects' ? 'active' : ''}`}
-            onClick={() => setActiveTab('projects')}
-          >
-            Projects
-          </button>
-          <button 
-            className={`nav-button ${activeTab === 'categories' ? 'active' : ''}`}
-            onClick={() => setActiveTab('categories')}
-          >
-            Categories
-          </button>
-          <button 
-            className={`nav-button ${activeTab === 'calendar' ? 'active' : ''}`}
-            onClick={() => setActiveTab('calendar')}
-          >
-            Calendar
-          </button>
-          <button 
-            className={`nav-button ${activeTab === 'daily-planner' ? 'active' : ''}`}
-            onClick={() => setActiveTab('daily-planner')}
-          >
-            Daily Planner
-          </button>
-        </nav>
+        <div className="top-nav-content">
+          <h1 className="app-title">Task Manager</h1>
+          
+          <nav className="main-nav">
+            <button 
+              className={`nav-button ${activeTab === 'dashboard' ? 'active' : ''}`}
+              onClick={() => setActiveTab('dashboard')}
+            >
+              Dashboard
+            </button>
+            <button 
+              className={`nav-button ${activeTab === 'all-tasks' ? 'active' : ''}`}
+              onClick={() => setActiveTab('all-tasks')}
+            >
+              All Tasks
+            </button>
+            <button 
+              className={`nav-button ${activeTab === 'projects' ? 'active' : ''}`}
+              onClick={() => setActiveTab('projects')}
+            >
+              Projects
+            </button>
+            <button 
+              className={`nav-button ${activeTab === 'categories' ? 'active' : ''}`}
+              onClick={() => setActiveTab('categories')}
+            >
+              Categories
+            </button>
+            <button 
+              className={`nav-button ${activeTab === 'calendar' ? 'active' : ''}`}
+              onClick={() => setActiveTab('calendar')}
+            >
+              Calendar
+            </button>
+            <button 
+              className={`nav-button ${activeTab === 'daily-planner' ? 'active' : ''}`}
+              onClick={() => setActiveTab('daily-planner')}
+            >
+              Daily Planner
+            </button>
+            <button 
+              className={`nav-button ${activeTab === 'settings' ? 'active' : ''}`}
+              onClick={() => setActiveTab('settings')}
+            >
+              Settings
+            </button>
+          </nav>
 
-        <div className="top-actions">
-          <div className="top-action-buttons">
+          <div className="top-actions">
             <button 
               className="btn btn-primary" 
               onClick={() => setShowWizard(true)}
@@ -654,114 +667,112 @@ function App() {
               What now?
             </button>
             <button 
-              className="btn btn-accent focus-mode-btn" 
+              className="btn btn-outline" 
               onClick={() => setFocusModeActive(true)}
             >
-              <span className="focus-icon">🎯</span> Focus Mode
+              <span>🎯</span> Focus Mode
             </button>
+            <MoreOptionsMenu
+              onManageCategories={() => setShowCategoryManager(true)}
+              onImportExport={() => setShowImportExport(true)}
+              onLoadSample={() => loadSampleData(setTasks, setCategories, setProjects)}
+              onResetData={() => clearAllData(setTasks, setCategories, setProjects)}
+            />
           </div>
-          <MoreOptionsMenu
-            onManageCategories={() => setShowCategoryManager(true)}
-            onImportExport={() => setShowImportExport(true)}
-            onLoadSample={() => loadSampleData(setTasks, setCategories, setProjects)}
-            onResetData={() => clearAllData(setTasks, setCategories, setProjects)}
-          />
         </div>
       </header>
       
-      <main className="main-content full-width">
-        {/* Render Focus Mode when active, otherwise show normal UI */}
-        {focusModeActive ? (
-          <FocusMode
-            tasks={tasks}
-            toggleTask={toggleTask}
-            deleteTask={deleteTask}
-            updateTask={updateTask}
-            addSubtask={addSubtask}
-            categories={categories}
-            projects={projects}
-            onExitFocusMode={() => setFocusModeActive(false)}
-          />
-        ) : (
-          <>
-        {/* Capture Bar */}
-        <div className="capture-container">
-          <form className="capture-form" onSubmit={handleTaskSubmit}>
-            <div style={{ flex: "1 1 300px", minWidth: "300px" }}>
-              <input
-                type="text"
-                className="form-control capture-input"
-                placeholder="Quick capture a new task..."
-                ref={titleInputRef}
-                style={{ width: "100%" }}
-              />
-            </div>
-
-            <div className="date-time-inputs" style={{ flex: "0 0 auto" }}>
-              <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                <input
-                  type="date"
-                  className="form-control date-input"
-                  ref={dateInputRef}
-                />
-                <div className="date-shortcuts" style={{ margin: "4px 0" }}>
-                  <button
-                    type="button"
-                    className="date-shortcut-btn"
-                    onClick={() => {
-                      if (dateInputRef.current) {
-                        const today = new Date();
-                        const dateString = today.toISOString().split('T')[0];
-                        dateInputRef.current.value = dateString;
-                      }
-                    }}
-                  >
-                    Today
-                  </button>
-                  <button
-                    type="button"
-                    className="date-shortcut-btn"
-                    onClick={() => {
-                      if (dateInputRef.current) {
-                        const tomorrow = new Date();
-                        tomorrow.setDate(tomorrow.getDate() + 1);
-                        const dateString = tomorrow.toISOString().split('T')[0];
-                        dateInputRef.current.value = dateString;
-                      }
-                    }}
-                  >
-                    Tomorrow
-                  </button>
+      {/* Render Focus Mode when active, otherwise show normal UI */}
+      {focusModeActive ? (
+        <FocusMode
+          tasks={tasks}
+          toggleTask={toggleTask}
+          deleteTask={deleteTask}
+          updateTask={updateTask}
+          addSubtask={addSubtask}
+          categories={categories}
+          projects={projects}
+          onExitFocusMode={() => setFocusModeActive(false)}
+        />
+      ) : (
+        <>
+          {/* Capture Bar */}
+          <div className="section-card" style={{ margin: 'var(--space-6) auto var(--space-4) auto', maxWidth: '800px' }}>
+            <div className="section-card-body">
+              <form className="form-row" onSubmit={handleTaskSubmit}>
+                <div className="form-group" style={{ flex: 2 }}>
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Quick capture a new task..."
+                    ref={titleInputRef}
+                  />
                 </div>
-              </div>
-              <input
-                type="time"
-                className="form-control time-input"
-                ref={timeInputRef}
-              />
+
+                <div className="form-group">
+                  <input
+                    type="date"
+                    className="form-control"
+                    ref={dateInputRef}
+                  />
+                  <div className="flex gap-1 mt-1">
+                    <button
+                      type="button"
+                      className="btn btn-xs btn-ghost"
+                      onClick={() => {
+                        if (dateInputRef.current) {
+                          const today = new Date();
+                          const dateString = today.toISOString().split('T')[0];
+                          dateInputRef.current.value = dateString;
+                        }
+                      }}
+                    >
+                      Today
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-xs btn-ghost"
+                      onClick={() => {
+                        if (dateInputRef.current) {
+                          const tomorrow = new Date();
+                          tomorrow.setDate(tomorrow.getDate() + 1);
+                          const dateString = tomorrow.toISOString().split('T')[0];
+                          dateInputRef.current.value = dateString;
+                        }
+                      }}
+                    >
+                      Tomorrow
+                    </button>
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <input
+                    type="time"
+                    className="form-control"
+                    ref={timeInputRef}
+                  />
+                </div>
+                
+                <div className="form-group">
+                  <select 
+                    className="form-control"
+                    value={newParent}
+                    onChange={(e) => setNewParent(e.target.value)}
+                  >
+                    <option value="">No Parent Task</option>
+                    {parentOptions.map(o => (
+                      <option key={o.id} value={o.id}>
+                        {o.title}  
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                
+                <button type="submit" className="btn btn-primary">Add</button>
+              </form>
             </div>
-            
-            <div style={{ flex: "0 0 auto", width: "180px" }}>
-              <select 
-                className="form-control"
-                value={newParent}
-                onChange={(e) => setNewParent(e.target.value)}
-                style={{ width: "100%" }}
-              >
-                <option value="">No Parent Task</option>
-                {parentOptions.map(o => (
-                  <option key={o.id} value={o.id}>
-                    {o.title}  
-                  </option>
-                ))}
-              </select>
-            </div>
-            
-            <div style={{ flex: "0 0 auto" }}>
-              <button type="submit" className="btn btn-primary">Add</button>
-            </div>
-          </form>
-        </div>
+          </div>
         
         {/* Main Content Area */}
         <div className="content-area">
@@ -778,6 +789,13 @@ function App() {
                 date={currentDate}
                 setDate={setCurrentDate}
               />
+            </div>
+          )}
+
+          {/* Settings View */}
+          {activeTab === 'settings' && (
+            <div className="settings-view">
+              <Settings />
             </div>
           )}
           
@@ -798,27 +816,35 @@ function App() {
           
           {/* Dashboard View */}
           {activeTab === 'dashboard' && (
-            <div className="dashboard-view">
+            <div className="dashboard-grid">
               {/* Today's Tasks Section */}
-              <div className="section-card today-tasks-card">
-                <h2 className="section-title">Today's Tasks</h2>
-                {todayTasks.length > 0 ? (
-                  <TaskList
-                    tasks={todayTasks}
-                    toggleTask={toggleTask}
-                    deleteTask={deleteTask}
-                    updateTask={updateTask}
-                    updateTaskDescription={updateTaskDescription}
-                    addSubtask={addSubtask}
-                    updateTaskEstimate={updateTaskEstimate}
-                    startTaskTimer={startTaskTimer}
-                    completeTaskTimer={completeTaskTimer}
-                    categories={categories}
-                    projects={projects}
-                  />
-                ) : (
-                  <p className="empty-message">No tasks due today.</p>
-                )}
+              <div className="section-card">
+                <div className="section-card-header">
+                  <h2 className="section-title">Today's Tasks</h2>
+                </div>
+                <div className="section-card-body">
+                  {todayTasks.length > 0 ? (
+                    <TaskList
+                      tasks={todayTasks}
+                      toggleTask={toggleTask}
+                      deleteTask={deleteTask}
+                      updateTask={updateTask}
+                      updateTaskDescription={updateTaskDescription}
+                      addSubtask={addSubtask}
+                      updateTaskEstimate={updateTaskEstimate}
+                      startTaskTimer={startTaskTimer}
+                      completeTaskTimer={completeTaskTimer}
+                      categories={categories}
+                      projects={projects}
+                    />
+                  ) : (
+                    <div className="empty-state">
+                      <div className="empty-state-icon">📅</div>
+                      <div className="empty-state-title">No tasks due today</div>
+                      <div className="empty-state-description">Great! You have a clear schedule for today.</div>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Upcoming Tasks Section */}
@@ -1739,7 +1765,6 @@ function App() {
         </div>
           </>
         )}
-      </main>
       
       {/* Reminder System - always visible regardless of focus mode */}
       <ReminderSystem 
