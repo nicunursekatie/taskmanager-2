@@ -12,6 +12,7 @@ type DailyPlannerProps = {
   assignTaskToBlock: (taskId: string, blockId: string | null) => void;
   date: Date;
   setDate: (date: Date) => void;
+  updateTaskEstimate?: (id: string, estimatedMinutes: number | null) => void;
 };
 
 // Context tag colors
@@ -50,7 +51,8 @@ const DailyPlanner: React.FC<DailyPlannerProps> = ({
   deleteTimeBlock,
   assignTaskToBlock,
   date,
-  setDate
+  setDate,
+  updateTaskEstimate
 }) => {
   const [showNewBlockForm, setShowNewBlockForm] = useState(false);
   const [newBlockStart, setNewBlockStart] = useState('09:00');
@@ -58,6 +60,12 @@ const DailyPlanner: React.FC<DailyPlannerProps> = ({
   const [newBlockTitle, setNewBlockTitle] = useState('');
   const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
   const [, setIsDragging] = useState(false);
+  // New state for quick add task
+  const [showQuickAdd, setShowQuickAdd] = useState(false);
+  const [quickTaskTitle, setQuickTaskTitle] = useState('');
+  // State for inline estimate input
+  const [editingEstimateId, setEditingEstimateId] = useState<string | null>(null);
+  const [estimateInput, setEstimateInput] = useState('');
   
   // Get available tasks (not completed and not already in a time block)
   const availableTasks = tasks.filter(task => 
@@ -151,124 +159,78 @@ const DailyPlanner: React.FC<DailyPlannerProps> = ({
     }
   };
   
+  // Add a quick task (title only, status pending)
+  const handleQuickAddTask = () => {
+    if (!quickTaskTitle.trim()) return;
+    // You may want to lift this up or pass as a prop, but for now just alert
+    // or you can call a prop like addTask({ title: quickTaskTitle, status: 'pending' })
+    // For now, just dispatch a custom event for the parent to handle
+    const event = new CustomEvent('quickAddTask', { detail: { title: quickTaskTitle.trim() } });
+    window.dispatchEvent(event);
+    setQuickTaskTitle('');
+    setShowQuickAdd(false);
+  };
+  
   return (
-    <div className="daily-planner">
-      <div className="planner-header">
-        <div className="date-navigation">
-          <button 
-            className="btn btn-sm btn-outline"
-            onClick={goToPreviousDay}
-          >
-            ← Previous
-          </button>
-          <h2 className="current-date">
-            {date.toLocaleDateString(undefined, { 
-              weekday: 'long', 
-              month: 'long', 
-              day: 'numeric' 
-            })}
-          </h2>
-          <button 
-            className="btn btn-sm btn-outline"
-            onClick={goToNextDay}
-          >
-            Next →
-          </button>
+    <div className="daily-planner grid md:grid-cols-3 gap-lg">
+      {/* Main Planner Area */}
+      <div className="card col-span-2 flex flex-col p-lg">
+        <div className="flex items-center gap-4 mb-md">
+          <button className="btn btn-sm btn-outline" onClick={goToPreviousDay}>← Previous</button>
+          <h2 className="text-lg font-bold text-primary flex-1">{date.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}</h2>
+          <button className="btn btn-sm btn-outline" onClick={goToNextDay}>Next →</button>
           {!date.toDateString().includes(new Date().toDateString()) && (
-            <button 
-              className="btn btn-sm btn-primary ml-auto"
-              onClick={goToToday}
-            >
-              Today
-            </button>
+            <button className="btn btn-sm btn-primary ml-auto" onClick={goToToday}>Today</button>
           )}
         </div>
-        
-        <div className="planner-actions">
-          <button 
-            className="btn btn-primary"
-            onClick={() => setShowNewBlockForm(true)}
-          >
-            + Add Time Block
-          </button>
-          {sortedTimeBlocks.length > 0 && (
-          <button 
-          className="btn btn-outline"
-          onClick={() => {
-            const events = syncToCalendar(timeBlocks, date, tasks);
-            // Show a success message
-            alert(`Synced ${events.length} time blocks to calendar view!`);
-          }}
-          title="Push these time blocks to the calendar view"
-        >
-          📅 Push to Calendar
-        </button>
-        )}
-      </div>
-      </div>
-      
-      {showNewBlockForm && (
-        <div className="new-block-form">
-          <input
-            type="text"
-            className="form-control"
-            placeholder="Block title"
-            value={newBlockTitle}
-            onChange={(e) => setNewBlockTitle(e.target.value)}
-          />
-          <div className="time-inputs">
-            <div className="input-group">
-              <label className="form-label">Start</label>
-              <input
-                type="time"
-                className="form-control"
-                value={newBlockStart}
-                onChange={(e) => setNewBlockStart(e.target.value)}
-              />
-            </div>
-            <div className="input-group">
-              <label className="form-label">End</label>
-              <input
-                type="time"
-                className="form-control"
-                value={newBlockEnd}
-                onChange={(e) => setNewBlockEnd(e.target.value)}
-              />
-            </div>
-          </div>
-          <div className="form-actions">
-            <button 
-              className="btn btn-outline"
-              onClick={() => setShowNewBlockForm(false)}
-            >
-              Cancel
-            </button>
-            <button 
-              className="btn btn-primary"
-              onClick={handleAddTimeBlock}
-            >
-              Add Block
-            </button>
-          </div>
+        <div className="flex items-center justify-between mb-md">
+          <span className="text-accent font-semibold text-base">Time Blocks</span>
+          <button className="btn btn-primary" onClick={() => setShowNewBlockForm(true)}>+ Add Time Block</button>
         </div>
-      )}
-      
-      {/* New side-by-side layout */}
-      <div className="daily-planner-content">
-        {/* Left side: Time blocks */}
-        <div className="time-blocks-container">
-          <h3 className="section-title">Time Blocks</h3>
-          {sortedTimeBlocks.length === 0 ? (
-            <div className="no-blocks-message">
-              <p>No time blocks for today. Add some blocks to plan your day.</p>
+        {showNewBlockForm && (
+          <div className="mb-md bg-background p-md rounded border border-border flex flex-col gap-2">
+            <input
+              type="text"
+              className="form-control"
+              placeholder="Block title"
+              value={newBlockTitle}
+              onChange={(e) => setNewBlockTitle(e.target.value)}
+            />
+            <div className="flex gap-2">
+              <div className="flex flex-col flex-1">
+                <label className="form-label mb-xs">Start</label>
+                <input
+                  type="time"
+                  className="form-control"
+                  value={newBlockStart}
+                  onChange={(e) => setNewBlockStart(e.target.value)}
+                />
+              </div>
+              <div className="flex flex-col flex-1">
+                <label className="form-label mb-xs">End</label>
+                <input
+                  type="time"
+                  className="form-control"
+                  value={newBlockEnd}
+                  onChange={(e) => setNewBlockEnd(e.target.value)}
+                />
+              </div>
             </div>
-          ) : (
-            sortedTimeBlocks.map(block => {
-              // Get tasks assigned to this block
-              const blockTasks = tasks.filter(task => 
-                block.taskIds.includes(task.id)
-              );
-              
+            <div className="flex gap-2 justify-end mt-sm">
+              <button className="btn btn-outline" onClick={() => setShowNewBlockForm(false)}>Cancel</button>
+              <button className="btn btn-primary" onClick={handleAddTimeBlock}>Add Block</button>
+            </div>
+          </div>
+        )}
+        {sortedTimeBlocks.length === 0 ? (
+          <div className="flex flex-col items-center justify-center text-light py-12">
+            <span style={{ fontSize: '2.5rem', color: 'var(--primary-light)' }}>🗓️</span>
+            <div className="mt-md text-lg">No time blocks for today. Add some blocks to plan your day.</div>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-md">
+            {sortedTimeBlocks.map(block => {
+              const blockTasks = tasks.filter(task => block.taskIds.includes(task.id));
               return (
                 <div 
                   key={block.id} 
@@ -281,9 +243,7 @@ const DailyPlanner: React.FC<DailyPlannerProps> = ({
                   <div className="time-block-header">
                     <div className="time-block-time">
                       {formatTime(block.startTime)} - {formatTime(block.endTime)}
-                      <span className="time-duration">
-                        ({getBlockDuration(block)})
-                      </span>
+                      <span className="time-duration">({getBlockDuration(block)})</span>
                     </div>
                     <h3 className="time-block-title">{block.title}</h3>
                     <div className="time-block-actions">
@@ -295,22 +255,15 @@ const DailyPlanner: React.FC<DailyPlannerProps> = ({
                       </button>
                     </div>
                   </div>
-                  
                   <div className="time-block-tasks">
                     {blockTasks.length > 0 ? (
                       blockTasks.map(task => (
                         <div 
                           key={task.id}
                           className="block-task-item"
-                          style={{
-                            borderLeft: task.context ? 
-                              `4px solid ${contextColors[task.context]}` : 
-                              undefined
-                          }}
+                          style={{ borderLeft: task.context ? `4px solid ${contextColors[task.context]}` : undefined }}
                         >
-                          <div className="block-task-title">
-                            {task.title}
-                          </div>
+                          <div className="block-task-title">{task.title}</div>
                           <button 
                             className="btn btn-sm btn-text"
                             onClick={() => assignTaskToBlock(task.id, null)}
@@ -320,53 +273,98 @@ const DailyPlanner: React.FC<DailyPlannerProps> = ({
                         </div>
                       ))
                     ) : (
-                      <div className="empty-block-message">
-                        Drop tasks here
-                      </div>
+                      <div className="empty-block-message">Drop tasks here</div>
                     )}
                   </div>
                 </div>
               );
-            })
-          )}
-        </div>
-        
-        {/* Right side: Available tasks */}
-        <div className="available-tasks-section">
-          <h3 className="section-title">Available Tasks</h3>
-          <div className="available-tasks">
-            {availableTasks.length > 0 ? (
-              availableTasks.map(task => (
-                <div 
-                  key={task.id}
-                  className="available-task-item"
-                  draggable
-                  onDragStart={() => handleDragStart(task.id)}
-                  onDragEnd={handleDragEnd}
-                  style={{
-                    borderLeft: task.context ? 
-                      `4px solid ${contextColors[task.context]}` : 
-                      undefined
-                  }}
-                >
-                  <div className="available-task-title">
-                    {task.title}
-                  </div>
-                  {task.context && (
-                    <div 
-                      className="task-context-indicator"
-                      style={{ backgroundColor: contextColors[task.context] }}
-                    />
-                  )}
-                </div>
-              ))
-            ) : (
-              <div className="no-tasks-message">
-                <p>No available tasks. Create some tasks or mark some as completed to see them here.</p>
-              </div>
-            )}
+            })}
           </div>
+        )}
+      </div>
+      {/* Available Tasks Panel */}
+      <div className="card flex flex-col p-lg">
+        <div className="flex items-center justify-between mb-md">
+          <span className="text-primary font-semibold text-base">Available Tasks</span>
+          {!showQuickAdd ? (
+            <button className="btn btn-sm btn-primary" onClick={() => setShowQuickAdd(true)}>+ Add Task</button>
+          ) : null}
         </div>
+        {showQuickAdd && (
+          <div className="flex gap-2 mb-md">
+            <input
+              type="text"
+              className="form-control flex-1"
+              placeholder="Task title..."
+              value={quickTaskTitle}
+              onChange={e => setQuickTaskTitle(e.target.value)}
+              autoFocus
+            />
+            <button className="btn btn-primary" onClick={handleQuickAddTask}>Add</button>
+            <button className="btn btn-outline" onClick={() => { setShowQuickAdd(false); setQuickTaskTitle(''); }}>Cancel</button>
+          </div>
+        )}
+        <ul className="flex flex-col gap-xs overflow-y-auto" style={{ maxHeight: '340px' }}>
+          {availableTasks.length === 0 ? (
+            <li className="text-light">No available tasks</li>
+          ) : (
+            availableTasks.map(task => (
+              <li
+                key={task.id}
+                className="py-1 px-2 rounded hover:bg-background transition text-sm text-text flex items-center gap-2"
+                draggable
+                onDragStart={() => handleDragStart(task.id)}
+                onDragEnd={handleDragEnd}
+              >
+                <span className="flex-1 truncate">{task.title}</span>
+                {typeof task.estimatedMinutes === 'number' && task.estimatedMinutes > 0 ? (
+                  <span className="text-xs text-light bg-slate-100 rounded px-2 py-0.5 ml-2">
+                    {task.estimatedMinutes >= 60
+                      ? `${Math.floor(task.estimatedMinutes / 60)}h${task.estimatedMinutes % 60 ? ` ${task.estimatedMinutes % 60}m` : ''}`
+                      : `${task.estimatedMinutes}m`}
+                  </span>
+                ) : updateTaskEstimate ? (
+                  editingEstimateId === task.id ? (
+                    <form
+                      onSubmit={e => {
+                        e.preventDefault();
+                        const minutes = parseInt(estimateInput, 10);
+                        if (!isNaN(minutes) && minutes > 0) {
+                          updateTaskEstimate(task.id, minutes);
+                          setEditingEstimateId(null);
+                          setEstimateInput('');
+                        }
+                      }}
+                      className="flex items-center gap-1"
+                      style={{ minWidth: 0 }}
+                    >
+                      <input
+                        type="number"
+                        min={1}
+                        className="form-control form-control-xs w-14"
+                        placeholder="min"
+                        value={estimateInput}
+                        onChange={e => setEstimateInput(e.target.value)}
+                        autoFocus
+                        style={{ fontSize: '0.9em', padding: '2px 6px' }}
+                      />
+                      <button type="submit" className="btn btn-xs btn-primary">OK</button>
+                      <button type="button" className="btn btn-xs btn-outline" onClick={() => { setEditingEstimateId(null); setEstimateInput(''); }}>Cancel</button>
+                    </form>
+                  ) : (
+                    <button
+                      className="btn btn-xs btn-outline ml-2"
+                      onClick={() => { setEditingEstimateId(task.id); setEstimateInput(''); }}
+                      title="Add time estimate"
+                    >
+                      + Estimate
+                    </button>
+                  )
+                ) : null}
+              </li>
+            ))
+          )}
+        </ul>
       </div>
     </div>
   );

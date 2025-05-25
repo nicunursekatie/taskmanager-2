@@ -1,5 +1,5 @@
 // src/components/ProjectManager.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Project, Category, PriorityLevel } from '../types';
 
 type ProjectManagerProps = {
@@ -8,6 +8,8 @@ type ProjectManagerProps = {
   addProject: (project: Omit<Project, 'id'>) => void;
   updateProject: (id: string, project: Omit<Project, 'id'>) => void;
   deleteProject: (id: string) => void;
+  editingProject: Project | null;
+  onEdit: (project: Project) => void;
   onClose: () => void;
 };
 
@@ -17,6 +19,8 @@ export default function ProjectManager({
   addProject,
   updateProject,
   deleteProject,
+  editingProject,
+  onEdit,
   onClose,
 }: ProjectManagerProps) {
   // State for new project form
@@ -29,7 +33,6 @@ export default function ProjectManager({
   const [newStatus, setNewStatus] = useState<Project['status']>('not-started');
 
   // State for editing projects
-  const [editId, setEditId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
   const [editDescription, setEditDescription] = useState('');
   const [editColor, setEditColor] = useState('');
@@ -37,6 +40,27 @@ export default function ProjectManager({
   const [editPriority, setEditPriority] = useState<PriorityLevel | null>(null);
   const [editCategoryIds, setEditCategoryIds] = useState<string[]>([]);
   const [editStatus, setEditStatus] = useState<Project['status']>('not-started');
+
+  // Initialize edit state from editingProject
+  useEffect(() => {
+    if (editingProject) {
+      setEditName(editingProject.name);
+      setEditDescription(editingProject.description || '');
+      setEditColor(editingProject.color || '#4361ee');
+      setEditDueDate(editingProject.dueDate ? editingProject.dueDate.split('T')[0] : '');
+      setEditPriority(editingProject.priority || null);
+      setEditCategoryIds(editingProject.categoryIds || []);
+      setEditStatus(editingProject.status || 'not-started');
+    } else {
+      setEditName('');
+      setEditDescription('');
+      setEditColor('#4361ee');
+      setEditDueDate('');
+      setEditPriority(null);
+      setEditCategoryIds([]);
+      setEditStatus('not-started');
+    }
+  }, [editingProject]);
 
   const handleAddProject = (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,19 +92,8 @@ export default function ProjectManager({
     setNewStatus('not-started');
   };
 
-  const startEditing = (project: Project) => {
-    setEditId(project.id);
-    setEditName(project.name);
-    setEditDescription(project.description || '');
-    setEditColor(project.color || '#4361ee');
-    setEditDueDate(project.dueDate ? project.dueDate.split('T')[0] : '');
-    setEditPriority(project.priority || null);
-    setEditCategoryIds(project.categoryIds || []);
-    setEditStatus(project.status || 'not-started');
-  };
-
   const handleUpdateProject = () => {
-    if (!editId || !editName.trim()) return;
+    if (!editName.trim()) return;
 
     // Format due date properly if provided
     let formattedDueDate = null;
@@ -88,7 +101,7 @@ export default function ProjectManager({
       formattedDueDate = `${editDueDate}T00:00:00Z`;
     }
 
-    updateProject(editId, {
+    updateProject(editingProject!.id, {
       name: editName.trim(),
       description: editDescription.trim(),
       color: editColor,
@@ -98,7 +111,14 @@ export default function ProjectManager({
       status: editStatus
     });
 
-    setEditId(null);
+    // Reset form
+    setEditName('');
+    setEditDescription('');
+    setEditColor('#4361ee');
+    setEditDueDate('');
+    setEditPriority(null);
+    setEditCategoryIds([]);
+    setEditStatus('not-started');
   };
 
   // Helper function to toggle category selection
@@ -127,374 +147,167 @@ export default function ProjectManager({
         </div>
         
         <div className="modal-body">
-          <form onSubmit={handleAddProject} className="project-form">
-            <h3 className="form-section-title">Add New Project</h3>
+          {/* Only show Add New Project form when not editing */}
+          {editingProject === null && (
+            <form onSubmit={handleAddProject} className="project-form">
+              <h3 className="form-section-title">Add New Project</h3>
 
-            <div className="form-row">
-              <div className="input-group flex-grow">
-                <label className="form-label">Project Name</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="Enter project name"
-                  value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
-                  required
-                />
-              </div>
+              <div className="form-row">
+                <div className="input-group flex-grow">
+                  <label className="form-label">Project Name</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Enter project name"
+                    value={newName}
+                    onChange={(e) => setNewName(e.target.value)}
+                    required
+                  />
+                </div>
 
-              <div className="input-group color-picker">
-                <label className="form-label">Color</label>
-                <input
-                  type="color"
-                  className="form-control"
-                  value={newColor}
-                  onChange={(e) => setNewColor(e.target.value)}
-                />
-              </div>
-            </div>
-
-            <div className="input-group">
-              <label className="form-label">Description</label>
-              <textarea
-                className="form-control"
-                placeholder="Project description (optional)"
-                value={newDescription}
-                onChange={(e) => setNewDescription(e.target.value)}
-                rows={2}
-              />
-            </div>
-
-            <div className="form-row">
-              <div className="input-group">
-                <label className="form-label">Due Date</label>
-                <input
-                  type="date"
-                  className="form-control"
-                  value={newDueDate}
-                  onChange={(e) => setNewDueDate(e.target.value)}
-                />
-                <div className="date-shortcuts">
-                  <button
-                    type="button"
-                    className="date-shortcut-btn"
-                    onClick={() => {
-                      const today = new Date();
-                      const dateString = today.toISOString().split('T')[0];
-                      setNewDueDate(dateString);
-                    }}
-                  >
-                    Today
-                  </button>
-                  <button
-                    type="button"
-                    className="date-shortcut-btn"
-                    onClick={() => {
-                      const nextWeek = new Date();
-                      nextWeek.setDate(nextWeek.getDate() + 7);
-                      const dateString = nextWeek.toISOString().split('T')[0];
-                      setNewDueDate(dateString);
-                    }}
-                  >
-                    +1 Week
-                  </button>
-                  <button
-                    type="button"
-                    className="date-shortcut-btn"
-                    onClick={() => {
-                      const nextMonth = new Date();
-                      nextMonth.setMonth(nextMonth.getMonth() + 1);
-                      const dateString = nextMonth.toISOString().split('T')[0];
-                      setNewDueDate(dateString);
-                    }}
-                  >
-                    +1 Month
-                  </button>
+                <div className="input-group color-picker">
+                  <label className="form-label">Color</label>
+                  <input
+                    type="color"
+                    className="form-control"
+                    value={newColor}
+                    onChange={(e) => setNewColor(e.target.value)}
+                  />
                 </div>
               </div>
 
               <div className="input-group">
-                <label className="form-label">Priority</label>
-                <select
+                <label className="form-label">Description</label>
+                <textarea
                   className="form-control"
-                  value={newPriority || ''}
-                  onChange={(e) => setNewPriority(e.target.value as PriorityLevel || null)}
-                >
-                  <option value="">No Priority</option>
-                  <option value="must-do">Must Do</option>
-                  <option value="want-to-do">Want To Do</option>
-                  <option value="when-i-can">When I Can</option>
-                </select>
+                  placeholder="Project description (optional)"
+                  value={newDescription}
+                  onChange={(e) => setNewDescription(e.target.value)}
+                  rows={2}
+                />
               </div>
-            </div>
 
-            <div className="form-row">
-              <div className="input-group">
-                <label className="form-label">Status</label>
-                <select
-                  className="form-control"
-                  value={newStatus}
-                  onChange={(e) => setNewStatus(e.target.value as Project['status'])}
-                >
-                  <option value="not-started">Not Started</option>
-                  <option value="in-progress">In Progress</option>
-                  <option value="on-hold">On Hold</option>
-                  <option value="completed">Completed</option>
-                </select>
-              </div>
-            </div>
-
-            {categories.length > 0 && (
-              <div className="input-group">
-                <label className="form-label">Categories</label>
-                <div className="category-selector">
-                  {categories.map(category => (
-                    <div
-                      key={category.id}
-                      className={`category-option ${newCategoryIds.includes(category.id) ? 'selected' : ''}`}
-                      style={{
-                        backgroundColor: newCategoryIds.includes(category.id) ? category.color : 'transparent',
-                        border: `1px solid ${category.color}`
+              <div className="form-row">
+                <div className="input-group">
+                  <label className="form-label">Due Date</label>
+                  <input
+                    type="date"
+                    className="form-control"
+                    value={newDueDate}
+                    onChange={(e) => setNewDueDate(e.target.value)}
+                  />
+                  <div className="date-shortcuts">
+                    <button
+                      type="button"
+                      className="date-shortcut-btn"
+                      onClick={() => {
+                        const today = new Date();
+                        const dateString = today.toISOString().split('T')[0];
+                        setNewDueDate(dateString);
                       }}
-                      onClick={() => toggleCategory(category.id, true)}
                     >
-                      {category.name}
-                    </div>
-                  ))}
+                      Today
+                    </button>
+                    <button
+                      type="button"
+                      className="date-shortcut-btn"
+                      onClick={() => {
+                        const nextWeek = new Date();
+                        nextWeek.setDate(nextWeek.getDate() + 7);
+                        const dateString = nextWeek.toISOString().split('T')[0];
+                        setNewDueDate(dateString);
+                      }}
+                    >
+                      +1 Week
+                    </button>
+                    <button
+                      type="button"
+                      className="date-shortcut-btn"
+                      onClick={() => {
+                        const nextMonth = new Date();
+                        nextMonth.setMonth(nextMonth.getMonth() + 1);
+                        const dateString = nextMonth.toISOString().split('T')[0];
+                        setNewDueDate(dateString);
+                      }}
+                    >
+                      +1 Month
+                    </button>
+                  </div>
+                </div>
+
+                <div className="input-group">
+                  <label className="form-label">Priority</label>
+                  <select
+                    className="form-control"
+                    value={newPriority || ''}
+                    onChange={(e) => setNewPriority(e.target.value as PriorityLevel || null)}
+                  >
+                    <option value="">No Priority</option>
+                    <option value="critical">Critical</option>
+                    <option value="high">High</option>
+                    <option value="medium">Medium</option>
+                    <option value="low">Low</option>
+                  </select>
                 </div>
               </div>
-            )}
 
-            <div className="form-actions">
-              <button type="submit" className="btn btn-primary">Create Project</button>
-            </div>
-          </form>
+              <div className="form-row">
+                <div className="input-group">
+                  <label className="form-label">Status</label>
+                  <select
+                    className="form-control"
+                    value={newStatus}
+                    onChange={(e) => setNewStatus(e.target.value as Project['status'])}
+                  >
+                    <option value="not-started">Not Started</option>
+                    <option value="in-progress">In Progress</option>
+                    <option value="on-hold">On Hold</option>
+                    <option value="completed">Completed</option>
+                  </select>
+                </div>
+              </div>
+
+              {categories.length > 0 && (
+                <div className="input-group">
+                  <label className="form-label">Categories</label>
+                  <div className="category-selector">
+                    {categories.map(category => (
+                      <div
+                        key={category.id}
+                        className={`category-option ${newCategoryIds.includes(category.id) ? 'selected' : ''}`}
+                        style={{
+                          backgroundColor: newCategoryIds.includes(category.id) ? category.color : 'transparent',
+                          border: `1px solid ${category.color}`
+                        }}
+                        onClick={() => toggleCategory(category.id, true)}
+                      >
+                        {category.name}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="form-actions">
+                <button type="submit" className="px-5 py-2 rounded-lg font-semibold text-base transition shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-primary text-white hover:bg-primary-dark active:bg-primary-dark">Create Project</button>
+              </div>
+            </form>
+          )}
           
           <h3 className="section-title mt-lg">Your Projects</h3>
           
           <div className="item-list">
             {projects.map((project) => (
-              <div key={project.id} className="item-card">
-                {editId === project.id ? (
-                  <div className="project-edit-form">
-                    <div className="form-row">
-                      <div className="input-group flex-grow">
-                        <label className="form-label">Project Name</label>
-                        <input
-                          type="text"
-                          className="form-control"
-                          value={editName}
-                          onChange={(e) => setEditName(e.target.value)}
-                          placeholder="Project name"
-                          required
-                        />
-                      </div>
-
-                      <div className="input-group color-picker">
-                        <label className="form-label">Color</label>
-                        <input
-                          type="color"
-                          className="form-control"
-                          value={editColor}
-                          onChange={(e) => setEditColor(e.target.value)}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="input-group">
-                      <label className="form-label">Description</label>
-                      <textarea
-                        className="form-control"
-                        value={editDescription}
-                        onChange={(e) => setEditDescription(e.target.value)}
-                        placeholder="Project description (optional)"
-                        rows={2}
-                      />
-                    </div>
-
-                    <div className="form-row">
-                      <div className="input-group">
-                        <label className="form-label">Due Date</label>
-                        <input
-                          type="date"
-                          className="form-control"
-                          value={editDueDate}
-                          onChange={(e) => setEditDueDate(e.target.value)}
-                        />
-                        <div className="date-shortcuts">
-                          <button
-                            type="button"
-                            className="date-shortcut-btn"
-                            onClick={() => {
-                              const today = new Date();
-                              const dateString = today.toISOString().split('T')[0];
-                              setEditDueDate(dateString);
-                            }}
-                          >
-                            Today
-                          </button>
-                          <button
-                            type="button"
-                            className="date-shortcut-btn"
-                            onClick={() => {
-                              const nextWeek = new Date();
-                              nextWeek.setDate(nextWeek.getDate() + 7);
-                              const dateString = nextWeek.toISOString().split('T')[0];
-                              setEditDueDate(dateString);
-                            }}
-                          >
-                            +1 Week
-                          </button>
-                          <button
-                            type="button"
-                            className="date-shortcut-btn"
-                            onClick={() => setEditDueDate('')}
-                          >
-                            Clear
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="input-group">
-                        <label className="form-label">Priority</label>
-                        <select
-                          className="form-control"
-                          value={editPriority || ''}
-                          onChange={(e) => setEditPriority(e.target.value as PriorityLevel || null)}
-                        >
-                          <option value="">No Priority</option>
-                          <option value="must-do">Must Do</option>
-                          <option value="want-to-do">Want To Do</option>
-                          <option value="when-i-can">When I Can</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    <div className="form-row">
-                      <div className="input-group">
-                        <label className="form-label">Status</label>
-                        <select
-                          className="form-control"
-                          value={editStatus}
-                          onChange={(e) => setEditStatus(e.target.value as Project['status'])}
-                        >
-                          <option value="not-started">Not Started</option>
-                          <option value="in-progress">In Progress</option>
-                          <option value="on-hold">On Hold</option>
-                          <option value="completed">Completed</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    {categories.length > 0 && (
-                      <div className="input-group">
-                        <label className="form-label">Categories</label>
-                        <div className="category-selector">
-                          {categories.map(category => (
-                            <div
-                              key={category.id}
-                              className={`category-option ${editCategoryIds.includes(category.id) ? 'selected' : ''}`}
-                              style={{
-                                backgroundColor: editCategoryIds.includes(category.id) ? category.color : 'transparent',
-                                border: `1px solid ${category.color}`
-                              }}
-                              onClick={() => toggleCategory(category.id, false)}
-                            >
-                              {category.name}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="form-actions">
-                      <button
-                        type="button"
-                        className="btn btn-primary"
-                        onClick={handleUpdateProject}
-                      >
-                        Save Changes
-                      </button>
-                      <button
-                        type="button"
-                        className="btn btn-outline"
-                        onClick={() => setEditId(null)}
-                      >
-                        Cancel
-                      </button>
-                    </div>
+              <div key={project.id} className="project-card">
+                <div className="project-header">
+                  <h2 className="project-title">{project.name}</h2>
+                  <div className="project-actions">
+                    <button className="btn btn-sm btn-outline" onClick={() => onEdit(project)}>Edit</button>
+                    <button className="btn btn-sm btn-danger" onClick={() => deleteProject(project.id)}>Delete</button>
                   </div>
-                ) : (
-                  <>
-                    <div className="item-header" style={{ borderLeft: project.color ? `4px solid ${project.color}` : undefined }}>
-                      <div className="item-title-section">
-                        <h3 className="item-title">{project.name}</h3>
-                        {project.status && project.status !== 'not-started' && (
-                          <span className={`project-status status-${project.status}`}>
-                            {project.status.replace('-', ' ')}
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex gap-sm">
-                        <button
-                          className="btn btn-sm btn-outline"
-                          onClick={() => startEditing(project)}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          className="btn btn-sm btn-danger"
-                          onClick={() => deleteProject(project.id)}
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="item-details">
-                      {project.description && (
-                        <p className="item-description">{project.description}</p>
-                      )}
-
-                      <div className="item-meta">
-                        {project.dueDate && (
-                          <span className="item-due-date">
-                            Due: {new Date(project.dueDate).toLocaleDateString('en-US', {
-                              month: 'short',
-                              day: 'numeric',
-                              year: 'numeric',
-                              timeZone: 'UTC'
-                            })}
-                          </span>
-                        )}
-
-                        {project.priority && (
-                          <span className={`task-priority ${project.priority}`}>
-                            {project.priority === 'must-do' ? 'Must Do' :
-                             project.priority === 'want-to-do' ? 'Want To Do' :
-                             'When I Can'}
-                          </span>
-                        )}
-
-                        {project.categoryIds && project.categoryIds.length > 0 && (
-                          <div className="item-categories">
-                            {project.categoryIds.map(categoryId => {
-                              const category = categories.find(c => c.id === categoryId);
-                              return category ? (
-                                <span
-                                  key={categoryId}
-                                  className="task-category"
-                                  style={{ backgroundColor: category.color }}
-                                >
-                                  {category.name}
-                                </span>
-                              ) : null;
-                            })}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </>
+                </div>
+                {project.description && (
+                  <p className="project-description">{project.description}</p>
                 )}
               </div>
             ))}

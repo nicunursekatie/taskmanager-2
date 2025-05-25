@@ -58,14 +58,25 @@ export default function ProjectView({
         const completedTasks = projectTasks.filter(task => task.status === 'completed');
         
         return (
-          <div key={project.id} className="project-view-card">
-            <div className="project-view-header">
-              <h2 className="project-view-title">{project.name}</h2>
+          <div key={project.id} className="project-card">
+            <div className="project-header">
+              <h2 className="project-title">{project.name}</h2>
             </div>
-            
             {project.description && (
-              <p className="project-view-description">{project.description}</p>
+              <p className="project-description">{project.description}</p>
             )}
+            <div className="project-tasks">
+              {tasks.filter(task => task.projectId === project.id).map(task => (
+                <div key={task.id} className="task-list-item">
+                  <input
+                    type="checkbox"
+                    checked={task.status === 'completed'}
+                    onChange={() => toggleTask(task.id)}
+                  />
+                  <span className={task.status === 'completed' ? 'completed' : ''}>{task.title}</span>
+                </div>
+              ))}
+            </div>
             
             {projectTasks.length > 0 ? (
               <>

@@ -2,13 +2,27 @@
 function safeEnv() {
   // In production builds, import.meta.env might be undefined or incomplete
   try {
+    // Check both environment variables and localStorage
+    const envKey = import.meta.env.VITE_GROQ_API_KEY || '';
+    const localKey = localStorage.getItem('GROQ_API_KEY') || '';
+    const rawKey = envKey || localKey;
+    const apiKey = rawKey.trim();
+    
+    // Log the environment for debugging
+    console.log('Environment loaded:', {
+      mode: import.meta.env.MODE || 'production',
+      hasApiKey: Boolean(apiKey),
+      apiKeyLength: apiKey.length,
+      apiKeyPrefix: apiKey.substring(0, 8) + '...',
+      rawKeyLength: rawKey.length,
+      hasWhitespace: rawKey !== rawKey.trim(),
+      encoding: Buffer.from(apiKey).toString('base64').substring(0, 20) + '...',
+      source: envKey ? 'env' : localKey ? 'localStorage' : 'none'
+    });
+    
     return {
-      GROQ_API_KEY: typeof import.meta !== 'undefined' && 
-                   import.meta.env && 
-                   import.meta.env.VITE_GROQ_API_KEY || '',
-      MODE: typeof import.meta !== 'undefined' && 
-            import.meta.env && 
-            import.meta.env.MODE || 'production'
+      GROQ_API_KEY: apiKey,
+      MODE: import.meta.env.MODE || 'production'
     };
   } catch (e) {
     console.warn('Error accessing environment variables:', e);
@@ -25,14 +39,12 @@ export const ENV = safeEnv();
 // Debug utility for checking environment variables
 export function logEnvironment() {
   try {
-    const userApiKey = localStorage.getItem('user_groq_api_key');
-    const hasUserKey = Boolean(userApiKey);
-    const hasEnvKey = Boolean(ENV.GROQ_API_KEY);
-    
+    const apiKey = ENV.GROQ_API_KEY;
     console.log('Environment mode:', ENV.MODE);
-    console.log('User API key available:', hasUserKey);
-    console.log('Environment API key available:', hasEnvKey);
-    console.log('Total API key length:', userApiKey ? userApiKey.length : (ENV.GROQ_API_KEY ? ENV.GROQ_API_KEY.length : 0));
+    console.log('GROQ API key available:', Boolean(apiKey));
+    console.log('GROQ API key length:', apiKey ? apiKey.length : 0);
+    console.log('GROQ API key prefix:', apiKey ? apiKey.substring(0, 8) + '...' : 'none');
+    console.log('GROQ API key encoding:', apiKey ? Buffer.from(apiKey).toString('base64').substring(0, 20) + '...' : 'none');
   } catch (e) {
     console.error('Error in logEnvironment:', e);
   }
@@ -44,6 +56,5 @@ export function logEnvironment() {
   };
 }
 
-// Hard-coded fallback key - only used if environment variables fail
-// This is not a good practice for real secrets, but can help with debugging
-export const FALLBACK_GROQ_API_KEY = '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';
+// Remove the fallback key since we're using environment variables
+export const FALLBACK_GROQ_API_KEY = '';

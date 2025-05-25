@@ -1,49 +1,47 @@
-import { useState } from 'react';
+import React from 'react';
 
-type MoreOptionsMenuProps = {
+interface MoreOptionsMenuProps {
+  isOpen: boolean;
+  onClose: () => void;
   onManageCategories: () => void;
   onImportExport: () => void;
   onLoadSample: () => void;
   onResetData: () => void;
-};
+  onOpenSettings: () => void;
+}
 
-const MoreOptionsMenu = ({ 
-  onManageCategories, 
-  onImportExport, 
-  onLoadSample, 
-  onResetData 
-}: MoreOptionsMenuProps) => {
-  const [isOpen, setIsOpen] = useState(false);
-  
-  const toggleMenu = () => setIsOpen(!isOpen);
-  
+const MoreOptionsMenu: React.FC<MoreOptionsMenuProps> = ({
+  isOpen,
+  onClose,
+  onManageCategories,
+  onImportExport,
+  onLoadSample,
+  onResetData,
+  onOpenSettings
+}) => {
+  if (!isOpen) return null;
+
   return (
-    <div className="dropdown-container">
-      <button 
-        className="btn btn-outline dropdown-toggle"
-        onClick={toggleMenu}
-        aria-haspopup="true"
-        aria-expanded={isOpen}
-      >
-        More Options
-      </button>
-      
-      {isOpen && (
-        <div className="dropdown-menu">
-          <button className="dropdown-item" onClick={() => { onManageCategories(); toggleMenu(); }}>
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal" onClick={e => e.stopPropagation()}>
+        <div className="flex flex-col gap-sm">
+          <button onClick={() => { onOpenSettings(); onClose(); }} className="btn btn-outline">
+            Settings
+          </button>
+          <button onClick={() => { onManageCategories(); onClose(); }} className="btn btn-outline">
             Manage Categories
           </button>
-          <button className="dropdown-item" onClick={() => { onImportExport(); toggleMenu(); }}>
-            Import/Export
+          <button onClick={() => { onImportExport(); onClose(); }} className="btn btn-outline">
+            Import/Export Data
           </button>
-          <button className="dropdown-item" onClick={() => { onLoadSample(); toggleMenu(); }}>
+          <button onClick={() => { onLoadSample(); onClose(); }} className="btn btn-outline">
             Load Sample Data
           </button>
-          <button className="dropdown-item danger" onClick={() => { onResetData(); toggleMenu(); }}>
+          <button onClick={() => { onResetData(); onClose(); }} className="btn btn-danger">
             Reset Data
           </button>
         </div>
-      )}
+      </div>
     </div>
   );
 };

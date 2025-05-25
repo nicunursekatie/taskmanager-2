@@ -203,8 +203,20 @@ export function useTasks() {
     return newId;
   }, [tasks]); // Add tasks as a dependency
 
+  // Add new function to move a task under a new parent
+  const moveTaskToParent = (id: string, parentId: string | null) => {
+    setTasks(prev =>
+      prev.map(task =>
+        task.id === id
+          ? { ...task, parentId }
+          : task
+      )
+    );
+  };
+
   return { 
     tasks, 
+    setTasks,
     addTask, 
     toggleTask, 
     deleteTask, 
@@ -214,6 +226,7 @@ export function useTasks() {
     updateTaskPriority,
     updateTaskEstimate,
     startTaskTimer,
-    completeTaskTimer
+    completeTaskTimer,
+    moveTaskToParent
   };
 }

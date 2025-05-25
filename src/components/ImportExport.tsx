@@ -100,7 +100,7 @@ export default function ImportExport({
           <div className="section-card mt-lg">
             <h3>Import Data</h3>
             <p>Import tasks, categories, and projects from a JSON file.</p>
-            <p className="text-light"><strong>Note:</strong> This will replace all your current data.</p>
+            <p><strong>Note:</strong> This will replace all your current data.</p>
             
             <input
               type="file"

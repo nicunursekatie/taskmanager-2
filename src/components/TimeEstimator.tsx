@@ -120,38 +120,12 @@ const TimeEstimator: React.FC<TimeEstimatorProps> = ({
       {showEstimator ? (
         <div className="time-estimator-expanded">
           <div className="quick-estimate-options">
-            <button 
-              className="quick-option short" 
-              onClick={() => handleQuickEstimate(15)}
-            >
-              15m
-            </button>
-            <button 
-              className="quick-option short" 
-              onClick={() => handleQuickEstimate(30)}
-            >
-              30m
-            </button>
-            <button 
-              className="quick-option medium" 
-              onClick={() => handleQuickEstimate(60)}
-            >
-              1h
-            </button>
-            <button 
-              className="quick-option medium" 
-              onClick={() => handleQuickEstimate(120)}
-            >
-              2h
-            </button>
-            <button 
-              className="quick-option long" 
-              onClick={() => handleQuickEstimate(240)}
-            >
-              4h
-            </button>
+            <button className="quick-option short" onClick={() => handleQuickEstimate(15)}>15m</button>
+            <button className="quick-option short" onClick={() => handleQuickEstimate(30)}>30m</button>
+            <button className="quick-option medium" onClick={() => handleQuickEstimate(60)}>1h</button>
+            <button className="quick-option medium" onClick={() => handleQuickEstimate(120)}>2h</button>
+            <button className="quick-option long" onClick={() => handleQuickEstimate(240)}>4h</button>
           </div>
-          
           <div className="custom-estimate">
             <input
               type="number"
@@ -161,21 +135,9 @@ const TimeEstimator: React.FC<TimeEstimatorProps> = ({
               min="1"
               className="form-control"
             />
-            <button 
-              className="btn btn-sm btn-primary"
-              onClick={handleCustomEstimate}
-              disabled={!customMinutes}
-            >
-              Set
-            </button>
+            <button className="btn btn-sm btn-primary" onClick={handleCustomEstimate} disabled={!customMinutes}>Set</button>
           </div>
-          
-          <button 
-            className="btn btn-sm btn-outline close-estimator"
-            onClick={() => setShowEstimator(false)}
-          >
-            Cancel
-          </button>
+          <button className="btn btn-sm btn-outline close-estimator" onClick={() => setShowEstimator(false)}>Cancel</button>
         </div>
       ) : (
         <div className="time-estimator-collapsed">
@@ -184,38 +146,21 @@ const TimeEstimator: React.FC<TimeEstimatorProps> = ({
               {task.estimatedMinutes ? getTimeEstimateDisplay() : 'Estimate'} ⏱️
             </span>
           </div>
-          
           {task.estimatedMinutes && !task.timeCompleted && (
             <div className="timer-controls">
               {!timerActive ? (
-                <button 
-                  className="btn btn-sm start-timer" 
-                  onClick={handleStartTimer}
-                  title="Start timer"
-                >
-                  ▶️
-                </button>
+                <button className="btn btn-sm start-timer" onClick={handleStartTimer} title="Start timer">▶️</button>
               ) : (
                 <>
                   <span className="timer-running">{formatTime(elapsedSeconds)}</span>
-                  <button 
-                    className="btn btn-sm stop-timer" 
-                    onClick={handleStopTimer}
-                    title="Stop timer"
-                  >
-                    ⏹️
-                  </button>
+                  <button className="btn btn-sm stop-timer" onClick={handleStopTimer} title="Stop timer">⏹️</button>
                 </>
               )}
             </div>
           )}
-          
           {task.timeCompleted && task.actualMinutes && (
             <div className="time-stats">
-              <span className="actual-time">
-                Actual: {formatTime(task.actualMinutes * 60)}
-              </span>
-              
+              <span className="actual-time">Actual: {formatTime(task.actualMinutes * 60)}</span>
               {getTimeDifference() && (
                 <span className={`time-diff ${getTimeDifference()?.overUnder}`}>
                   {getTimeDifference()?.overUnder === 'over' ? '+' : ''}

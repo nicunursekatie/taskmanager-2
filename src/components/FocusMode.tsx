@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Task, Project, Category } from '../types';
+import { Task, Project, Category, PriorityLevel } from '../types';
 import TaskList from './TaskList';
 
 interface FocusModeProps {
@@ -13,7 +13,7 @@ interface FocusModeProps {
     categories?: string[],
     projectId?: string | null,
     dependsOn?: string[],
-    priority?: string | null
+    priority?: PriorityLevel | null
   ) => void;
   addSubtask: (parentId: string, title: string) => void;
   categories: Category[];
@@ -112,7 +112,7 @@ const FocusMode: React.FC<FocusModeProps> = ({
       </div>
       
       <div className="focus-timer-container">
-        <div className={`focus-timer ${timerType}`}>
+        <div className="focus-timer">
           <div className="timer-label">
             {timerType === 'focus' ? '🎯 Focus Session' : '☕ Break Time'}
           </div>

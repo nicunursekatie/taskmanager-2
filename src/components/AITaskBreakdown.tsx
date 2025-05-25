@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { breakdownTask } from '../utils/groqService';
 import { Task } from '../types';
 import '../styles/ai-task-breakdown.css';
+import { logEnvironment } from '../utils/env';
 
 interface AITaskBreakdownProps {
   task: Task;
@@ -35,7 +36,6 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
     setIsLoading(true);
     setError(null);
     setNeedsClarification(false);
-
     try {
       const subtasks = await breakdownTask(task.title, task.description || '');
       if (!subtasks || !Array.isArray(subtasks) || subtasks.length === 0)
@@ -55,8 +55,13 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
         setEditableSubtasks(edits);
       }
     } catch (err: any) {
-      console.error('Task breakdown error:', err);
+      // Custom error messages for API key issues
+      if (err.message && err.message.toLowerCase().includes('api key')) {
+        setError('Your Groq API key is missing or invalid. Please set it in Settings and try again.');
+      } else {
+        console.error('Task breakdown error:', err);
       setError(err.message || 'Error generating subtasks');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -145,6 +150,7 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
     setClarificationText('');
     setAiClarificationRequest('');
     setIsLoading(false);
+    setSuccess(false);
     setShowAIBreakdown?.(false);
   };
 
@@ -182,10 +188,10 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
                 )}
               </div>
               <div className="error-actions">
-                <button onClick={handleGenerateSubtasks} className="retry-btn">
+                <button onClick={handleGenerateSubtasks} className="retry-btn" disabled={isLoading}>
                   Try AI Again
                 </button>
-                <button onClick={handleCancel} className="ai-cancel-btn">
+                <button onClick={handleCancel} className="ai-cancel-btn" disabled={isLoading}>
                   Add Manually Instead
                 </button>
               </div>

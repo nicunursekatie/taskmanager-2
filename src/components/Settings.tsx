@@ -1,170 +1,99 @@
 import React, { useState, useEffect } from 'react';
-import { checkApiKeyStatus } from '../utils/groqService';
-import '../styles/settings.css';
+import { ENV } from '../utils/env';
 
 interface SettingsProps {
-  // Add any props needed later
+  isOpen: boolean;
+  onClose: () => void;
 }
 
-const Settings: React.FC<SettingsProps> = () => {
+const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
   const [apiKey, setApiKey] = useState('');
-  const [apiKeyStatus, setApiKeyStatus] = useState<{ available: boolean; mode: string } | null>(null);
-  const [testingKey, setTestingKey] = useState(false);
-  const [testResult, setTestResult] = useState<string | null>(null);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
 
   useEffect(() => {
-    // Check current API key status
-    const status = checkApiKeyStatus();
-    setApiKeyStatus(status);
-    
-    // Try to load saved API key from localStorage
-    const savedKey = localStorage.getItem('user_groq_api_key');
-    if (savedKey) {
-      setApiKey(savedKey);
+    // Load existing API key from localStorage
+    const storedKey = localStorage.getItem('GROQ_API_KEY');
+    if (storedKey) {
+      setApiKey(storedKey);
     }
   }, []);
 
-  const handleSaveApiKey = () => {
-    if (apiKey.trim()) {
-      localStorage.setItem('user_groq_api_key', apiKey.trim());
-      setTestResult('API key saved! Test it below to verify it works.');
-    } else {
-      localStorage.removeItem('user_groq_api_key');
-      setTestResult('API key removed.');
-    }
-  };
-
-  const handleTestApiKey = async () => {
-    if (!apiKey.trim()) {
-      setTestResult('Please enter an API key first.');
-      return;
-    }
-
-    setTestingKey(true);
-    setTestResult(null);
-
+  const handleSave = async () => {
+    setSaveStatus('saving');
     try {
-      const response = await fetch('https://api.groq.com/openai/v1/models', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${apiKey.trim()}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (response.ok) {
-        setTestResult('✅ API key is valid and working!');
-      } else {
-        setTestResult('❌ API key is invalid or expired.');
-      }
+      // Save API key to localStorage
+      localStorage.setItem('GROQ_API_KEY', apiKey);
+      setSaveStatus('success');
+      
+      // Reload the page to apply the new API key
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
     } catch (error) {
-      setTestResult('❌ Failed to test API key. Check your internet connection.');
-    } finally {
-      setTestingKey(false);
+      console.error('Error saving API key:', error);
+      setSaveStatus('error');
     }
   };
 
-  const handleClearData = () => {
-    if (confirm('Are you sure you want to clear all your data? This cannot be undone.')) {
-      localStorage.clear();
-      window.location.reload();
-    }
-  };
+  if (!isOpen) return null;
 
   return (
-    <div className="settings-container">
-      <h2 className="section-title">Settings</h2>
-      
-      {/* AI Configuration Section */}
-      <div className="settings-section">
-        <h3 className="settings-section-title">AI Task Breakdown</h3>
-        <p className="settings-description">
-          Configure your Groq API key to enable AI-powered task breakdown. You can get a free API key from{' '}
-          <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer">
-            Groq Console
-          </a>.
-        </p>
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal" onClick={e => e.stopPropagation()}>
+        <h2 className="text-xl font-semibold mb-4">Settings</h2>
         
-        <div className="api-key-form">
-          <div className="form-group">
-            <label htmlFor="groq-api-key">Groq API Key:</label>
+        <div className="space-y-4">
+          <div>
+            <label htmlFor="apiKey" className="block text-sm font-medium text-gray-700 mb-1">
+              Groq API Key
+            </label>
             <input
-              id="groq-api-key"
               type="password"
+              id="apiKey"
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
-              placeholder="Enter your Groq API key (gsk_...)"
-              className="form-control"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary"
+              placeholder="Enter your Groq API key"
             />
+            <p className="mt-1 text-sm text-gray-500">
+              Get your API key from{' '}
+              <a
+                href="https://console.groq.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:text-primary-dark"
+              >
+                console.groq.com
+              </a>
+            </p>
           </div>
-          
-          <div className="api-key-actions">
-            <button 
-              className="btn btn-primary"
-              onClick={handleSaveApiKey}
+
+          <div className="flex justify-end gap-2">
+            <button
+              onClick={onClose}
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
             >
-              Save API Key
+              Cancel
             </button>
-            <button 
-              className="btn btn-outline"
-              onClick={handleTestApiKey}
-              disabled={testingKey || !apiKey.trim()}
+            <button
+              onClick={handleSave}
+              disabled={saveStatus === 'saving'}
+              className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary-dark disabled:opacity-50"
             >
-              {testingKey ? 'Testing...' : 'Test API Key'}
+              {saveStatus === 'saving' ? 'Saving...' : 'Save Changes'}
             </button>
           </div>
-          
-          {testResult && (
-            <div className={`test-result ${testResult.includes('✅') ? 'success' : 'error'}`}>
-              {testResult}
-            </div>
+
+          {saveStatus === 'success' && (
+            <p className="text-sm text-success">Settings saved successfully!</p>
           )}
-        </div>
-        
-        {apiKeyStatus && (
-          <div className="api-status">
-            <h4>Current Status:</h4>
-            <p>Environment: {apiKeyStatus.mode}</p>
-            <p>API Key Available: {apiKeyStatus.available ? '✅ Yes' : '❌ No'}</p>
-            {!apiKeyStatus.available && (
-              <p className="status-note">
-                AI task breakdown will use fallback suggestions until a valid API key is configured.
-              </p>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Data Management Section */}
-      <div className="settings-section">
-        <h3 className="settings-section-title">Data Management</h3>
-        <p className="settings-description">
-          Manage your task data and application settings.
-        </p>
-        
-        <div className="data-actions">
-          <button 
-            className="btn btn-danger"
-            onClick={handleClearData}
-          >
-            Clear All Data
-          </button>
-        </div>
-      </div>
-
-      {/* About Section */}
-      <div className="settings-section">
-        <h3 className="settings-section-title">About</h3>
-        <p className="settings-description">
-          Task Manager with AI-powered task breakdown and smart organization features.
-        </p>
-        <div className="about-info">
-          <p><strong>Version:</strong> 1.0.0</p>
-          <p><strong>Features:</strong> Task management, AI breakdown, calendar sync, time tracking</p>
+          {saveStatus === 'error' && (
+            <p className="text-sm text-danger">Error saving settings. Please try again.</p>
+          )}
         </div>
       </div>
     </div>
   );
 };
 
-export default Settings;
+export default Settings; 

@@ -23,6 +23,8 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
   const [isExpanded, setIsExpanded] = useState(false);
   const [showAIBreakdown, setShowAIBreakdown] = useState(false);
+  const [hasRunBreakdown, setHasRunBreakdown] = useState(false);
+  const [showBreakdownSection, setShowBreakdownSection] = useState(false);
   
   // Use a forced refresh counter to ensure we re-render when needed
   const [refreshCounter, setRefreshCounter] = useState(0);
@@ -36,9 +38,9 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
       const stored = localStorage.getItem('tasks');
       if (stored) {
         const parsedTasks = JSON.parse(stored);
-        const storedSubtasks = parsedTasks.filter(t => t.parentId === task.id);
+        const storedSubtasks = parsedTasks.filter((t: Task) => t.parentId === task.id);
         console.log(`TaskBreakdown localStorage check: parent ${task.id} has ${storedSubtasks.length} subtasks`);
-        storedSubtasks.forEach((st, idx) => {
+        storedSubtasks.forEach((st: Task, idx: number) => {
           console.log(`  ${idx+1}. "${st.title}" (ID: ${st.id})`);
         });
       }
@@ -79,7 +81,7 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
         const stored = localStorage.getItem('tasks');
         if (stored) {
           const parsedTasks = JSON.parse(stored);
-          const storedSubtasks = parsedTasks.filter((t: any) => t.parentId === task.id);
+          const storedSubtasks = parsedTasks.filter((t: Task) => t.parentId === task.id);
           console.log(`[DIRECT CHECK] Found ${storedSubtasks.length} subtasks in localStorage for parent=${task.id}`);
           
           if (storedSubtasks.length > 0) {
@@ -110,14 +112,11 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
   const handleAddSubtask = (e: React.FormEvent) => {
     e.preventDefault();
     if (newSubtaskTitle.trim()) {
-      // Add the subtask
       addSubtask(task.id, newSubtaskTitle.trim());
       setNewSubtaskTitle('');
-      
-      // Hide the AI breakdown when a manual subtask is added
       setShowAIBreakdown(false);
-      
-      // Trigger the expand event to make sure the subtasks are visible
+      setHasRunBreakdown(true);
+      setShowBreakdownSection(false);
       try {
         const expandEvent = new CustomEvent('expandTaskSubtasks', { 
           detail: { taskId: task.id } 
@@ -164,139 +163,106 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
   }
 
   return (
-    <div className={`task-breakdown ${hasContent ? 'has-content' : ''}`}>
-      <div className="breakdown-header">
-        <h3 className="breakdown-title">
-          Subtasks {subtasks.length > 0 && `(${subtasks.length})`}
-          <button 
-            className="toggle-button"
-            onClick={() => setIsExpanded(!isExpanded)}
-          >
-            {isExpanded ? '−' : '+'}
-          </button>
-        </h3>
-        {subtasks.length > 0 && (
-          <div className="breakdown-progress">
-            <div className="subtask-progress">
+    <div className="task-breakdown w-full">
+      {/* Only show the breakdown section if showBreakdownSection is true and this is a top-level task */}
+      {(!task.parentId && !subtasks.length && !hasRunBreakdown && !showBreakdownSection) && (
+        <button
+          className="px-3 py-1 rounded-md font-medium text-primary border border-primary bg-primary/5 hover:bg-primary/10 transition text-sm flex items-center gap-1 shadow-none"
+          onClick={() => setShowBreakdownSection(true)}
+        >
+          Break Down
+        </button>
+      )}
+      {(showBreakdownSection && !hasRunBreakdown) && (
+        <div className="bg-white rounded-md shadow-sm p-4 border border-gray-200 mt-2 mb-4">
+          <div className="breakdown-header flex items-center justify-between mb-2">
+            <h3 className="text-base font-semibold text-gray-800 flex items-center gap-2">
+              <span className="inline-block w-2 h-2 rounded-full bg-yellow-400 mr-2"></span>
+              Break Down This Task
+            </h3>
+            <button 
+              className="text-gray-500 hover:text-gray-700 text-xl font-bold focus:outline-none"
+              onClick={() => setIsExpanded(!isExpanded)}
+              aria-label={isExpanded ? 'Collapse' : 'Expand'}
+            >
+              {isExpanded ? '▼' : '▶'}
+            </button>
+          </div>
+          <div className="breakdown-progress mb-2">
+            <div className="w-full bg-gray-100 rounded-full h-2 mb-1">
               <div 
-                className="subtask-progress-bar" 
+                className="bg-yellow-400 h-2 rounded-full transition-all"
                 style={{ width: `${progressPercentage}%` }}
               ></div>
             </div>
-            <div className="progress-text">
-              <span>{completedSubtasks} of {totalSubtasks} completed ({progressPercentage}%)</span>
+            <div className="text-xs text-gray-500">
+              {totalSubtasks === 0 ? (
+                <span>No subtasks yet. Break down this task into smaller steps.</span>
+              ) : (
+                <span>{completedSubtasks} of {totalSubtasks} steps completed ({progressPercentage}%)</span>
+              )}
             </div>
           </div>
-        )}
-      </div>
-      
-      {isExpanded && (
-        <>
-          <form onSubmit={handleAddSubtask} className="subtask-add-form">
-            <input
-              type="text"
-              value={newSubtaskTitle}
-              onChange={(e) => setNewSubtaskTitle(e.target.value)}
-              placeholder="Add a step to break down this task..."
-              className="form-control"
-            />
-            <button type="submit" className="btn btn-primary">Add Step</button>
-          </form>
-          
-          <div className="subtasks-list">
-            {subtasks.length > 0 ? (
-              <ul>
-                {subtasks.map(subtask => (
-                  <li key={subtask.id} className={`subtask-item ${subtask.status === 'completed' ? 'completed' : ''}`}>
-                    <input
-                      type="checkbox"
-                      checked={subtask.status === 'completed'}
-                      onChange={() => toggleTask(subtask.id)}
-                      id={`subtask-check-${subtask.id}`}
-                    />
-                    <label htmlFor={`subtask-check-${subtask.id}`} className="subtask-label">
-                      {subtask.title}
-                    </label>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <div className="empty-subtasks">
-                <p>Breaking complex tasks into smaller steps makes them easier to complete!</p>
-                <p>Add your first step above to get started.</p>
-              </div>
-            )}
-          </div>
-          
-          {subtasks.length > 0 && progressPercentage === 100 && (
-            <div className="completion-message">
-              🎉 All steps complete! You're doing great!
-            </div>
+          {isExpanded && (
+            <form onSubmit={handleAddSubtask} className="flex gap-2 mb-2">
+              <input
+                type="text"
+                value={newSubtaskTitle}
+                onChange={(e) => setNewSubtaskTitle(e.target.value)}
+                placeholder="Add a step to break down this task..."
+                className="flex-1 border border-gray-300 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+              <button type="submit" className="px-4 py-1 rounded-md font-semibold bg-primary text-sm transition">
+                Add Step
+              </button>
+            </form>
           )}
-          
-          {/* AI Breakdown - only show if explicitly requested */}
-          {showAIBreakdown ? (
+          {showAIBreakdown && !hasRunBreakdown ? (
             <AITaskBreakdown 
               task={task} 
               addSubtask={(parentId, title) => {
-                console.log('Adding subtask from TaskBreakdown wrapper:', title);
-                
-                // Call the passed addSubtask function
                 const subtaskId = addSubtask(parentId, title);
-                console.log('Added subtask with ID:', subtaskId);
-                
-                // Force multiple refreshes to ensure UI updates properly
                 forceRefresh();
-                
-                // Force another refresh after a sequence of short delays
-                setTimeout(() => {
-                  forceRefresh();
-                  console.log('Forced second refresh (100ms delay)');
-                  
-                  // Try reloading all tasks from localStorage
-                  try {
-                    const stored = localStorage.getItem('tasks');
-                    if (stored) {
-                      const parsedTasks = JSON.parse(stored);
-                      const parentSubtasks = parsedTasks.filter(t => t.parentId === parentId);
-                      console.log(`Recheck - parent ${parentId} has ${parentSubtasks.length} subtasks in localStorage`);
-                      console.log('Subtasks from localStorage:', parentSubtasks);
-                    }
-                  } catch (e) {
-                    console.error('Error rechecking localStorage:', e);
-                  }
-                  
-                  // Schedule another refresh
-                  setTimeout(() => {
-                    forceRefresh();
-                    console.log('Forced third refresh (300ms total delay)');
-                  }, 200);
-                }, 100);
-                
+                // Do NOT set hasRunBreakdown or hide the section here; let the AI component handle closing
                 return subtaskId;
               }}
               updateTaskDescription={updateTaskDescription}
               existingSubtasks={subtasks}
-              setShowAIBreakdown={setShowAIBreakdown}
-              forceRefresh={forceRefresh}
-            />
-          ) : (
-            <button 
-              className="ai-breakdown-again-btn"
-              onClick={() => {
-                console.log('AI breakdown button clicked for task:', task.id);
-                try {
-                  setShowAIBreakdown(true);
-                } catch (err) {
-                  console.error('Error showing AI breakdown:', err);
-                  alert('There was an error opening the AI breakdown. Please try again.');
+              setShowAIBreakdown={(show) => {
+                setShowAIBreakdown(show);
+                if (!show) {
+                  setHasRunBreakdown(true);
+                  setShowBreakdownSection(false);
                 }
               }}
+              forceRefresh={forceRefresh}
+            />
+          ) : !hasRunBreakdown && (
+            <button 
+              className="px-4 py-1 rounded-md font-medium border border-primary text-primary bg-white hover:bg-primary/10 text-sm flex items-center gap-1 transition"
+              onClick={() => setShowAIBreakdown(true)}
             >
-              <span className="ai-icon">🤖</span> Break Down with AI
+              <span className="mr-1">🤖</span> Break Down with AI
             </button>
           )}
-        </>
+        </div>
+      )}
+      {isExpanded && hasRunBreakdown && (
+        <button
+          className="px-4 py-2 rounded-lg font-semibold bg-yellow-100 text-yellow-700 border border-yellow-300 hover:bg-yellow-200 transition mb-2"
+          onClick={() => {
+            setHasRunBreakdown(false);
+            setNewSubtaskTitle('');
+            setShowBreakdownSection(true);
+          }}
+        >
+          Re-run Breakdown
+        </button>
+      )}
+      {subtasks.length > 0 && progressPercentage === 100 && (
+        <div className="text-green-600 font-semibold mt-2">
+          🎉 All steps complete! You're doing great!
+        </div>
       )}
     </div>
   );

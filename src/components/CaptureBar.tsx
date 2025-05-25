@@ -64,48 +64,43 @@ export default function CaptureBar({
   };
 
   return (
-    <div className="capture-bar">
-      <form className="capture-form" onSubmit={handleSubmit}>
+    <div className="bg-white border border-border rounded-xl shadow-sm px-4 py-2 mb-8">
+      <form className="flex flex-nowrap items-center gap-3 w-full overflow-x-auto" onSubmit={handleSubmit}>
         <input
           type="text"
-          className="form-control"
-          placeholder="Quick capture..."
+          className="form-control flex-1 min-w-[220px]"
+          placeholder="Quick capture a new task..."
           value={text}
-          onChange={e => setText(e.target.value)}
+          onChange={(e) => setText(e.target.value)}
         />
-        
         <input
           type="date"
-          className="form-control"
+          className="form-control w-[90px]"
           value={dueDate}
           onChange={e => setDueDate(e.target.value)}
         />
-        
         <input
           type="time"
-          className="form-control"
+          className="form-control w-[70px]"
           value={dueTime}
           onChange={e => setDueTime(e.target.value)}
         />
-        
-        <button type="submit" className="btn btn-primary">Add</button>
+        <select
+          className="form-control w-[110px]"
+          value={newParent}
+          onChange={e => setNewParent(e.target.value)}
+        >
+          <option value="">No Parent Task</option>
+          {parentOptions.map(o => (
+            <option key={o.id} value={o.id}>{o.title}</option>
+          ))}
+        </select>
+        <button type="submit" className="btn btn-primary h-[40px] px-4 min-w-[90px]">
+          Add Task
+        </button>
       </form>
-      
       {showAdditionalOptions ? (
-        <div className="additional-options">
-          <select
-            className="form-control"
-            value={newParent}
-            onChange={e => setNewParent(e.target.value)}
-          >
-            <option value="">No Parent Task</option>
-            {parentOptions.map(o => (
-              <option key={o.id} value={o.id}>
-                {o.title}
-              </option>
-            ))}
-          </select>
-          
+        <div className="additional-options mt-md">
           <select
             className="form-control"
             value={projectId || ''}
@@ -118,8 +113,7 @@ export default function CaptureBar({
               </option>
             ))}
           </select>
-          
-          <div className="category-selector">
+          <div className="category-selector mt-sm">
             <label className="form-label">Categories</label>
             <div className="category-options flex flex-wrap gap-xs">
               {categories.map(category => (
