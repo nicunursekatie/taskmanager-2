@@ -26,10 +26,11 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '20'
-          cache: 'npm'
 
-      - name: Install dependencies 📦
-        run: npm install
+      - name: Clean and install dependencies 📦
+        run: |
+          rm -rf node_modules package-lock.json
+          npm install
 
       - name: Build 🏗️
         run: npm run build
