@@ -18,8 +18,6 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
   toggleTask,
   updateTaskDescription 
 }) => {
-  console.log(`TaskBreakdown for task ${task.id} rendered with ${subtasks.length} subtasks:`, 
-    subtasks.map(st => st.title));
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
   const [isExpanded, setIsExpanded] = useState(false);
   const [showAIBreakdown, setShowAIBreakdown] = useState(false);
@@ -44,7 +42,7 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
       // We might want to allow the user to re-run AI or add manually.
       // The UI logic for showing the "Re-run Breakdown" button or "Break Down with AI"
       // should handle this based on `hasRunBreakdown` and `subtasks.length`.
-      console.log('useEffect: No subtasks, but AI breakdown has been run. UI should offer options to re-run or add manually.');
+      // No subtasks, but AI breakdown has been run. UI should offer options to re-run or add manually.
     }
     // No specific action needed here if subtasks.length > 0 and showAIBreakdown is true,
     // as AITaskBreakdown will call setShowAIBreakdown(false) which will update state and
@@ -72,9 +70,7 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
           detail: { taskId: task.id } 
         });
         document.dispatchEvent(expandEvent);
-        console.log(`Triggered expandTaskSubtasks event for task ${task.id} from manual add`);
       } catch (e) {
-        console.error('Error dispatching custom event:', e);
       }
     }
   };
@@ -89,13 +85,11 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
         <button 
           className="ai-breakdown-compact-btn"
           onClick={() => {
-            console.log('AI breakdown button clicked for task:', task.id);
             try {
               setShowAIBreakdown(true);
               setIsExpanded(true);
               setShowBreakdownSection(true); // Ensure the section becomes visible
             } catch (err) {
-              console.error('Error showing AI breakdown:', err);
               alert('There was an error opening the AI breakdown. Please try again.');
             }
           }}

@@ -54,7 +54,6 @@ export const initialData: {
 
 export function initializeData(): void {
   // Always initialize data, regardless of what's in localStorage
-  console.log('Initializing app with sample data');
   localStorage.setItem('categories', JSON.stringify(initialData.categories));
   localStorage.setItem('projects', JSON.stringify(initialData.projects));
   localStorage.setItem('tasks', JSON.stringify(initialData.tasks));

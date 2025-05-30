@@ -27,7 +27,6 @@ export function useTimeBlocks() {
         setTimeBlocks([]);
       }
     } catch (error) {
-      console.error('Error loading time blocks:', error);
       setTimeBlocks([]);
     }
   }, [currentDateKey]);
@@ -37,7 +36,7 @@ export function useTimeBlocks() {
     try {
       localStorage.setItem(`timeBlocks_${currentDateKey}`, JSON.stringify(timeBlocks));
     } catch (error) {
-      console.error('Error saving time blocks:', error);
+      // Error saving time blocks
     }
   }, [timeBlocks, currentDateKey]);
   

@@ -45,7 +45,7 @@ const FocusMode: React.FC<FocusModeProps> = ({
 
   // Handle timer
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: ReturnType<typeof setInterval>;
     
     if (timerActive) {
       interval = setInterval(() => {
@@ -57,7 +57,8 @@ const FocusMode: React.FC<FocusModeProps> = ({
             
             // Play a sound when timer ends
             const audio = new Audio('/notification-sound.mp3');
-            audio.play().catch(e => console.log('Audio play failed:', e));
+            audio.play().catch(() => {
+            });
             
             // Handle session completion
             if (timerType === 'focus') {
@@ -150,6 +151,7 @@ const FocusMode: React.FC<FocusModeProps> = ({
             deleteTask={deleteTask}
             updateTask={updateTask}
             addSubtask={addSubtask}
+            moveTaskToParent={(id, parentId) => {/* Not needed in focus mode */}}
             categories={categories}
             projects={projects}
           />

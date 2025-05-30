@@ -55,13 +55,11 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
         setEditableSubtasks(edits);
       }
     } catch (err: any) {
-      console.error('AI breakdown error:', err);
       // Custom error messages for API key issues
       if (err.message && err.message.toLowerCase().includes('api key')) {
         setError('Your Groq API key is missing or invalid. Please set it in Settings and try again.');
       } else {
-        console.error('Task breakdown error:', err);
-      setError(err.message || 'Error generating subtasks');
+        setError(err.message || 'Error generating subtasks');
       }
     } finally {
       setIsLoading(false);
