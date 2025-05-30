@@ -31,5 +31,9 @@ node_modules/.cache/
 node_modules/.cache/gh-pages/
 **/.claude/settings.local.json
 
+# Tempo-specific files
+**/tempobook/dynamic/
+**/tempobook/storyboards/
+
 # Deployment files
 deploy-trigger.md
