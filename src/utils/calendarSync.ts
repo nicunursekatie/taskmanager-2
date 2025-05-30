@@ -101,7 +101,6 @@ export function syncToCalendar(
       
       return newEvents;
     } catch (error) {
-      console.error('Error syncing to calendar:', error);
       return [];
     }
   }
@@ -114,7 +113,6 @@ export function getCalendarEvents(): CalendarEvent[] {
     const saved = localStorage.getItem('calendar_events');
     return saved ? JSON.parse(saved) : [];
   } catch (error) {
-    console.error('Error loading calendar events:', error);
     return [];
   }
 }

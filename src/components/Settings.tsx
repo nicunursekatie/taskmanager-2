@@ -36,7 +36,6 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
         throw new Error('Failed to save API key correctly');
       }
       
-      console.log('API key saved successfully. Length:', savedKey.length);
       setSaveStatus('success');
       
       // Optional reload - user can close modal and it will work immediately
@@ -46,7 +45,6 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
         }
       }, 1000);
     } catch (error) {
-      console.error('Error saving API key:', error);
       setSaveStatus('error');
     }
   };
@@ -112,4 +110,4 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
   );
 };
 
-export default Settings; 
+export default Settings;  

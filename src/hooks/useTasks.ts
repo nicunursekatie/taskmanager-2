@@ -207,6 +207,16 @@ export function useTasks() {
     );
   };
 
+  const updateTaskDescription = (id: string, description: string) => {
+    setTasks(prev =>
+      prev.map(task =>
+        task.id === id
+          ? { ...task, description }
+          : task
+      )
+    );
+  };
+
   return { 
     tasks, 
     setTasks,
@@ -220,6 +230,7 @@ export function useTasks() {
     updateTaskEstimate,
     startTaskTimer,
     completeTaskTimer,
+    updateTaskDescription,
     moveTaskToParent
   };
 }

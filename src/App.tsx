@@ -209,7 +209,7 @@ function App() {
           selectedIds.forEach(id => {
             const task = tasks.find(t => t.id === id);
             if (task) {
-              updateTask(id, task.title, task.dueDate, task.categories, data.projectId);
+              updateTask(id, task.title, task.dueDate || null, task.categories, data.projectId);
             }
           });
         }
@@ -234,10 +234,17 @@ function App() {
     }
   };
 
-  // Start editing a category
-  const startEditing = (category: Category) => {
-    setEditingCategoryId(category.id);
-    setShowCategoryManager(true);
+  // Start editing a category or project
+  const startEditing = (item: Category | Project) => {
+    if ('color' in item) {
+      // It's a category
+      setEditingCategoryId(item.id);
+      setShowCategoryManager(true);
+    } else {
+      // It's a project
+      setEditingProject(item);
+      setShowProjectManager(true);
+    }
   };
   
   // General tasks for context wizard
@@ -431,7 +438,7 @@ function App() {
             tasks={tasks}
             toggleTask={toggleTaskWithUndo}
             deleteTask={deleteTask}
-            updateTask={(id: string, title: string, dueDate: string | null, categories?: string[], projectId?: string | null, dependsOn?: string[], priority?: PriorityLevel | null) => updateTask(id, title, dueDate, categories, projectId, dependsOn, priority)}
+            updateTask={updateTask}
             addSubtask={addSubtask}
             categories={categories}
             projects={projects}
@@ -441,7 +448,15 @@ function App() {
           <>
         {/* Capture Bar */}
         <CaptureBar
-          addTask={addTask}
+          addTask={(title, dueDate, categoryIds, projectId, dependsOn) => {
+            addTask({
+              title,
+              dueDate,
+              categories: categoryIds ? [...categoryIds] : [],
+              projectId: typeof projectId === 'string' ? projectId : null,
+              status: 'pending'
+            });
+          }}
           newParent={newParent}
           setNewParent={setNewParent}
           parentOptions={parentOptions}
@@ -471,7 +486,10 @@ function App() {
           {/* Settings View */}
           {activeTab === 'settings' && (
             <div className="settings-view">
-              <Settings />
+              <Settings 
+                isOpen={true} 
+                onClose={() => setActiveTab('dashboard')}
+              />
             </div>
           )}
           
@@ -510,6 +528,7 @@ function App() {
                       updateTaskEstimate={updateTaskEstimate}
                       startTaskTimer={startTaskTimer}
                       completeTaskTimer={completeTaskTimer}
+                      moveTaskToParent={moveTaskToParent}
                       categories={categories}
                       projects={projects}
                     />
@@ -998,7 +1017,12 @@ function App() {
                         e.preventDefault();
                         const input = e.currentTarget.querySelector('input') as HTMLInputElement;
                         if (input && input.value.trim()) {
-                          addTask(input.value.trim(), null, undefined, [selectedCategoryId]);
+                          addTask({
+                            title: input.value.trim(),
+                            dueDate: null,
+                            categories: selectedCategoryId ? [selectedCategoryId] : [],
+                            status: 'pending'
+                          });
                           input.value = '';
                         }
                       }}>
@@ -1313,7 +1337,7 @@ function App() {
                         type="button"
                         key={priority ?? 'none'}
                         className={`px-3 py-1 rounded-full text-xs font-semibold border transition ${editTaskPriority === priority ? 'bg-primary text-white border-primary' : 'bg-white text-primary border-border'}`}
-                        onClick={() => setEditTaskPriority(priority)}
+                        onClick={() => setEditTaskPriority(priority as PriorityLevel)}
                       >
                         {priority ? priority.charAt(0).toUpperCase() + priority.slice(1) : 'None'}
                       </button>
@@ -1345,9 +1369,7 @@ function App() {
                           editTaskTitle.trim(),
                           formattedDueDate,
                           editTaskCategories,
-                          editTaskProjectId,
-                          undefined,
-                          editTaskPriority
+                          editTaskProjectId
                         );
                         setShowTaskEditModal(false);
                       }
