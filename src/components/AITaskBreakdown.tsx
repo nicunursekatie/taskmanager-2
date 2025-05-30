@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { breakdownTask } from '../utils/groqService';
 import { Task } from '../types';
 import '../styles/ai-task-breakdown.css';
-import { logEnvironment } from '../utils/env';
 
 interface AITaskBreakdownProps {
   task: Task;
@@ -34,13 +33,11 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
 
   // 1. AI subtask generation
   const handleGenerateSubtasks = async () => {
-    console.log('Starting AI task breakdown for:', task.title);
     setIsLoading(true);
     setError(null);
     setNeedsClarification(false);
     try {
       const subtasks = await breakdownTask(task.title, task.description || '');
-      console.log('Breakdown response:', subtasks);
       if (!subtasks || !Array.isArray(subtasks) || subtasks.length === 0)
         throw new Error('No subtasks returned');
       const valid = subtasks.filter(s => typeof s === 'string' && s.trim());

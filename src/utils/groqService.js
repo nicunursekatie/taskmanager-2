@@ -5,9 +5,6 @@ import { ENV } from './env';
 // Check if API key is configured
 export function checkApiKeyStatus() {
   const hasKey = Boolean(ENV.GROQ_API_KEY);
-  if (!hasKey) {
-    console.error('Groq API key not found in environment variables');
-  }
   return hasKey;
 }
 
@@ -23,32 +20,20 @@ export async function breakdownTask(taskTitle, taskDescription = '') {
   const localKey = localStorage.getItem('GROQ_API_KEY') || '';
   const apiKey = (localKey || envKey).trim(); // Prefer localStorage over env
   
-  // Debug API key (v2)
-  console.log('=== API Key Debug v2 ===', new Date().toISOString());
-  console.log('Has env key:', Boolean(envKey));
-  console.log('Has local key:', Boolean(localKey));
-  console.log('Final key length:', apiKey.length);
-  console.log('Final key prefix:', apiKey.substring(0, 8) + '...');
-  console.log('Key source:', envKey ? 'env' : localKey ? 'localStorage' : 'none');
-  console.log('Raw local storage value:', localStorage.getItem('GROQ_API_KEY'));
 
   // Test API key validity first
   try {
-    console.log('Testing API key validity...');
     const testResponse = await fetch('https://api.groq.com/openai/v1/models', {
       headers: { 'Authorization': `Bearer ${apiKey}` }
     });
     
     if (!testResponse.ok) {
       const errorData = await testResponse.text();
-      console.error('API key test failed:', testResponse.status, errorData);
       throw new Error('Invalid API key. Please check your Groq API key in Settings.');
     }
     
     const modelsData = await testResponse.json();
-    console.log('Available models:', modelsData.data?.map(m => m.id) || 'Unable to fetch');
   } catch (error) {
-    console.error('API key validation failed:', error);
     throw new Error('Invalid API key. Please check your Groq API key in Settings.');
   }
   
@@ -72,7 +57,6 @@ export async function breakdownTask(taskTitle, taskDescription = '') {
 
   for (const model of models) {
     try {
-      console.log(`Trying model: ${model}`);
       const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -108,7 +92,6 @@ Example output:
       // Handle API errors
       if (!response.ok) {
         const errorData = await response.text();
-        console.error(`Groq API error with model ${model}:`, response.status, errorData);
         
         if (response.status === 401) {
           throw new Error('Invalid API key. Please check your Groq API key.');
@@ -116,7 +99,6 @@ Example output:
           throw new Error('Rate limit exceeded. Please try again later.');
         } else if (response.status === 400 && errorData.includes('model')) {
           // Model not available, try next one
-          console.log(`Model ${model} not available, trying next...`);
           continue;
         } else {
           throw new Error(`API error: ${response.status}`);
@@ -137,11 +119,9 @@ Example output:
 
       // Validate results
       if (subtasks.length === 0) {
-        console.log(`Model ${model} returned no valid subtasks, trying next...`);
         continue;
       }
 
-      console.log(`Successfully generated subtasks with model: ${model}`);
       return subtasks;
 
     } catch (error) {
@@ -151,7 +131,6 @@ Example output:
       }
       
       // Log model-specific errors and continue to next model
-      console.log(`Model ${model} failed:`, error.message);
       if (model === models[models.length - 1]) {
         // This was the last model, re-throw the error
         throw error;
