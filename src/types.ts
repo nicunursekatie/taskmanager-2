@@ -106,6 +106,8 @@ export type TaskListProps = {
   moveTaskToParent: (id: string, parentId: string | null) => void;
   categories: Category[];
   projects: Project[];
+  enableBulkActions?: boolean;
+  onBulkAction?: (action: string, selectedIds: string[], data?: any) => void;
 };
 
 export type FilterPanelProps = {

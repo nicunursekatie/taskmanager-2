@@ -20,7 +20,6 @@ export function exportData(): string {
 
     return JSON.stringify(exportData, null, 2);
   } catch (error) {
-    console.error('Error exporting data:', error);
     throw new Error('Failed to export data');
   }
 }
@@ -60,7 +59,6 @@ export function importData(jsonData: string): {
       projects: data.projects
     };
   } catch (error) {
-    console.error('Error importing data:', error);
     throw new Error('Failed to import data. The file may be corrupted or have an invalid format.');
   }
 }

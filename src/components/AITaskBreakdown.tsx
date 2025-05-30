@@ -30,14 +30,17 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
   const [clarificationText, setClarificationText] = useState('');
   const [aiClarificationRequest, setAiClarificationRequest] = useState('');
   const [success, setSuccess] = useState(false);
+  const [hasInitialized, setHasInitialized] = useState(false);
 
   // 1. AI subtask generation
   const handleGenerateSubtasks = async () => {
+    console.log('Starting AI task breakdown for:', task.title);
     setIsLoading(true);
     setError(null);
     setNeedsClarification(false);
     try {
       const subtasks = await breakdownTask(task.title, task.description || '');
+      console.log('Breakdown response:', subtasks);
       if (!subtasks || !Array.isArray(subtasks) || subtasks.length === 0)
         throw new Error('No subtasks returned');
       const valid = subtasks.filter(s => typeof s === 'string' && s.trim());
@@ -55,6 +58,7 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
         setEditableSubtasks(edits);
       }
     } catch (err: any) {
+      console.error('AI breakdown error:', err);
       // Custom error messages for API key issues
       if (err.message && err.message.toLowerCase().includes('api key')) {
         setError('Your Groq API key is missing or invalid. Please set it in Settings and try again.');
@@ -153,6 +157,14 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
     setSuccess(false);
     setShowAIBreakdown?.(false);
   };
+
+  // Auto-trigger on mount
+  React.useEffect(() => {
+    if (!hasInitialized && !isLoading && !generatedSubtasks.length) {
+      setHasInitialized(true);
+      handleGenerateSubtasks();
+    }
+  }, [hasInitialized, isLoading, generatedSubtasks.length]);
 
   // --- UI ---
   return (

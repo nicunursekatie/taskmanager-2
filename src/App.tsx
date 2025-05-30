@@ -18,6 +18,8 @@ import './styles/time-estimator.css';
 import './styles/reminders.css';
 import './styles/task-highlights.css';
 import './styles/settings.css';
+import './styles/undo-notification.css';
+import './styles/bulk-actions.css';
 import { useCategories } from './hooks/useCategories';
 
 // Component imports
@@ -33,7 +35,7 @@ import DailyPlanner from './components/DailyPlanner';
 import MoreOptionsMenu from './components/MoreOptionsMenu';
 import CaptureBar from './components/CaptureBar';
 import Settings from './components/Settings';
-import Settings from './components/Settings';
+import UndoNotification from './components/UndoNotification';
 
 // Utilities
 import { loadSampleData } from './utils/sampleData';
@@ -75,17 +77,13 @@ function App() {
   useEffect(() => {
     try {
       checkApiKeyStatus();
-      console.log('App initialized successfully');
     } catch (e) {
-      console.error('Error checking API key status:', e);
     }
   }, []);
 
   // Reset selectedCategoryId when changing tabs
   useEffect(() => {
-    console.log("Tab changed to:", activeTab);
     if (activeTab !== 'categories') {
-      console.log("Resetting selectedCategoryId to null");
       setSelectedCategoryId(null);
     }
   }, [activeTab]);
@@ -118,6 +116,13 @@ function App() {
   const [editTaskCategories, setEditTaskCategories] = useState<string[]>([]);
   const [editTaskProjectId, setEditTaskProjectId] = useState<string | null>(null);
   const [editTaskPriority, setEditTaskPriority] = useState<PriorityLevel | null>(null);
+  
+  // Undo state
+  const [undoInfo, setUndoInfo] = useState<{
+    taskId: string;
+    taskTitle: string;
+    previousStatus: 'pending' | 'completed';
+  } | null>(null);
   
   // Time blocks state (from useTimeBlocks hook)
   const {
@@ -165,6 +170,69 @@ function App() {
     window.addEventListener('quickAddTask', handler);
     return () => window.removeEventListener('quickAddTask', handler);
   }, [addTask]);
+
+  // Wrapper for toggleTask to add undo functionality
+  const toggleTaskWithUndo = (taskId: string) => {
+    const task = tasks.find(t => t.id === taskId);
+    if (task) {
+      // Only show undo notification when marking as completed
+      if (task.status === 'pending') {
+        setUndoInfo({
+          taskId: task.id,
+          taskTitle: task.title,
+          previousStatus: task.status
+        });
+      }
+      toggleTask(taskId);
+    }
+  };
+
+  // Handle undo
+  const handleUndo = () => {
+    if (undoInfo) {
+      toggleTask(undoInfo.taskId);
+      setUndoInfo(null);
+    }
+  };
+  
+  // Handle bulk actions
+  const handleBulkAction = (action: string, selectedIds: string[], data?: any) => {
+    switch (action) {
+      case 'delete':
+        // Delete all selected tasks
+        selectedIds.forEach(id => deleteTask(id));
+        break;
+      
+      case 'assignProject':
+        // Assign all selected tasks to a project
+        if (data?.projectId) {
+          selectedIds.forEach(id => {
+            const task = tasks.find(t => t.id === id);
+            if (task) {
+              updateTask(id, task.title, task.dueDate, task.categories, data.projectId);
+            }
+          });
+        }
+        break;
+      
+      case 'convertToSubtasks':
+        // Convert all selected tasks to subtasks of a parent
+        if (data?.parentId) {
+          selectedIds.forEach(id => moveTaskToParent(id, data.parentId));
+        }
+        break;
+      
+      case 'markComplete':
+        // Mark all selected tasks as complete
+        selectedIds.forEach(id => {
+          const task = tasks.find(t => t.id === id);
+          if (task && task.status === 'pending') {
+            toggleTask(id);
+          }
+        });
+        break;
+    }
+  };
 
   // Start editing a category
   const startEditing = (category: Category) => {
@@ -249,17 +317,17 @@ function App() {
   };
 
   const overdueTasks = tasks.filter(
-    task => task.dueDate && isDateBefore(task.dueDate, todayStart) && task.status !== 'completed'
+    task => task.dueDate && isDateBefore(task.dueDate, todayStart) && task.status !== 'completed' && !task.parentId
   );
 
   const todayTasks = tasks.filter(
-    task => task.dueDate && isDateBetween(task.dueDate, todayStart, tomorrowStart) && task.status !== 'completed'
+    task => task.dueDate && isDateBetween(task.dueDate, todayStart, tomorrowStart) && task.status !== 'completed' && !task.parentId
   );
 
   // NEW APPROACH: Handle upcoming tasks - directly check dates for May 11 through May 17
   const upcomingTasks = tasks.filter(task => {
-  // Skip tasks with no due date or completed tasks
-  if (!task.dueDate || task.status === 'completed') return false;
+  // Skip tasks with no due date, completed tasks, or subtasks
+  if (!task.dueDate || task.status === 'completed' || task.parentId) return false;
 
   // Skip tasks that are due today or overdue
   if (isDateBefore(task.dueDate, todayStart) || isDateBetween(task.dueDate, todayStart, tomorrowStart)) {
@@ -361,7 +429,7 @@ function App() {
         {focusModeActive ? (
           <FocusMode
             tasks={tasks}
-            toggleTask={toggleTask}
+            toggleTask={toggleTaskWithUndo}
             deleteTask={deleteTask}
             updateTask={(id: string, title: string, dueDate: string | null, categories?: string[], projectId?: string | null, dependsOn?: string[], priority?: PriorityLevel | null) => updateTask(id, title, dueDate, categories, projectId, dependsOn, priority)}
             addSubtask={addSubtask}
@@ -414,7 +482,7 @@ function App() {
                 <h2 className="section-title">Calendar</h2>
                 <CalendarView 
                   tasks={tasks} 
-                  toggleTask={toggleTask}
+                  toggleTask={toggleTaskWithUndo}
                   categories={categories}
                   projects={projects}
                 />
@@ -425,29 +493,7 @@ function App() {
           {/* Dashboard View */}
           {activeTab === 'dashboard' && (
             <div className="space-y-8">
-            <div className="dashboard-grid">
               {/* Today's Tasks Section */}
-              <div className="bg-white border border-border rounded-lg shadow-sm p-4 mb-6">
-                <h2 className="text-lg font-bold text-primary mb-2 border-b border-border pb-1">Today's Tasks</h2>
-                {todayTasks.length > 0 ? (
-                  <TaskList
-                    tasks={todayTasks}
-                    toggleTask={toggleTask}
-                    deleteTask={deleteTask}
-                    updateTask={updateTask}
-                    updateTaskDescription={updateTaskDescription}
-                    addSubtask={addSubtask}
-                    updateTaskEstimate={updateTaskEstimate}
-                    startTaskTimer={startTaskTimer}
-                    completeTaskTimer={completeTaskTimer}
-                    moveTaskToParent={moveTaskToParent}
-                    categories={categories}
-                    projects={projects}
-                  />
-                ) : (
-                  <p className="text-text-light italic text-center py-4">No tasks due today.</p>
-                )}
-              </div>
               <div className="section-card">
                 <div className="section-card-header">
                   <h2 className="section-title">Today's Tasks</h2>
@@ -456,7 +502,7 @@ function App() {
                   {todayTasks.length > 0 ? (
                     <TaskList
                       tasks={todayTasks}
-                      toggleTask={toggleTask}
+                      toggleTask={toggleTaskWithUndo}
                       deleteTask={deleteTask}
                       updateTask={updateTask}
                       updateTaskDescription={updateTaskDescription}
@@ -479,11 +525,20 @@ function App() {
 
               {/* Upcoming Tasks Section */}
               {upcomingTasks.length > 0 && (
-                <div className="bg-white border border-border rounded-lg shadow-sm p-4 mb-6">
-                  <h2 className="text-lg font-bold text-primary mb-2 border-b border-border pb-1">Upcoming Tasks</h2>
+                <div className="section-card">
+                  <div className="section-card-header">
+                    <h2 className="section-title">Upcoming Tasks</h2>
+                  </div>
+                  <div className="section-card-body">
                   <div className="space-y-4">
                     {upcomingTasks.map(task => (
                       <div key={task.id} className="flex items-center gap-3 py-2 px-3 border-b border-border last:border-b-0">
+                        <input
+                          type="checkbox"
+                          checked={task.status === 'completed'}
+                          onChange={() => toggleTaskWithUndo(task.id)}
+                          className="w-5 h-5 rounded border-border text-primary focus:ring-primary cursor-pointer"
+                        />
                         <div className="flex-1">
                           <h3 className="text-lg font-semibold text-text">{task.title}</h3>
                           <div className="flex items-center gap-2 mt-1">
@@ -497,42 +552,39 @@ function App() {
                             )}
                           </div>
                         </div>
-                        <div className="flex gap-2">
-                          <button
-                            className="px-4 py-1 rounded-md font-semibold text-sm transition shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 bg-primary text-white hover:bg-primary-dark active:bg-primary-dark"
-                            onClick={() => {
-                              setEditingTaskId(task.id);
-                              setEditTaskTitle(task.title);
-                              setEditTaskDueDate(task.dueDate || '');
-                              setEditTaskDueTime(task.dueTime || '');
-                              setEditTaskCategories(task.categories || []);
-                              setEditTaskProjectId(task.projectId ?? null);
-                              setShowTaskEditModal(true);
-                            }}
-                          >
-                            Edit
-                          </button>
-                          <button
-                            className="px-4 py-1 rounded-md font-semibold text-sm transition shadow-sm focus:outline-none focus:ring-2 focus:ring-success focus:ring-offset-2 bg-success text-white hover:bg-success/90 active:bg-success/80"
-                            onClick={() => toggleTask(task.id)}
-                          >
-                            Complete
-                          </button>
-                        </div>
+                        <button
+                          className="px-4 py-1 rounded-md font-semibold text-sm transition shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 bg-primary text-white hover:bg-primary-dark active:bg-primary-dark"
+                          onClick={() => {
+                            setEditingTaskId(task.id);
+                            setEditTaskTitle(task.title);
+                            setEditTaskDueDate(task.dueDate || '');
+                            setEditTaskDueTime(task.dueTime || '');
+                            setEditTaskCategories(task.categories || []);
+                            setEditTaskProjectId(task.projectId ?? null);
+                            setShowTaskEditModal(true);
+                          }}
+                        >
+                          Edit
+                        </button>
                       </div>
                     ))}
+                  </div>
                   </div>
                 </div>
               )}
 
               {/* Projects Section */}
-              <div className="bg-white border border-border rounded-lg shadow-sm p-4 mb-6">
-                <h2 className="text-lg font-bold text-primary mb-2 border-b border-border pb-1">Projects</h2>
+              <div className="section-card">
+                <div className="section-card-header">
+                  <h2 className="section-title">Projects</h2>
+                </div>
+                <div className="section-card-body">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {projects.map(project => {
                     const projectTasks = tasks.filter(t =>
                       t.projectId === project.id &&
-                      t.status !== 'completed'
+                      t.status !== 'completed' &&
+                      !t.parentId
                     );
 
                     if (projectTasks.length === 0) return null;
@@ -627,8 +679,8 @@ function App() {
                             <div key={task.id} className="flex items-center gap-2 p-2 rounded-md hover:bg-primary/5 transition">
                               <input
                                 type="checkbox"
-                                checked={false}
-                                onChange={() => toggleTask(task.id)}
+                                checked={task.status === 'completed'}
+                                onChange={() => toggleTaskWithUndo(task.id)}
                                 className="w-4 h-4 rounded border-border text-primary focus:ring-primary"
                               />
                               <div
@@ -662,8 +714,8 @@ function App() {
                     );
                   })}
                 </div>
+                </div>
               </div>
-            </div>
             </div>
           )}
           
@@ -675,7 +727,7 @@ function App() {
                 {tasks.filter(task => task.status !== 'completed').length > 0 ? (
                   <TaskList 
                     tasks={tasks.filter(task => task.status !== 'completed')} 
-                    toggleTask={toggleTask} 
+                    toggleTask={toggleTaskWithUndo} 
                     deleteTask={deleteTask} 
                     updateTask={updateTask}
                     updateTaskDescription={updateTaskDescription}
@@ -683,6 +735,8 @@ function App() {
                     moveTaskToParent={moveTaskToParent}
                     categories={categories}
                     projects={projects}
+                    enableBulkActions={true}
+                    onBulkAction={handleBulkAction}
                   />
                 ) : (
                   <p className="empty-message">No tasks yet. Create one above.</p>
@@ -694,7 +748,7 @@ function App() {
                   <h2 className="section-title">Completed</h2>
                   <TaskList 
                     tasks={completedTasks} 
-                    toggleTask={toggleTask} 
+                    toggleTask={toggleTaskWithUndo} 
                     deleteTask={deleteTask} 
                     updateTask={updateTask}
                     updateTaskDescription={updateTaskDescription}
@@ -754,7 +808,7 @@ function App() {
                             <ul className="flex flex-col gap-xs">
                               {projectTasks.slice(0, 3).map(task => (
                                 <li key={task.id} className="flex items-center gap-2">
-                                  <input type="checkbox" checked={task.status === 'completed'} onChange={() => toggleTask(task.id)} />
+                                  <input type="checkbox" checked={task.status === 'completed'} onChange={() => toggleTaskWithUndo(task.id)} />
                                   <span className={task.status === 'completed' ? 'line-through text-light' : ''}>{task.title}</span>
                                 </li>
                               ))}
@@ -813,7 +867,6 @@ function App() {
                         key={category.id}
                         className="compact-category-card"
                         onClick={() => {
-                          console.log("Setting selected category ID to:", category.id);
                           setSelectedCategoryId(category.id);
                         }}
                       >
@@ -899,7 +952,6 @@ function App() {
                   <button
                     className="btn btn-sm btn-outline back-button"
                     onClick={() => {
-                      console.log("Setting selected category ID back to null");
                       setSelectedCategoryId(null);
                     }}
                   >
@@ -973,7 +1025,7 @@ function App() {
                   {tasks.filter(t => t.categories?.includes(selectedCategoryId) && t.status !== 'completed').length > 0 ? (
                     <TaskList
                       tasks={tasks.filter(t => t.categories?.includes(selectedCategoryId) && t.status !== 'completed')}
-                      toggleTask={toggleTask}
+                      toggleTask={toggleTaskWithUndo}
                       deleteTask={deleteTask}
                       updateTask={updateTask}
                       updateTaskDescription={updateTaskDescription}
@@ -1069,7 +1121,7 @@ function App() {
 
                     <TaskList
                       tasks={tasks.filter(t => t.categories?.includes(selectedCategoryId) && t.status === 'completed')}
-                      toggleTask={toggleTask}
+                      toggleTask={toggleTaskWithUndo}
                       deleteTask={deleteTask}
                       updateTask={updateTask}
                       updateTaskDescription={updateTaskDescription}
@@ -1326,6 +1378,15 @@ function App() {
         isOpen={showSettings}
         onClose={() => setShowSettings(false)}
       />
+      
+      {/* Undo Notification */}
+      {undoInfo && (
+        <UndoNotification
+          message={`Task "${undoInfo.taskTitle}" marked as completed`}
+          onUndo={handleUndo}
+          onDismiss={() => setUndoInfo(null)}
+        />
+      )}
     </div>
   );
 }

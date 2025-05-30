@@ -36,7 +36,6 @@ export function useTasks() {
 
   const deleteTask = (id: string) => {
     // Enhanced debugging
-    console.log(`Deleting task ${id} and its subtasks`);
     
     // Use correct filter logic for the operation
     setTasks(prev => prev.filter(t => {
@@ -156,7 +155,6 @@ export function useTasks() {
     const parentTask = tasks.find(t => t.id === parentId);
     
     if (!parentTask) {
-      console.error("Parent task not found");
       return '';
     }
     
@@ -181,20 +179,15 @@ export function useTasks() {
       try {
         // Directly save to localStorage to ensure immediate persistence
         localStorage.setItem('tasks', JSON.stringify(updated));
-        console.log(`Added subtask "${title}" with ID ${newId} to parent ${parentId} (total tasks: ${updated.length})`);
         // Verify the subtask was added to localStorage
         const stored = localStorage.getItem('tasks');
         if (stored) {
           const parsed = JSON.parse(stored);
           const subtask = parsed.find((t: Task) => t.id === newId);
           if (subtask) {
-            console.log(`Verified subtask ${newId} is in localStorage`);
-          } else {
-            console.error(`Subtask ${newId} was not found in localStorage after saving`);
           }
         }
       } catch (e) {
-        console.error('Error saving tasks to localStorage:', e);
       }
       return updated;
     });

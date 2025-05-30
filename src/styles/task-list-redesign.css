@@ -10,9 +10,7 @@
 }
 
 .task-list-item {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-3);
+  display: block;
   padding: var(--space-4);
   background-color: var(--surface);
   border: 1px solid var(--border);
@@ -85,6 +83,55 @@
 .task-content {
   flex: 1;
   min-width: 0;
+}
+
+/* Ensure subtasks display vertically */
+.subtask-list {
+  display: block !important;
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+  margin-top: 8px;
+  width: 100%;
+  clear: both;
+}
+
+.subtask-list li {
+  display: block !important;
+  margin: 0;
+  width: 100%;
+}
+
+/* Override any flex display on task items */
+.task-list-item {
+  display: block !important;
+  flex-direction: column !important;
+}
+
+.task-list-item > div {
+  display: block !important;
+  width: 100%;
+}
+
+/* Task header layout fix */
+.task-header {
+  display: block !important;
+}
+
+.task-title-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Ensure task actions are below the title */
+.task-header .task-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 8px;
 }
 
 .task-title {

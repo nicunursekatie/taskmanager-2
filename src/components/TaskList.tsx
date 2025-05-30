@@ -17,8 +17,9 @@ export default function TaskList({
   categories,
   projects,
   moveTaskToParent,
+  enableBulkActions = false,
+  onBulkAction,
 }: TaskListProps) {
-  console.log('TaskList rendered with', tasks.length, 'tasks');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
   const [editDueDate, setEditDueDate] = useState<string>('');
@@ -26,6 +27,10 @@ export default function TaskList({
   const [editCategories, setEditCategories] = useState<string[]>([]);
   const [editProjectId, setEditProjectId] = useState<string | null>(null);
   const [editPriority, setEditPriority] = useState<PriorityLevel>(null);
+  
+  // Bulk selection state
+  const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(new Set());
+  const [showBulkActions, setShowBulkActions] = useState(false);
 
   
   // States for subtask creation
@@ -52,17 +57,6 @@ export default function TaskList({
   // Only render top-level tasks (no parentId)
   const topLevelTasks = tasks.filter(t => !t.parentId);
   
-  // Debug count of all tasks vs top-level vs subtasks
-  console.log(`TaskList received ${tasks.length} total tasks (${topLevelTasks.length} top-level, ${tasks.length - topLevelTasks.length} subtasks)`);
-  
-  // If there are subtasks, log the first few for debugging
-  if (tasks.length - topLevelTasks.length > 0) {
-    const subtasks = tasks.filter(t => t.parentId);
-    console.log('Sample subtasks:');
-    subtasks.slice(0, 3).forEach(st => 
-      console.log(`  Subtask "${st.title}" (ID: ${st.id}) for parent: ${st.parentId}`)
-    );
-  }
 
   // Toggle collapsed state of a task
   const toggleCollapsed = (taskId: string) => {
@@ -76,7 +70,6 @@ export default function TaskList({
   useEffect(() => {
     const handleExpandTask = (e: any) => {
       const { taskId } = e.detail;
-      console.log(`Received expand event for task: ${taskId}`);
       
       // Ensure the task is expanded
       setCollapsedTasks(prev => ({
@@ -90,18 +83,15 @@ export default function TaskList({
           // Delayed scroll to ensure elements are updated
           const taskElement = document.getElementById(`task-${taskId}`);
           if (taskElement) {
-            console.log('Scrolling to task:', taskId);
             taskElement.scrollIntoView({ behavior: 'smooth' });
             taskElement.classList.add('highlight-task');
             setTimeout(() => {
               taskElement.classList.remove('highlight-task');
             }, 2000);
           } else {
-            console.log('Task element not found after delay:', taskId);
           }
         }, 300); // Delay scroll to ensure DOM is updated
       } catch (e) {
-        console.error('Error scrolling to task:', e);
       }
     };
     
@@ -119,21 +109,8 @@ export default function TaskList({
 
   // Get all subtasks for a given parent - with localStorage fallback
   const getSubtasks = (parentId: string): Task[] => {
-    // Enhanced debug information to track the issue
-    console.log(`Searching for subtasks with parentId=${parentId}`);
-    console.log(`Current tasks array has ${tasks.length} total tasks`);
-    
-    // Show some example tasks from the array for debugging
-    if (tasks.length > 0) {
-      console.log("Sample tasks with their parentId values:");
-      tasks.slice(0, 5).forEach(t => {
-        console.log(`Task ID: ${t.id}, Title: ${t.title}, ParentID: ${t.parentId}`);
-      });
-    }
-    
     // Check for any tasks with non-null parentId
     const anySubtasks = tasks.filter(t => t.parentId !== null && t.parentId !== undefined);
-    console.log(`Found ${anySubtasks.length} tasks with non-null parentId in the system`);
     
     // Normal filtering from props
     const propsResult = tasks.filter(t => t.parentId === parentId);
@@ -148,18 +125,14 @@ export default function TaskList({
           const storageResult = parsedTasks.filter((t: Task) => t.parentId === parentId);
           
           if (storageResult.length > 0) {
-            console.log(`🔄 Found ${storageResult.length} subtasks for parent ${parentId} in localStorage that weren't in props!`);
             // Return subtasks from localStorage - will be synced on next render
             return storageResult;
           }
         }
       } catch (e) {
-        console.error('Error checking localStorage for subtasks:', e);
       }
     }
     
-    console.log(`getSubtasks(${parentId}) found ${propsResult.length} subtasks:`, 
-      propsResult.map(t => `${t.id}: ${t.title}`));
     return propsResult;
   };
 
@@ -180,6 +153,41 @@ export default function TaskList({
   // State for converting a task to a subtask
   const [convertTaskId, setConvertTaskId] = useState<string | null>(null);
   const [selectedParentId, setSelectedParentId] = useState<string | null>(null);
+  
+  // Toggle task selection
+  const toggleTaskSelection = (taskId: string) => {
+    setSelectedTaskIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(taskId)) {
+        newSet.delete(taskId);
+      } else {
+        newSet.add(taskId);
+      }
+      setShowBulkActions(newSet.size > 0);
+      return newSet;
+    });
+  };
+  
+  // Select all tasks
+  const selectAllTasks = () => {
+    const allTaskIds = new Set(topLevelTasks.map(t => t.id));
+    setSelectedTaskIds(allTaskIds);
+    setShowBulkActions(true);
+  };
+  
+  // Clear selection
+  const clearSelection = () => {
+    setSelectedTaskIds(new Set());
+    setShowBulkActions(false);
+  };
+  
+  // Handle bulk actions
+  const handleBulkAction = (action: string, data?: any) => {
+    if (onBulkAction) {
+      onBulkAction(action, Array.from(selectedTaskIds), data);
+      clearSelection();
+    }
+  };
   
   // Render a task and its subtasks recursively
   const renderTask = (task: Task, depth = 0) => {
@@ -206,7 +214,7 @@ export default function TaskList({
               : "task-list-item subtask",
           ].join(' ')
         }
-        style={isSubtask ? { marginLeft: depth * 24, background: '#f7faff', padding: '6px 12px', borderRadius: 4, fontSize: '0.95em', borderLeft: '2px solid #e0e0e0', marginTop: 4, marginBottom: 4 } : {}}
+        style={isSubtask ? { display: 'block', marginLeft: depth * 24, background: '#f7faff', padding: '6px 12px', borderRadius: 4, fontSize: '0.95em', borderLeft: '2px solid #e0e0e0', marginTop: 4, marginBottom: 4 } : { display: 'block' }}
       >
         <div
           id={`task-${task.id}`}
@@ -411,6 +419,19 @@ export default function TaskList({
             <>
               <div className="task-header">
                 <div className="task-title-container">
+                  {enableBulkActions && !isSubtask && (
+                    <input
+                      type="checkbox"
+                      checked={selectedTaskIds.has(task.id)}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        toggleTaskSelection(task.id);
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                      className="bulk-select-checkbox"
+                      style={{ marginRight: '8px' }}
+                    />
+                  )}
                   <input
                     type="checkbox"
                     checked={task.status === 'completed'}
@@ -418,6 +439,7 @@ export default function TaskList({
                       e.stopPropagation();
                       toggleTask(task.id);
                     }}
+                    onClick={(e) => e.stopPropagation()}
                   />
                   {isSubtask && (
                     <span
@@ -652,8 +674,64 @@ export default function TaskList({
   };
 
   return (
-    <div className="bg-white border border-border rounded-lg p-0">
-      <h2 className="px-6 pt-6 pb-2 text-xl font-bold text-primary">All Tasks</h2>
+    <div>
+      {enableBulkActions && showBulkActions && (
+        <div className="bulk-actions-toolbar">
+          <div className="bulk-actions-info">
+            <span>{selectedTaskIds.size} task{selectedTaskIds.size > 1 ? 's' : ''} selected</span>
+            <button onClick={selectAllTasks} className="btn btn-sm btn-link">
+              Select All
+            </button>
+            <button onClick={clearSelection} className="btn btn-sm btn-link">
+              Clear Selection
+            </button>
+          </div>
+          <div className="bulk-actions-buttons">
+            <button 
+              onClick={() => handleBulkAction('delete')}
+              className="btn btn-sm btn-danger"
+            >
+              Delete Selected
+            </button>
+            <select 
+              onChange={(e) => {
+                if (e.target.value) {
+                  handleBulkAction('assignProject', { projectId: e.target.value });
+                }
+              }}
+              className="form-control form-control-sm"
+              defaultValue=""
+            >
+              <option value="">Assign to Project...</option>
+              {projects.map(project => (
+                <option key={project.id} value={project.id}>{project.name}</option>
+              ))}
+            </select>
+            <select 
+              onChange={(e) => {
+                if (e.target.value) {
+                  handleBulkAction('convertToSubtasks', { parentId: e.target.value });
+                }
+              }}
+              className="form-control form-control-sm"
+              defaultValue=""
+            >
+              <option value="">Convert to Subtasks of...</option>
+              {topLevelTasks
+                .filter(t => !selectedTaskIds.has(t.id))
+                .map(t => (
+                  <option key={t.id} value={t.id}>{t.title}</option>
+                ))}
+            </select>
+            <button 
+              onClick={() => handleBulkAction('markComplete')}
+              className="btn btn-sm btn-success"
+            >
+              Mark Complete
+            </button>
+          </div>
+        </div>
+      )}
       {topLevelTasks.length === 0 ? (
         <div className="text-center text-light py-lg">No tasks yet. Add your first task above.</div>
       ) : (

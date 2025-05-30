@@ -21,14 +21,30 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
   const handleSave = async () => {
     setSaveStatus('saving');
     try {
+      // Ensure the key is trimmed and not empty
+      const trimmedKey = apiKey.trim();
+      if (!trimmedKey) {
+        throw new Error('API key cannot be empty');
+      }
+      
       // Save API key to localStorage
-      localStorage.setItem('GROQ_API_KEY', apiKey);
+      localStorage.setItem('GROQ_API_KEY', trimmedKey);
+      
+      // Verify it was saved correctly
+      const savedKey = localStorage.getItem('GROQ_API_KEY');
+      if (savedKey !== trimmedKey) {
+        throw new Error('Failed to save API key correctly');
+      }
+      
+      console.log('API key saved successfully. Length:', savedKey.length);
       setSaveStatus('success');
       
-      // Reload the page to apply the new API key
+      // Optional reload - user can close modal and it will work immediately
       setTimeout(() => {
-        window.location.reload();
-      }, 1500);
+        if (window.confirm('API key saved! Reload page to ensure all components use the new key?')) {
+          window.location.reload();
+        }
+      }, 1000);
     } catch (error) {
       console.error('Error saving API key:', error);
       setSaveStatus('error');
