@@ -117,50 +117,15 @@ export default function TaskList({
     return tasks.some(t => t.parentId === taskId);
   };
 
-  // Get all subtasks for a given parent - with localStorage fallback
+  // Get all subtasks for a given parent
   const getSubtasks = (parentId: string): Task[] => {
-    // Enhanced debug information to track the issue
-    console.log(`Searching for subtasks with parentId=${parentId}`);
-    console.log(`Current tasks array has ${tasks.length} total tasks`);
-    
-    // Show some example tasks from the array for debugging
-    if (tasks.length > 0) {
-      console.log("Sample tasks with their parentId values:");
-      tasks.slice(0, 5).forEach(t => {
-        console.log(`Task ID: ${t.id}, Title: ${t.title}, ParentID: ${t.parentId}`);
-      });
-    }
-    
-    // Check for any tasks with non-null parentId
-    const anySubtasks = tasks.filter(t => t.parentId !== null && t.parentId !== undefined);
-    console.log(`Found ${anySubtasks.length} tasks with non-null parentId in the system`);
-    
-    // Normal filtering from props
-    const propsResult = tasks.filter(t => t.parentId === parentId);
-    
-    // Only check localStorage if no subtasks found in props
-    if (propsResult.length === 0) {
-      // Try getting subtasks directly from localStorage
-      try {
-        const stored = localStorage.getItem('tasks');
-        if (stored) {
-          const parsedTasks = JSON.parse(stored);
-          const storageResult = parsedTasks.filter((t: Task) => t.parentId === parentId);
-          
-          if (storageResult.length > 0) {
-            console.log(`🔄 Found ${storageResult.length} subtasks for parent ${parentId} in localStorage that weren't in props!`);
-            // Return subtasks from localStorage - will be synced on next render
-            return storageResult;
-          }
-        }
-      } catch (e) {
-        console.error('Error checking localStorage for subtasks:', e);
-      }
-    }
-    
-    console.log(`getSubtasks(${parentId}) found ${propsResult.length} subtasks:`, 
-      propsResult.map(t => `${t.id}: ${t.title}`));
-    return propsResult;
+    const result = tasks.filter(t => t.parentId === parentId);
+    console.log(`getSubtasks(${parentId}) found ${result.length} subtasks from props.`);
+    // Optional: Log the found subtasks if needed for debugging, e.g.:
+    // if (result.length > 0) {
+    //   console.log(result.map(t => ({id: t.id, title: t.title})));
+    // }
+    return result;
   };
 
   // Handle subtask creation
