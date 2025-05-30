@@ -1,5 +1,4 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 
 const ProjectCard = ({ project }) => {
   return (
@@ -19,9 +18,9 @@ const ProjectCard = ({ project }) => {
             <span className="text-sm text-light">{project.dueDate}</span>
           </div>
           
-          <Link to={`/projects/${project.id}`} className="btn btn-primary">
+          <button className="btn btn-primary">
             View Details
-          </Link>
+          </button>
         </div>
       </div>
     </div>
