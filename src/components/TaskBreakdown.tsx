@@ -26,81 +26,31 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
   const [hasRunBreakdown, setHasRunBreakdown] = useState(false);
   const [showBreakdownSection, setShowBreakdownSection] = useState(false);
   
-  // Use a forced refresh counter to ensure we re-render when needed
-  const [refreshCounter, setRefreshCounter] = useState(0);
-  
-  // Force a refresh of subtasks when explicitly triggered by a child component
-  const forceRefresh = () => {
-    console.log('Force refresh triggered in TaskBreakdown');
-    
-    // Check localStorage first to see what's actually been persisted
-    try {
-      const stored = localStorage.getItem('tasks');
-      if (stored) {
-        const parsedTasks = JSON.parse(stored);
-        const storedSubtasks = parsedTasks.filter((t: Task) => t.parentId === task.id);
-        console.log(`TaskBreakdown localStorage check: parent ${task.id} has ${storedSubtasks.length} subtasks`);
-        storedSubtasks.forEach((st: Task, idx: number) => {
-          console.log(`  ${idx+1}. "${st.title}" (ID: ${st.id})`);
-        });
-      }
-    } catch (e) {
-      console.error('Error checking localStorage in TaskBreakdown:', e);
-    }
-    
-    // Update the refresh counter to trigger a re-render
-    setRefreshCounter(prev => prev + 1);
-    
-    // Also log passed subtasks to verify
-    console.log('Current subtasks array in props:', subtasks.length);
-  };
-  
   // Reset state when subtasks change
   useEffect(() => {
-    console.log('Subtasks updated, count:', subtasks.length, 'refresh counter:', refreshCounter);
-    
-    // Print out any subtasks for debugging
-    if (subtasks.length > 0) {
-      console.log('Current subtasks:');
-      subtasks.forEach((st, i) => {
-        console.log(`  ${i+1}. ID: ${st.id}, Title: "${st.title}", ParentID: ${st.parentId}`);
-      });
-    }
+    // The main render log already states how many subtasks are passed.
+    // Detailed logging of subtask properties here is likely excessive now.
     
     // If we now have subtasks but the AI breakdown is still showing, hide it
     // Only hide when the loading process is complete and user is done with the AI component
     // Don't auto-hide immediately as this is causing subtasks to disappear from UI
-    if (subtasks.length > 0 && showAIBreakdown) {
-      console.log('Subtasks exist, but keeping AI breakdown visible until user is done');
-      // The AITaskBreakdown component will handle hiding itself when the user clicks "Done"
+    // This useEffect primarily reacts to changes in subtasks or the task itself.
+    // AITaskBreakdown now manages its own visibility.
+    // If subtasks are added (either manually or by AI), this component will re-render
+    // and the UI should update naturally.
+
+    if (subtasks.length === 0 && hasRunBreakdown) {
+      // This case: AI ran, returned no subtasks, or subtasks were deleted.
+      // We might want to allow the user to re-run AI or add manually.
+      // The UI logic for showing the "Re-run Breakdown" button or "Break Down with AI"
+      // should handle this based on `hasRunBreakdown` and `subtasks.length`.
+      console.log('useEffect: No subtasks, but AI breakdown has been run. UI should offer options to re-run or add manually.');
     }
-    
-    // If no subtasks showing, check localStorage directly for any that might not have made it to the UI yet
-    if (subtasks.length === 0 && task.id) {
-      try {
-        const stored = localStorage.getItem('tasks');
-        if (stored) {
-          const parsedTasks = JSON.parse(stored);
-          const storedSubtasks = parsedTasks.filter((t: Task) => t.parentId === task.id);
-          console.log(`[DIRECT CHECK] Found ${storedSubtasks.length} subtasks in localStorage for parent=${task.id}`);
-          
-          if (storedSubtasks.length > 0) {
-            console.log('Subtasks found in localStorage but not in props - they should appear when the parent reloads');
-            // If we have subtasks in localStorage but not in props, try to force a refresh
-            if (forceRefresh) {
-              // Trigger a cascade of delayed refreshes to ensure props get updated
-              forceRefresh();
-              setTimeout(() => forceRefresh(), 200);
-              setTimeout(() => forceRefresh(), 500);
-              console.log('Triggered cascade of refreshes to sync localStorage subtasks');
-            }
-          }
-        }
-      } catch (e) {
-        console.error('Error checking localStorage directly:', e);
-      }
-    }
-  }, [subtasks, refreshCounter, task.id, forceRefresh]);
+    // No specific action needed here if subtasks.length > 0 and showAIBreakdown is true,
+    // as AITaskBreakdown will call setShowAIBreakdown(false) which will update state and
+    // cause a re-render, hiding the AI component.
+
+  }, [subtasks, task.id, hasRunBreakdown]);
   
   // Calculate progress percentage
   const totalSubtasks = subtasks.length;
@@ -143,6 +93,7 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
             try {
               setShowAIBreakdown(true);
               setIsExpanded(true);
+              setShowBreakdownSection(true); // Ensure the section becomes visible
             } catch (err) {
               console.error('Error showing AI breakdown:', err);
               alert('There was an error opening the AI breakdown. Please try again.');
@@ -154,7 +105,10 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
         <span className="text-muted" style={{ fontSize: 'var(--text-xs)' }}>or</span>
         <button 
           className="btn btn-xs btn-ghost"
-          onClick={() => setIsExpanded(true)}
+          onClick={() => {
+            setIsExpanded(true);
+            setShowBreakdownSection(true); // Ensure the section becomes visible
+          }}
         >
           Add manually
         </button>
@@ -220,22 +174,17 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
           {showAIBreakdown && !hasRunBreakdown ? (
             <AITaskBreakdown 
               task={task} 
-              addSubtask={(parentId, title) => {
-                const subtaskId = addSubtask(parentId, title);
-                forceRefresh();
-                // Do NOT set hasRunBreakdown or hide the section here; let the AI component handle closing
-                return subtaskId;
-              }}
+              addSubtask={addSubtask}
               updateTaskDescription={updateTaskDescription}
               existingSubtasks={subtasks}
               setShowAIBreakdown={(show) => {
                 setShowAIBreakdown(show);
                 if (!show) {
-                  setHasRunBreakdown(true);
-                  setShowBreakdownSection(false);
+                  // When AITaskBreakdown hides itself, we can mark that AI has run.
+                  setHasRunBreakdown(true); 
+                  setShowBreakdownSection(false); // Hide the entire breakdown section once AI is done.
                 }
               }}
-              forceRefresh={forceRefresh}
             />
           ) : !hasRunBreakdown && (
             <button 
@@ -247,7 +196,7 @@ const TaskBreakdown: React.FC<TaskBreakdownProps> = ({
           )}
         </div>
       )}
-      {isExpanded && hasRunBreakdown && (
+      {hasRunBreakdown && ( // Show if a breakdown has been run, regardless of isExpanded
         <button
           className="px-4 py-2 rounded-lg font-semibold bg-yellow-100 text-yellow-700 border border-yellow-300 hover:bg-yellow-200 transition mb-2"
           onClick={() => {

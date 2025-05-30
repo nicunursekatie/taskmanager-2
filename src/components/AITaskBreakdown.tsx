@@ -10,7 +10,6 @@ interface AITaskBreakdownProps {
   updateTaskDescription?: (id: string, description: string) => void;
   existingSubtasks: Task[];
   setShowAIBreakdown?: (show: boolean) => void;
-  forceRefresh?: () => void;
 }
 
 const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
@@ -19,7 +18,6 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
   updateTaskDescription,
   existingSubtasks,
   setShowAIBreakdown,
-  forceRefresh,
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [generatedSubtasks, setGeneratedSubtasks] = useState<string[]>([]);
@@ -85,7 +83,6 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
 
     subtasksToAdd.forEach(subtaskTitle => addSubtask(task.id, subtaskTitle));
     setSuccess(true);
-    forceRefresh?.();
     // Brief success, then close
     setTimeout(() => {
       setShowAIBreakdown?.(false);
