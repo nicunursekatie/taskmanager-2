@@ -1,5 +1,5 @@
 // src/components/TaskList.tsx
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Task, Subtask, TaskListProps, Category, Project, PriorityLevel } from '../types';
 import TaskBreakdown from './TaskBreakdown';
 import TimeEstimator from './TimeEstimator';
@@ -37,9 +37,7 @@ export default function TaskList({
   const [addingSubtaskFor, setAddingSubtaskFor] = useState<string | null>(null);
   const [subtaskTitles, setSubtaskTitles] = useState<{ [parentId: string]: string }>({});
   
-  // State for expanded/collapsed tasks
-  // Initialize with all tasks that have subtasks already expanded
-  const [collapsedTasks, setCollapsedTasks] = useState<{[key: string]: boolean}>(() => {
+  const initialCollapsedState = useMemo(() => {
     const initialState: {[key: string]: boolean} = {};
     
     // For each task, check if it has subtasks and initialize it as expanded
@@ -52,19 +50,22 @@ export default function TaskList({
     });
     
     return initialState;
-  });
+  }, [tasks]);
+  
+  // State for expanded/collapsed tasks
+  const [collapsedTasks, setCollapsedTasks] = useState<{[key: string]: boolean}>(initialCollapsedState);
 
-  // Only render top-level tasks (no parentId)
-  const topLevelTasks = tasks.filter(t => !t.parentId);
+  // Only render top-level tasks (no parentId) - optimized with useMemo
+  const topLevelTasks = useMemo(() => tasks.filter(t => !t.parentId), [tasks]);
   
 
-  // Toggle collapsed state of a task
-  const toggleCollapsed = (taskId: string) => {
+  // Toggle collapsed state of a task - optimized with useCallback
+  const toggleCollapsed = useCallback((taskId: string) => {
     setCollapsedTasks(prev => ({
       ...prev,
       [taskId]: !prev[taskId]
     }));
-  };
+  }, []);
   
   // Listen for custom events to expand a task's subtasks
   useEffect(() => {
@@ -102,39 +103,19 @@ export default function TaskList({
     };
   }, []);
 
-  // Check if a task has subtasks
-  const hasSubtasks = (taskId: string) => {
-    return tasks.some(t => t.parentId === taskId);
-  };
+  // Check if a task has subtasks - optimized with useMemo
+  const hasSubtasks = useMemo(() => {
+    return (taskId: string) => {
+      return tasks.some(t => t.parentId === taskId);
+    };
+  }, [tasks]);
 
-  // Get all subtasks for a given parent - with localStorage fallback
-  const getSubtasks = (parentId: string): Task[] => {
-    // Check for any tasks with non-null parentId
-    const anySubtasks = tasks.filter(t => t.parentId !== null && t.parentId !== undefined);
-    
-    // Normal filtering from props
-    const propsResult = tasks.filter(t => t.parentId === parentId);
-    
-    // Only check localStorage if no subtasks found in props
-    if (propsResult.length === 0) {
-      // Try getting subtasks directly from localStorage
-      try {
-        const stored = localStorage.getItem('tasks');
-        if (stored) {
-          const parsedTasks = JSON.parse(stored);
-          const storageResult = parsedTasks.filter((t: Task) => t.parentId === parentId);
-          
-          if (storageResult.length > 0) {
-            // Return subtasks from localStorage - will be synced on next render
-            return storageResult;
-          }
-        }
-      } catch (e) {
-      }
-    }
-    
-    return propsResult;
-  };
+  // Get all subtasks for a given parent - optimized with useMemo
+  const getSubtasks = useMemo(() => {
+    return (parentId: string): Task[] => {
+      return tasks.filter(t => t.parentId === parentId);
+    };
+  }, [tasks]);
 
   // Handle subtask creation
   const handleAddSubtask = (parentId: string) => {
@@ -154,8 +135,8 @@ export default function TaskList({
   const [convertTaskId, setConvertTaskId] = useState<string | null>(null);
   const [selectedParentId, setSelectedParentId] = useState<string | null>(null);
   
-  // Toggle task selection
-  const toggleTaskSelection = (taskId: string) => {
+  // Toggle task selection - optimized with useCallback
+  const toggleTaskSelection = useCallback((taskId: string) => {
     setSelectedTaskIds(prev => {
       const newSet = new Set(prev);
       if (newSet.has(taskId)) {
@@ -166,28 +147,28 @@ export default function TaskList({
       setShowBulkActions(newSet.size > 0);
       return newSet;
     });
-  };
+  }, []);
   
-  // Select all tasks
-  const selectAllTasks = () => {
+  // Select all tasks - optimized with useCallback
+  const selectAllTasks = useCallback(() => {
     const allTaskIds = new Set(topLevelTasks.map(t => t.id));
     setSelectedTaskIds(allTaskIds);
     setShowBulkActions(true);
-  };
+  }, [topLevelTasks]);
   
-  // Clear selection
-  const clearSelection = () => {
+  // Clear selection - optimized with useCallback
+  const clearSelection = useCallback(() => {
     setSelectedTaskIds(new Set());
     setShowBulkActions(false);
-  };
+  }, []);
   
-  // Handle bulk actions
-  const handleBulkAction = (action: string, data?: any) => {
+  // Handle bulk actions - optimized with useCallback
+  const handleBulkAction = useCallback((action: string, data?: any) => {
     if (onBulkAction) {
       onBulkAction(action, Array.from(selectedTaskIds), data);
       clearSelection();
     }
-  };
+  }, [onBulkAction, selectedTaskIds, clearSelection]);
   
   // Render a task and its subtasks recursively
   const renderTask = (task: Task, depth = 0) => {
@@ -662,7 +643,7 @@ export default function TaskList({
         {/* Render subtasks as a nested list */}
         {hasChildren && !isCollapsed && (
           <ul className="subtask-list" style={{ listStyle: 'none', paddingLeft: 0 }}>
-            {taskSubtasks.map(subtask => (
+            {taskSubtasks.map((subtask: Task) => (
               <li key={subtask.id}>
                 {renderTask(subtask, depth + 1)}
               </li>

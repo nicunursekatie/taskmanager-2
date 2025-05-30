@@ -1,5 +1,5 @@
 // src/App.tsx
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useTasks } from './hooks/useTasks';
 import { useProjects } from './hooks/useProjects';
 import './styles/design-system.css';
@@ -323,49 +323,49 @@ function App() {
     return normalizedDate >= normalizedStartDate && normalizedDate < normalizedEndDate;
   };
 
-  const overdueTasks = tasks.filter(
+  const overdueTasks = useMemo(() => tasks.filter(
     task => task.dueDate && isDateBefore(task.dueDate, todayStart) && task.status !== 'completed' && !task.parentId
-  );
+  ), [tasks, todayStart]);
 
-  const todayTasks = tasks.filter(
+  const todayTasks = useMemo(() => tasks.filter(
     task => task.dueDate && isDateBetween(task.dueDate, todayStart, tomorrowStart) && task.status !== 'completed' && !task.parentId
-  );
+  ), [tasks, todayStart, tomorrowStart]);
 
   // NEW APPROACH: Handle upcoming tasks - directly check dates for May 11 through May 17
-  const upcomingTasks = tasks.filter(task => {
-  // Skip tasks with no due date, completed tasks, or subtasks
-  if (!task.dueDate || task.status === 'completed' || task.parentId) return false;
+  const upcomingTasks = useMemo(() => tasks.filter(task => {
+    // Skip tasks with no due date, completed tasks, or subtasks
+    if (!task.dueDate || task.status === 'completed' || task.parentId) return false;
 
-  // Skip tasks that are due today or overdue
-  if (isDateBefore(task.dueDate, todayStart) || isDateBetween(task.dueDate, todayStart, tomorrowStart)) {
-    return false;
-  }
+    // Skip tasks that are due today or overdue
+    if (isDateBefore(task.dueDate, todayStart) || isDateBetween(task.dueDate, todayStart, tomorrowStart)) {
+      return false;
+    }
 
-  // Get the current date to calculate the upcoming week
-  const today = new Date();
-  const nextWeek = new Date(today);
-  nextWeek.setDate(today.getDate() + 7);
-  
-  // Convert to YYYY-MM-DD format for comparison
-  const todayStr = today.toISOString().split('T')[0];
-  const nextWeekStr = nextWeek.toISOString().split('T')[0];
-  
-  // Parse the date and extract just the date part (YYYY-MM-DD)
-  const dateStr = task.dueDate.split('T')[0];
+    // Get the current date to calculate the upcoming week
+    const today = new Date();
+    const nextWeek = new Date(today);
+    nextWeek.setDate(today.getDate() + 7);
+    
+    // Convert to YYYY-MM-DD format for comparison
+    const todayStr = today.toISOString().split('T')[0];
+    const nextWeekStr = nextWeek.toISOString().split('T')[0];
+    
+    // Parse the date and extract just the date part (YYYY-MM-DD)
+    const dateStr = task.dueDate.split('T')[0];
 
-  // Check if the task falls within the next 7 days
-  return dateStr >= todayStr && dateStr <= nextWeekStr;
-});
+    // Check if the task falls within the next 7 days
+    return dateStr >= todayStr && dateStr <= nextWeekStr;
+  }), [tasks, todayStart, tomorrowStart]);
 
-  const completedTasks = tasks.filter(
+  const completedTasks = useMemo(() => tasks.filter(
     task => task.status === 'completed'
-  );
+  ), [tasks]);
   
   // Parent task options for the capture bar
-  const parentOptions = tasks.filter(task => !task.parentId).map(task => ({
+  const parentOptions = useMemo(() => tasks.filter(task => !task.parentId).map(task => ({
     id: task.id,
     title: task.title,
-  }));
+  })), [tasks]);
 
   return (
     <div className="min-h-screen bg-background font-sans">
