@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { breakdownTask } from '../utils/groqService';
 import { Task } from '../types';
 import '../styles/ai-task-breakdown.css';
-import { logEnvironment } from '../utils/env';
+import { ENV, logEnvironment } from '../utils/env';
 
 interface AITaskBreakdownProps {
   task: Task;
@@ -31,6 +31,8 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
 
   // 1. AI subtask generation
   const handleGenerateSubtasks = async () => {
+    console.log(ENV);
+    logEnvironment();
     setIsLoading(true);
     setError(null);
     setNeedsClarification(false);
@@ -152,6 +154,25 @@ const AITaskBreakdown: React.FC<AITaskBreakdownProps> = ({
   };
 
   // --- UI ---
+  console.log('[AITaskBreakdown] Rendering with Props:', {
+    task,
+    existingSubtasks,
+    isAddSubtaskAFunction: typeof addSubtask === 'function',
+    isUpdateTaskDescriptionAFunction: typeof updateTaskDescription === 'function',
+    isSetShowAIBreakdownAFunction: typeof setShowAIBreakdown === 'function',
+  });
+  console.log('[AITaskBreakdown] Current State:', {
+    isLoading,
+    generatedSubtasks,
+    selectedSubtasks,
+    editableSubtasks,
+    error,
+    needsClarification,
+    clarificationText,
+    aiClarificationRequest,
+    success,
+  });
+
   return (
     <div className="ai-task-breakdown">
       {success ? (
