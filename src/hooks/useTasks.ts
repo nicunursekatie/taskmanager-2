@@ -173,22 +173,9 @@ export function useTasks() {
       priority: parentTask.priority, // Inherit priority from parent
     };
     
-    // Update tasks with the new subtask and immediately save to localStorage
+    // Update tasks with the new subtask - localStorage save is handled by the useEffect
     setTasks(prev => {
       const updated = [...prev, newSubtask];
-      try {
-        // Directly save to localStorage to ensure immediate persistence
-        localStorage.setItem('tasks', JSON.stringify(updated));
-        // Verify the subtask was added to localStorage
-        const stored = localStorage.getItem('tasks');
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          const subtask = parsed.find((t: Task) => t.id === newId);
-          if (subtask) {
-          }
-        }
-      } catch (e) {
-      }
       return updated;
     });
     
