@@ -325,11 +325,11 @@ function App() {
 
   const overdueTasks = useMemo(() => tasks.filter(
     task => task.dueDate && isDateBefore(task.dueDate, todayStart) && task.status !== 'completed' && !task.parentId
-  ), [tasks, todayStart]);
+  ), [tasks, todayStart, activeTab]);
 
   const todayTasks = useMemo(() => tasks.filter(
     task => task.dueDate && isDateBetween(task.dueDate, todayStart, tomorrowStart) && task.status !== 'completed' && !task.parentId
-  ), [tasks, todayStart, tomorrowStart]);
+  ), [tasks, todayStart, tomorrowStart, activeTab]);
 
   // NEW APPROACH: Handle upcoming tasks - directly check dates for May 11 through May 17
   const upcomingTasks = useMemo(() => tasks.filter(task => {
@@ -355,17 +355,17 @@ function App() {
 
     // Check if the task falls within the next 7 days
     return dateStr >= todayStr && dateStr <= nextWeekStr;
-  }), [tasks, todayStart, tomorrowStart]);
+  }), [tasks, todayStart, tomorrowStart, activeTab]);
 
   const completedTasks = useMemo(() => tasks.filter(
     task => task.status === 'completed'
-  ), [tasks]);
+  ), [tasks, activeTab]);
   
   // Parent task options for the capture bar
   const parentOptions = useMemo(() => tasks.filter(task => !task.parentId).map(task => ({
     id: task.id,
     title: task.title,
-  })), [tasks]);
+  })), [tasks, activeTab]);
 
   return (
     <div className="min-h-screen bg-background font-sans">
@@ -1257,15 +1257,13 @@ function App() {
                     onChange={e => setEditTaskTitle(e.target.value)}
                   />
                 </div>
-                {(() => {
-                  const subtaskCount = tasks.filter(t => t.parentId === editingTaskId).length;
-                  if (subtaskCount > 0) {
-                    return (
-                      <div className="text-xs text-light mb-xs">{subtaskCount} subtask{subtaskCount !== 1 ? 's' : ''}</div>
-                    );
-                  }
-                  return null;
-                })()}
+                {/* Subtask count display */}
+                {tasks.filter(t => t.parentId === editingTaskId).length > 0 && (
+                  <div className="text-xs text-light mb-xs">
+                    {tasks.filter(t => t.parentId === editingTaskId).length} subtask
+                    {tasks.filter(t => t.parentId === editingTaskId).length !== 1 ? 's' : ''}
+                  </div>
+                )}
                 <div>
                   <label className="form-label mb-xs">Due Date & Time</label>
                   <div className="flex gap-2 mb-xs">
