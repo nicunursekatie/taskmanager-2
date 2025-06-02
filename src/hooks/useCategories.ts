@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react'; // Import useCallback
 import { Category, Task } from '../types';
 
 export function useCategories(setTasks: React.Dispatch<React.SetStateAction<Task[]>>) {
@@ -17,13 +17,13 @@ export function useCategories(setTasks: React.Dispatch<React.SetStateAction<Task
     localStorage.setItem('categories', JSON.stringify(categories));
   }, [categories]);
 
-  const addCategory = (category: Omit<Category, 'id'>) => {
+  const addCategory = useCallback((category: Omit<Category, 'id'>) => {
     const id = Date.now().toString();
     const newCategory: Category = { id, ...category };
     setCategories(prev => [...prev, newCategory]);
-  };
+  }, []);
 
-  const updateCategory = (id: string, category: Omit<Category, 'id'>) => {
+  const updateCategory = useCallback((id: string, category: Omit<Category, 'id'>) => {
     setCategories(prev =>
       prev.map(cat =>
         cat.id === id
@@ -31,9 +31,9 @@ export function useCategories(setTasks: React.Dispatch<React.SetStateAction<Task
           : cat
       )
     );
-  };
+  }, []);
 
-  const deleteCategory = (id: string) => {
+  const deleteCategory = useCallback((id: string) => {
     // Remove the category from all tasks
     setTasks(prev =>
       prev.map(task => ({
@@ -44,7 +44,7 @@ export function useCategories(setTasks: React.Dispatch<React.SetStateAction<Task
 
     // Remove the category itself
     setCategories(prev => prev.filter(cat => cat.id !== id));
-  };
+  }, [setTasks]);
 
   return {
     categories,

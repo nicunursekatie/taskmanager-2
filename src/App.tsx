@@ -1,5 +1,5 @@
 // src/App.tsx
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, lazy, Suspense } from 'react'; // Added lazy and Suspense
 import { useTasks } from './hooks/useTasks';
 import { useProjects } from './hooks/useProjects';
 import './styles/design-system.css';
@@ -24,6 +24,14 @@ import { useCategories } from './hooks/useCategories';
 
 // Component imports
 import TaskList from './components/TaskList';
+// Lazy load view components
+const DashboardView = lazy(() => import('./components/DashboardView'));
+const AllTasksView = lazy(() => import('./components/AllTasksView'));
+const ProjectsView = lazy(() => import('./components/ProjectsView'));
+const CategoriesView = lazy(() => import('./components/CategoriesView'));
+const CalendarViewTab = lazy(() => import('./components/CalendarViewTab'));
+const DailyPlannerView = lazy(() => import('./components/DailyPlannerView'));
+const SettingsView = lazy(() => import('./components/SettingsView'));
 import ContextWizard from './components/ContextWizard';
 import FocusMode from './components/FocusMode';
 import ReminderSystem from './components/ReminderSystem';
@@ -81,12 +89,7 @@ function App() {
     }
   }, []);
 
-  // Reset selectedCategoryId when changing tabs
-  useEffect(() => {
-    if (activeTab !== 'categories') {
-      setSelectedCategoryId(null);
-    }
-  }, [activeTab]);
+  // selectedCategoryId state and related useEffect have been moved to CategoriesView.tsx
   
   // Form refs for more reliable element access
   const titleInputRef = useRef<HTMLInputElement>(null);
@@ -101,7 +104,7 @@ function App() {
   const [showWizard, setShowWizard] = useState(false);
   const [showCategoryManager, setShowCategoryManager] = useState(false);
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
+  // const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null); // Moved to CategoriesView
   const [showProjectManager, setShowProjectManager] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [showImportExport, setShowImportExport] = useState(false);
@@ -291,75 +294,21 @@ function App() {
   const now = new Date();
   // Create date objects without time component to avoid timezone issues
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const tomorrowStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
-  const nextWeekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 7);
+  // const tomorrowStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1); // Moved to DashboardView
+  // const nextWeekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 7); // Not used directly here anymore
 
-  // Helper function to compare dates properly, accounting for timezone
-  const isDateBefore = (taskDate: string, compareDate: Date): boolean => {
-    if (!taskDate) return false;
+  // Import isDateBefore for overdueTasks calculation
+  import { isDateBefore } from './utils/dateUtils';
 
-    // Parse the task date
-    const date = new Date(taskDate);
+  const overdueTasks = useMemo(() => {
+    return tasks.filter(
+      task => task.dueDate && isDateBefore(task.dueDate, todayStart) && task.status !== 'completed' && !task.parentId
+    );
+  }, [tasks, todayStart]);
 
-    // Normalize to start of day for comparison (removing time component)
-    const normalizedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    const normalizedCompareDate = new Date(compareDate.getFullYear(), compareDate.getMonth(), compareDate.getDate());
-
-    return normalizedDate < normalizedCompareDate;
-  };
-
-  const isDateBetween = (taskDate: string, startDate: Date, endDate: Date): boolean => {
-    if (!taskDate) return false;
-
-    // Parse the task date with UTC timezone
-    // Parse the task date
-    const date = new Date(taskDate);
-
-    // Normalize to start of day for comparison (removing time component)
-    const normalizedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    const normalizedStartDate = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
-    const normalizedEndDate = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
-
-    return normalizedDate >= normalizedStartDate && normalizedDate < normalizedEndDate;
-  };
-
-  const overdueTasks = useMemo(() => tasks.filter(
-    task => task.dueDate && isDateBefore(task.dueDate, todayStart) && task.status !== 'completed' && !task.parentId
-  ), [tasks, todayStart, activeTab]);
-
-  const todayTasks = useMemo(() => tasks.filter(
-    task => task.dueDate && isDateBetween(task.dueDate, todayStart, tomorrowStart) && task.status !== 'completed' && !task.parentId
-  ), [tasks, todayStart, tomorrowStart, activeTab]);
-
-  // NEW APPROACH: Handle upcoming tasks - directly check dates for May 11 through May 17
-  const upcomingTasks = useMemo(() => tasks.filter(task => {
-    // Skip tasks with no due date, completed tasks, or subtasks
-    if (!task.dueDate || task.status === 'completed' || task.parentId) return false;
-
-    // Skip tasks that are due today or overdue
-    if (isDateBefore(task.dueDate, todayStart) || isDateBetween(task.dueDate, todayStart, tomorrowStart)) {
-      return false;
-    }
-
-    // Get the current date to calculate the upcoming week
-    const today = new Date();
-    const nextWeek = new Date(today);
-    nextWeek.setDate(today.getDate() + 7);
-    
-    // Convert to YYYY-MM-DD format for comparison
-    const todayStr = today.toISOString().split('T')[0];
-    const nextWeekStr = nextWeek.toISOString().split('T')[0];
-    
-    // Parse the date and extract just the date part (YYYY-MM-DD)
-    const dateStr = task.dueDate.split('T')[0];
-
-    // Check if the task falls within the next 7 days
-    return dateStr >= todayStr && dateStr <= nextWeekStr;
-  }), [tasks, todayStart, tomorrowStart, activeTab]);
-
-  const completedTasks = useMemo(() => tasks.filter(
-    task => task.status === 'completed'
-  ), [tasks, activeTab]);
+  // todayTasks logic moved to DashboardView.tsx
+  // upcomingTasks logic moved to DashboardView.tsx
+  // completedTasks logic moved to AllTasksView.tsx
   
   // Parent task options for the capture bar
   const parentOptions = useMemo(() => tasks.filter(task => !task.parentId).map(task => ({
@@ -439,10 +388,23 @@ function App() {
             toggleTask={toggleTaskWithUndo}
             deleteTask={deleteTask}
             updateTask={updateTask}
+            updateTaskDescription={updateTaskDescription}
             addSubtask={addSubtask}
+            updateTaskEstimate={updateTaskEstimate}
+            startTaskTimer={startTaskTimer}
+            completeTaskTimer={completeTaskTimer}
             categories={categories}
             projects={projects}
             onExitFocusMode={() => setFocusModeActive(false)}
+            // Pass modal editing props
+            setEditingTaskId={setEditingTaskId}
+            setEditTaskTitle={setEditTaskTitle}
+            setEditTaskDueDate={setEditTaskDueDate}
+            setEditTaskDueTime={setEditTaskDueTime}
+            setEditTaskCategories={setEditTaskCategories}
+            setEditTaskProjectId={setEditTaskProjectId}
+            setEditTaskPriority={setEditTaskPriority}
+            setShowTaskEditModal={setShowTaskEditModal}
           />
         ) : (
           <>
@@ -465,701 +427,150 @@ function App() {
         />
         
         {/* Main Content Area */}
-        <div className="content-area">
-          {/* Daily Planner */}
-          {activeTab === 'daily-planner' && (
-            <div className="daily-planner-view">
-              <DailyPlanner 
+        <Suspense fallback={<div className="text-center p-8 text-xl font-semibold text-gray-500">Loading page...</div>}>
+          <div className="content-area">
+            {/* Daily Planner */}
+            {activeTab === 'daily-planner' && (
+              <DailyPlannerView
                 tasks={tasks}
                 timeBlocks={timeBlocks}
                 addTimeBlock={addTimeBlock}
                 updateTimeBlock={updateTimeBlock}
                 deleteTimeBlock={deleteTimeBlock}
                 assignTaskToBlock={assignTaskToBlock}
-                date={currentDate}
-                setDate={setCurrentDate}
+                currentDate={currentDate}
+                setCurrentDate={setCurrentDate}
                 updateTaskEstimate={updateTaskEstimate}
               />
-            </div>
-          )}
+            )}
 
-          {/* Settings View */}
-          {activeTab === 'settings' && (
-            <div className="settings-view">
-              <Settings 
-                isOpen={true} 
-                onClose={() => setActiveTab('dashboard')}
+            {/* Settings View */}
+            {activeTab === 'settings' && (
+              <SettingsView setActiveTab={setActiveTab} />
+            )}
+
+            {/* Calendar View */}
+            {activeTab === 'calendar' && (
+              <CalendarViewTab
+                tasks={tasks}
+                toggleTaskWithUndo={toggleTaskWithUndo}
+                categories={categories}
+                projects={projects}
               />
-            </div>
-          )}
-          
-          {/* Calendar View */}
-          {activeTab === 'calendar' && (
-            <div className="calendar-view-container">
-              <div className="section-card">
-                <h2 className="section-title">Calendar</h2>
-                <CalendarView 
-                  tasks={tasks} 
-                  toggleTask={toggleTaskWithUndo}
-                  categories={categories}
-                  projects={projects}
-                />
-              </div>
-            </div>
-          )}
-          
-          {/* Dashboard View */}
-          {activeTab === 'dashboard' && (
-            <div className="space-y-8">
-              {/* Today's Tasks Section */}
-              <div className="section-card">
-                <div className="section-card-header">
-                  <h2 className="section-title">Today's Tasks</h2>
-                </div>
-                <div className="section-card-body">
-                  {todayTasks.length > 0 ? (
-                    <TaskList
-                      tasks={todayTasks}
-                      toggleTask={toggleTaskWithUndo}
-                      deleteTask={deleteTask}
-                      updateTask={updateTask}
-                      updateTaskDescription={updateTaskDescription}
-                      addSubtask={addSubtask}
-                      updateTaskEstimate={updateTaskEstimate}
-                      startTaskTimer={startTaskTimer}
-                      completeTaskTimer={completeTaskTimer}
-                      moveTaskToParent={moveTaskToParent}
-                      categories={categories}
-                      projects={projects}
-                    />
-                  ) : (
-                    <div className="empty-state">
-                      <div className="empty-state-icon">📅</div>
-                      <div className="empty-state-title">No tasks due today</div>
-                      <div className="empty-state-description">Great! You have a clear schedule for today.</div>
-                    </div>
-                  )}
-                </div>
-              </div>
+            )}
 
-              {/* Upcoming Tasks Section */}
-              {upcomingTasks.length > 0 && (
-                <div className="section-card">
-                  <div className="section-card-header">
-                    <h2 className="section-title">Upcoming Tasks</h2>
-                  </div>
-                  <div className="section-card-body">
-                  <div className="space-y-4">
-                    {upcomingTasks.map(task => (
-                      <div key={task.id} className="flex items-center gap-3 py-2 px-3 border-b border-border last:border-b-0">
-                        <input
-                          type="checkbox"
-                          checked={task.status === 'completed'}
-                          onChange={() => toggleTaskWithUndo(task.id)}
-                          className="w-5 h-5 rounded border-border text-primary focus:ring-primary cursor-pointer"
-                        />
-                        <div className="flex-1">
-                          <h3 className="text-lg font-semibold text-text">{task.title}</h3>
-                          <div className="flex items-center gap-2 mt-1">
-                            <span className="text-sm text-text-light">
-                              Due: {new Date(task.dueDate || '').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-                            </span>
-                            {task.projectId && (
-                              <span className="px-2 py-1 text-xs rounded-full bg-primary/10 text-primary">
-                                {projects.find(p => p.id === task.projectId)?.name}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        <button
-                          className="px-4 py-1 rounded-md font-semibold text-sm transition shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 bg-primary text-white hover:bg-primary-dark active:bg-primary-dark"
-                          onClick={() => {
-                            setEditingTaskId(task.id);
-                            setEditTaskTitle(task.title);
-                            setEditTaskDueDate(task.dueDate || '');
-                            setEditTaskDueTime(task.dueTime || '');
-                            setEditTaskCategories(task.categories || []);
-                            setEditTaskProjectId(task.projectId ?? null);
-                            setShowTaskEditModal(true);
-                          }}
-                        >
-                          Edit
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                  </div>
-                </div>
-              )}
+            {/* Dashboard View */}
+            {activeTab === 'dashboard' && (
+              <DashboardView
+                tasks={tasks}
+                projects={projects}
+                categories={categories}
+                toggleTaskWithUndo={toggleTaskWithUndo}
+                deleteTask={deleteTask}
+                updateTask={updateTask}
+                updateTaskDescription={updateTaskDescription}
+                addSubtask={addSubtask}
+                updateTaskEstimate={updateTaskEstimate}
+                startTaskTimer={startTaskTimer}
+                completeTaskTimer={completeTaskTimer}
+                moveTaskToParent={moveTaskToParent}
+                setActiveTab={setActiveTab}
+                setEditingTaskId={setEditingTaskId}
+                setEditTaskTitle={setEditTaskTitle}
+                setEditTaskDueDate={setEditTaskDueDate}
+                setEditTaskDueTime={setEditTaskDueTime}
+                setEditTaskCategories={setEditTaskCategories}
+                setEditTaskProjectId={setEditTaskProjectId}
+                setEditTaskPriority={setEditTaskPriority}
+                setShowTaskEditModal={setShowTaskEditModal}
+              />
+            )}
 
-              {/* Projects Section */}
-              <div className="section-card">
-                <div className="section-card-header">
-                  <h2 className="section-title">Projects</h2>
-                </div>
-                <div className="section-card-body">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {projects.map(project => {
-                    const projectTasks = tasks.filter(t =>
-                      t.projectId === project.id &&
-                      t.status !== 'completed' &&
-                      !t.parentId
-                    );
+            {/* All Tasks View */}
+            {activeTab === 'all-tasks' && (
+              <AllTasksView
+                tasks={tasks}
+                categories={categories}
+                projects={projects}
+                toggleTaskWithUndo={toggleTaskWithUndo}
+                deleteTask={deleteTask}
+                updateTask={updateTask}
+                updateTaskDescription={updateTaskDescription}
+                addSubtask={addSubtask}
+                moveTaskToParent={moveTaskToParent}
+                handleBulkAction={handleBulkAction}
+                updateTaskEstimate={updateTaskEstimate}
+                startTaskTimer={startTaskTimer}
+                completeTaskTimer={completeTaskTimer}
+                setEditingTaskId={setEditingTaskId}
+                setEditTaskTitle={setEditTaskTitle}
+                setEditTaskDueDate={setEditTaskDueDate}
+                setEditTaskDueTime={setEditTaskDueTime}
+                setEditTaskCategories={setEditTaskCategories}
+                setEditTaskProjectId={setEditTaskProjectId}
+                setEditTaskPriority={setEditTaskPriority}
+                setShowTaskEditModal={setShowTaskEditModal}
+              />
+            )}
 
-                    if (projectTasks.length === 0) return null;
+            {/* Projects View */}
+            {activeTab === 'projects' && (
+              <ProjectsView
+                tasks={tasks}
+                projects={projects}
+                startEditingProjectOrCategory={startEditing}
+                deleteProject={deleteProject}
+                toggleTaskWithUndo={toggleTaskWithUndo}
+                setEditingTaskId={setEditingTaskId}
+                setEditTaskTitle={setEditTaskTitle}
+                setEditTaskDueDate={setEditTaskDueDate}
+                setEditTaskDueTime={setEditTaskDueTime}
+                setEditTaskCategories={setEditTaskCategories}
+                setEditTaskProjectId={setEditTaskProjectId}
+                setEditTaskPriority={setEditTaskPriority}
+                setShowTaskEditModal={setShowTaskEditModal}
+                // Pass other task functions if ProjectsView uses TaskList or similar directly
+                updateTask={updateTask}
+                updateTaskDescription={updateTaskDescription}
+                addSubtask={addSubtask}
+                moveTaskToParent={moveTaskToParent}
+                updateTaskEstimate={updateTaskEstimate}
+                startTaskTimer={startTaskTimer}
+                completeTaskTimer={completeTaskTimer}
+              />
+            )}
 
-                    // Calculate progress
-                    const totalProjectTaskCount = tasks.filter(t => t.projectId === project.id).length;
-                    const completedTaskCount = tasks.filter(t => t.projectId === project.id && t.status === 'completed').length;
-                    const progressPercentage = totalProjectTaskCount > 0
-                      ? Math.round((completedTaskCount / totalProjectTaskCount) * 100)
-                      : 0;
-
-                    // Find the nearest due date
-                    const tasksWithDueDates = projectTasks.filter(t => t.dueDate);
-                    const nearestDueDate = tasksWithDueDates.length > 0
-                      ? tasksWithDueDates.reduce((nearest, task) =>
-                          !nearest.dueDate || (task.dueDate && task.dueDate < nearest.dueDate)
-                            ? task
-                            : nearest,
-                        tasksWithDueDates[0])
-                      : null;
-
-                    // Categorize urgency with UTC timezone handling
-                    let urgencyClass = '';
-                    if (nearestDueDate && nearestDueDate.dueDate) {
-                      const dueDate = new Date(nearestDueDate.dueDate + 'Z');
-                      const currentDate = new Date();
-                      const dueDateStart = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate());
-                      const currentDateStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
-                      const diffTime = dueDateStart.getTime() - currentDateStart.getTime();
-                      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-                      if (diffDays < 0) urgencyClass = 'border-danger';
-                      else if (diffDays <= 2) urgencyClass = 'border-warning';
-                      else if (diffDays <= 7) urgencyClass = 'border-primary';
-                    }
-
-                    return (
-                      <div
-                        key={project.id}
-                        className={`bg-white border border-border rounded-md shadow-sm p-3 mb-4 flex flex-col gap-2 ${urgencyClass}`}
-                        onClick={() => {
-                          setActiveTab('projects');
-                          setTimeout(() => {
-                            const projectElement = document.getElementById(`project-${project.id}`);
-                            if (projectElement) {
-                              projectElement.scrollIntoView({ behavior: 'smooth' });
-                              projectElement.classList.add('highlight');
-                              setTimeout(() => projectElement.classList.remove('highlight'), 2000);
-                            }
-                          }, 100);
-                        }}
-                      >
-                        <div className="flex items-start justify-between mb-4">
-                          <div>
-                            <h3 className="text-lg font-semibold text-text">{project.name}</h3>
-                            {project.description && (
-                              <p className="text-sm text-text-light mt-1">
-                                {project.description.length > 60
-                                  ? project.description.substring(0, 60) + '...'
-                                  : project.description}
-                              </p>
-                            )}
-                          </div>
-                          <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-white text-sm font-semibold">
-                            {projectTasks.length}
-                          </span>
-                        </div>
-
-                        {/* Progress bar */}
-                        <div className="mb-4">
-                          <div className="h-2 bg-background rounded-full overflow-hidden">
-                            <div 
-                              className="h-full bg-primary transition-all duration-300"
-                              style={{ width: `${progressPercentage}%` }}
-                            ></div>
-                          </div>
-                          <p className="text-sm text-text-light mt-1">{progressPercentage}% complete</p>
-                        </div>
-
-                        {/* Next due task indicator */}
-                        {nearestDueDate && nearestDueDate.dueDate && (
-                          <div className="text-sm text-text-light">
-                            <span className="font-medium">Next due:</span>{' '}
-                            {new Date(nearestDueDate.dueDate).toLocaleDateString('en-US',
-                              { weekday: 'short', month: 'short', day: 'numeric'})}
-                            <p className="mt-1 text-text truncate">{nearestDueDate.title}</p>
-                          </div>
-                        )}
-
-                        <div className="mt-4 space-y-2">
-                          {projectTasks.slice(0, 3).map(task => (
-                            <div key={task.id} className="flex items-center gap-2 p-2 rounded-md hover:bg-primary/5 transition">
-                              <input
-                                type="checkbox"
-                                checked={task.status === 'completed'}
-                                onChange={() => toggleTaskWithUndo(task.id)}
-                                className="w-4 h-4 rounded border-border text-primary focus:ring-primary"
-                              />
-                              <div
-                                className="flex-1 min-w-0"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setEditingTaskId(task.id);
-                                  setEditTaskTitle(task.title);
-                                  setEditTaskDueDate(task.dueDate || '');
-                                  setEditTaskDueTime(task.dueTime || '');
-                                  setEditTaskCategories(task.categories || []);
-                                  setEditTaskProjectId(task.projectId ?? null);
-                                  setEditTaskPriority(task.priority ?? null);
-                                  setShowTaskEditModal(true);
-                                }}
-                              >
-                                <p className="text-sm text-text truncate">{task.title}</p>
-                                {task.dueDate && (
-                                  <span className={`text-xs ${isDateBefore(task.dueDate, todayStart) ? 'text-danger' : 'text-text-light'}`}>
-                                    {new Date(task.dueDate).toLocaleDateString('en-US', {
-                                      month: 'short',
-                                      day: 'numeric'
-                                    })}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-                </div>
-              </div>
-            </div>
-          )}
-          
-          {/* All Tasks View */}
-          {activeTab === 'all-tasks' && (
-            <div className="all-tasks-view">
-              <div className="section-card">
-                <h2 className="section-title">All Tasks</h2>
-                {tasks.filter(task => task.status !== 'completed').length > 0 ? (
-                  <TaskList 
-                    tasks={tasks.filter(task => task.status !== 'completed')} 
-                    toggleTask={toggleTaskWithUndo} 
-                    deleteTask={deleteTask} 
-                    updateTask={updateTask}
-                    updateTaskDescription={updateTaskDescription}
-                    addSubtask={addSubtask}
-                    moveTaskToParent={moveTaskToParent}
-                    categories={categories}
-                    projects={projects}
-                    enableBulkActions={true}
-                    onBulkAction={handleBulkAction}
-                  />
-                ) : (
-                  <p className="empty-message">No tasks yet. Create one above.</p>
-                )}
-              </div>
-              
-              {completedTasks.length > 0 && (
-                <div className="section-card">
-                  <h2 className="section-title">Completed</h2>
-                  <TaskList 
-                    tasks={completedTasks} 
-                    toggleTask={toggleTaskWithUndo} 
-                    deleteTask={deleteTask} 
-                    updateTask={updateTask}
-                    updateTaskDescription={updateTaskDescription}
-                    addSubtask={addSubtask}
-                    moveTaskToParent={moveTaskToParent}
-                    categories={categories}
-                    projects={projects}
-                  />
-                </div>
-              )}
-            </div>
-          )}
-          
-          {/* Projects View */}
-          {activeTab === 'projects' && (
-            <div className="projects-view">
-              <div className="grid grid-3 gap-lg">
-                {projects.length > 0 ? (
-                  projects.map((project) => {
-                    const projectTasks = tasks.filter(t => t.projectId === project.id);
-                    const completedCount = projectTasks.filter(t => t.status === 'completed').length;
-                    const activeCount = projectTasks.filter(t => t.status !== 'completed').length;
-                    const progressPercentage = projectTasks.length > 0 ? Math.round((completedCount / projectTasks.length) * 100) : 0;
-                    return (
-                      <div id={`project-${project.id}`} key={project.id} className="project-card flex flex-col gap-md p-lg mb-md shadow-md border border-border rounded-xl bg-white">
-                        <div className="flex items-start justify-between mb-2">
-                          <div>
-                            <h3 className="text-lg font-bold text-primary mb-xs">{project.name}</h3>
-                            {project.description && (
-                              <p className="text-sm text-light mb-xs">{project.description}</p>
-                            )}
-                          </div>
-                          <div className="flex gap-2">
-                            <button className="btn btn-sm btn-outline" onClick={() => startEditing(project)}>Edit</button>
-                            <button className="btn btn-sm btn-danger" onClick={() => deleteProject(project.id)}>Delete</button>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="text-xs text-success">{activeCount} active</span>
-                          {completedCount > 0 && <span className="text-xs text-light">{completedCount} done</span>}
-                          {project.dueDate && (
-                            <span className="text-xs text-warning">Due: {new Date(project.dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
-                          )}
-                        </div>
-                        {/* Progress bar */}
-                        <div className="w-full h-2 bg-background rounded-full overflow-hidden mb-2">
-                          <div className="h-full bg-primary" style={{ width: `${progressPercentage}%` }}></div>
-                        </div>
-                        <div className="flex items-center justify-between text-xs text-light">
-                          <span>{progressPercentage}% complete</span>
-                          <span>{projectTasks.length} tasks</span>
-                        </div>
-                        {/* List a few tasks */}
-                        {projectTasks.length > 0 && (
-                          <div className="mt-md">
-                            <div className="text-xs text-light mb-xs">Sample tasks:</div>
-                            <ul className="flex flex-col gap-xs">
-                              {projectTasks.slice(0, 3).map(task => (
-                                <li key={task.id} className="flex items-center gap-2">
-                                  <input type="checkbox" checked={task.status === 'completed'} onChange={() => toggleTaskWithUndo(task.id)} />
-                                  <span className={task.status === 'completed' ? 'line-through text-light' : ''}>{task.title}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })
-                ) : (
-                  <div className="empty-message">No projects yet. Create one to get started.</div>
-                )}
-              </div>
-            </div>
-          )}
-          
-          {/* Categories View - Grid View (All Categories) */}
-          {activeTab === 'categories' && selectedCategoryId === null && (
-            <div className="categories-view" key="all-categories">
-              <div className="view-header">
-                <h2 className="view-title">Categories</h2>
-                <button
-                  className="btn btn-primary"
-                  onClick={() => setShowCategoryManager(true)}
-                >
-                  <span className="icon">+</span> New Category
-                </button>
-              </div>
-
-              {categories.length > 0 ? (
-                <div className="category-cards-grid">
-                  {categories.map(category => {
-                    // Calculate task counts for this category
-                    const activeTasks = tasks.filter(t => t.categories?.includes(category.id) && t.status !== 'completed').length;
-                    const completedTasks = tasks.filter(t => t.categories?.includes(category.id) && t.status === 'completed').length;
-                    const totalTasks = activeTasks + completedTasks;
-
-                    // Calculate completion percentage
-                    const completionPercentage = totalTasks > 0
-                      ? Math.round((completedTasks / totalTasks) * 100)
-                      : 0;
-
-                    // Get projects associated with this category
-                    const projectsInCategory = projects.filter(project =>
-                      project.categoryIds && project.categoryIds.includes(category.id)
-                    ).length;
-
-                    // Find the most recent active task (if any)
-                    const recentTasks = tasks
-                      .filter(t => t.categories?.includes(category.id) && t.status !== 'completed')
-                      .sort((a, b) => Number(b.id) - Number(a.id))
-                      .slice(0, 1);
-
-                    return (
-                      <div
-                        key={category.id}
-                        className="compact-category-card"
-                        onClick={() => {
-                          setSelectedCategoryId(category.id);
-                        }}
-                      >
-                        <div className="category-color-bar" style={{ backgroundColor: category.color }}></div>
-                        <div className="compact-category-content">
-                          <h3 className="compact-category-title">{category.name}</h3>
-                          
-                          {/* Task Statistics */}
-                          <div className="compact-category-stats">
-                            <span className="task-count">{totalTasks}</span>
-                            <div className="task-status-breakdown">
-                              {activeTasks > 0 && (
-                                <span className="active-count">{activeTasks} active</span>
-                              )}
-                              {completedTasks > 0 && (
-                                <span className="completed-count">{completedTasks} done</span>
-                              )}
-                              {projectsInCategory > 0 && (
-                                <span className="projects-count">{projectsInCategory} projects</span>
-                              )}
-                            </div>
-                          </div>
-                          
-                          {/* Progress bar */}
-                          {totalTasks > 0 && (
-                            <div className="category-progress">
-                              <div className="category-progress-bar">
-                                <div 
-                                  className="category-progress-fill" 
-                                  style={{ 
-                                    width: `${completionPercentage}%`,
-                                    backgroundColor: category.color 
-                                  }}
-                                ></div>
-                              </div>
-                              <span className="category-progress-text">{completionPercentage}% complete</span>
-                            </div>
-                          )}
-                          
-                          {/* Recent task preview */}
-                          {recentTasks.length > 0 && (
-                            <div className="category-recent-task">
-                              <div className="recent-task-label">Recent task:</div>
-                              <div className="recent-task-title">{recentTasks[0].title}</div>
-                            </div>
-                          )}
-                          
-                          <div className="category-actions">
-                            <button
-                              className="btn btn-sm btn-outline edit-btn"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                startEditing(category);
-                              }}
-                            >
-                              Edit
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="empty-categories">
-                  <p>No categories yet. Create your first category to organize your tasks.</p>
-                  <button
-                    className="btn btn-primary"
-                    onClick={() => setShowCategoryManager(true)}
-                  >
-                    Create Category
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Categories View - Single Category Detail View */}
-          {activeTab === 'categories' && selectedCategoryId !== null && (
-            <div className="categories-view" key={selectedCategoryId}>
-              <div className="single-category-view">
-                <div className="view-header with-back-button">
-                  <button
-                    className="btn btn-sm btn-outline back-button"
-                    onClick={() => {
-                      setSelectedCategoryId(null);
-                    }}
-                  >
-                    <span className="back-icon">←</span> All Categories
-                  </button>
-                  <h2 className="view-title">
-                    <span
-                      className="color-dot large"
-                      style={{ backgroundColor: categories.find(c => c.id === selectedCategoryId)?.color }}
-                    />
-                    {categories.find(c => c.id === selectedCategoryId)?.name}
-                  </h2>
-                  <div className="header-actions">
-                    <button
-                      className="btn btn-sm btn-outline"
-                      onClick={() => startEditing(categories.find(c => c.id === selectedCategoryId) as Category)}
-                    >
-                      Edit
-                    </button>
-                  </div>
-                </div>
-
-                {/* Category Summary */}
-                <div className="category-detail-section" style={{ backgroundColor: `${categories.find(c => c.id === selectedCategoryId)?.color}10` }}>
-                  <div className="category-summary">
-                    <div className="category-statistics">
-                      <div className="stat-item">
-                        <span className="stat-value">{tasks.filter(t => t.categories?.includes(selectedCategoryId) && t.status !== 'completed').length + tasks.filter(t => t.categories?.includes(selectedCategoryId) && t.status === 'completed').length}</span>
-                        <span className="stat-label">Total Tasks</span>
-                      </div>
-                      <div className="stat-item">
-                        <span className="stat-value">{tasks.filter(t => t.categories?.includes(selectedCategoryId) && t.status === 'completed').length}</span>
-                        <span className="stat-label">Completed</span>
-                      </div>
-                      <div className="stat-item">
-                        <span className="stat-value">{projects.filter(p => p.categoryIds?.includes(selectedCategoryId)).length}</span>
-                        <span className="stat-label">Projects</span>
-                      </div>
-                    </div>
-                    
-                    {/* Quick Add Task */}
-                    <div className="category-quick-add">
-                      <form onSubmit={(e) => {
-                        e.preventDefault();
-                        const input = e.currentTarget.querySelector('input') as HTMLInputElement;
-                        if (input && input.value.trim()) {
-                          addTask({
-                            title: input.value.trim(),
-                            dueDate: null,
-                            categories: selectedCategoryId ? [selectedCategoryId] : [],
-                            status: 'pending'
-                          });
-                          input.value = '';
-                        }
-                      }}>
-                        <div className="quick-add-form">
-                          <input 
-                            type="text" 
-                            className="form-control"
-                            placeholder={`Add task to ${categories.find(c => c.id === selectedCategoryId)?.name}...`}
-                          />
-                          <button type="submit" className="btn btn-primary">Add</button>
-                        </div>
-                      </form>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Tasks Section */}
-                <div className="category-detail-section">
-                  <div className="section-header">
-                    <h3 className="section-title">Active Tasks</h3>
-                    <span className="task-counter">{tasks.filter(t => t.categories?.includes(selectedCategoryId) && t.status !== 'completed').length}</span>
-                  </div>
-
-                  {tasks.filter(t => t.categories?.includes(selectedCategoryId) && t.status !== 'completed').length > 0 ? (
-                    <TaskList
-                      tasks={tasks.filter(t => t.categories?.includes(selectedCategoryId) && t.status !== 'completed')}
-                      toggleTask={toggleTaskWithUndo}
-                      deleteTask={deleteTask}
-                      updateTask={updateTask}
-                      updateTaskDescription={updateTaskDescription}
-                      addSubtask={addSubtask}
-                      moveTaskToParent={moveTaskToParent}
-                      categories={categories}
-                      projects={projects}
-                    />
-                  ) : (
-                    <p className="empty-message">No active tasks in this category</p>
-                  )}
-                </div>
-
-                {/* Projects Section */}
-                {projects.filter(p => p.categoryIds?.includes(selectedCategoryId)).length > 0 && (
-                  <div className="category-detail-section">
-                    <div className="section-header">
-                      <h3 className="section-title">Projects</h3>
-                      <span className="task-counter">{projects.filter(p => p.categoryIds?.includes(selectedCategoryId)).length}</span>
-                    </div>
-
-                    <div className="category-projects-grid">
-                      {projects.filter(p => p.categoryIds?.includes(selectedCategoryId)).map(project => {
-                        const projectTasks = tasks.filter(t => t.projectId === project.id);
-                        const completedCount = projectTasks.filter(t => t.status === 'completed').length;
-                        const activeCount = projectTasks.filter(t => t.status !== 'completed').length;
-                        const progressPercentage = projectTasks.length > 0
-                          ? Math.round((completedCount / projectTasks.length) * 100)
-                          : 0;
-                          
-                        return (
-                          <div
-                            key={project.id}
-                            className="category-project-card"
-                            style={{ borderLeft: `4px solid ${project.color || categories.find(c => c.id === selectedCategoryId)?.color}` }}
-                            onClick={() => {
-                              setActiveTab('projects');
-                              setTimeout(() => {
-                                const projectElement = document.getElementById(`project-${project.id}`);
-                                if (projectElement) {
-                                  projectElement.scrollIntoView({ behavior: 'smooth' });
-                                  projectElement.classList.add('highlight');
-                                  setTimeout(() => projectElement.classList.remove('highlight'), 2000);
-                                }
-                              }, 100);
-                            }}
-                          >
-                            <h4 className="project-title">{project.name}</h4>
-                            
-                            {/* Progress Bar */}
-                            <div className="project-progress-container">
-                              <div className="project-progress-bar">
-                                <div 
-                                  className="project-progress-fill" 
-                                  style={{ 
-                                    width: `${progressPercentage}%`,
-                                    backgroundColor: project.color || categories.find(c => c.id === selectedCategoryId)?.color 
-                                  }}
-                                ></div>
-                              </div>
-                              <div className="project-progress-text">{progressPercentage}% complete</div>
-                            </div>
-                            
-                            <div className="project-stats">
-                              <span className="task-count">{activeCount} active</span>
-                              {completedCount > 0 && (
-                                <span className="completed-count">{completedCount} completed</span>
-                              )}
-                              {project.dueDate && (
-                                <span className="due-date">
-                                  Due: {new Date(project.dueDate).toLocaleDateString(undefined, {
-                                    month: 'short',
-                                    day: 'numeric',
-                                    timeZone: 'UTC'
-                                  })}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {/* Completed Tasks Section */}
-                {tasks.filter(t => t.categories?.includes(selectedCategoryId) && t.status === 'completed').length > 0 && (
-                  <div className="category-detail-section">
-                    <div className="section-header">
-                      <h3 className="section-title">Completed</h3>
-                      <span className="task-counter completed">{tasks.filter(t => t.categories?.includes(selectedCategoryId) && t.status === 'completed').length}</span>
-                    </div>
-
-                    <TaskList
-                      tasks={tasks.filter(t => t.categories?.includes(selectedCategoryId) && t.status === 'completed')}
-                      toggleTask={toggleTaskWithUndo}
-                      deleteTask={deleteTask}
-                      updateTask={updateTask}
-                      updateTaskDescription={updateTaskDescription}
-                      addSubtask={addSubtask}
-                      moveTaskToParent={moveTaskToParent}
-                      categories={categories}
-                      projects={projects}
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
+            {/* Categories View - Grid View (All Categories) */}
+            {activeTab === 'categories' && (
+              <CategoriesView
+                tasks={tasks}
+                projects={projects}
+                categories={categories}
+                setShowCategoryManager={setShowCategoryManager}
+                startEditingCategoryOrProject={startEditing}
+                addTask={addTask}
+                toggleTaskWithUndo={toggleTaskWithUndo}
+                deleteTask={deleteTask}
+                updateTask={updateTask}
+                updateTaskDescription={updateTaskDescription}
+                addSubtask={addSubtask}
+                moveTaskToParent={moveTaskToParent}
+                setEditingTaskId={setEditingTaskId}
+                setEditTaskTitle={setEditTaskTitle}
+                setEditTaskDueDate={setEditTaskDueDate}
+                setEditTaskDueTime={setEditTaskDueTime}
+                setEditTaskCategories={setEditTaskCategories}
+                setEditTaskProjectId={setEditTaskProjectId}
+                setEditTaskPriority={setEditTaskPriority}
+                setShowTaskEditModal={setShowTaskEditModal}
+                setActiveTab={setActiveTab}
+                updateTaskEstimate={updateTaskEstimate}
+                startTaskTimer={startTaskTimer}
+                completeTaskTimer={completeTaskTimer}
+              />
+            )}
+          </div>
+        </Suspense>
         </>
         )}
       </main>

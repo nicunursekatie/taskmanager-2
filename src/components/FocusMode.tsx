@@ -19,6 +19,20 @@ interface FocusModeProps {
   categories: Category[];
   projects: Project[];
   onExitFocusMode: () => void;
+  // Props for centralized modal editing, to be passed to TaskList
+  setEditingTaskId: (id: string | null) => void;
+  setEditTaskTitle: (title: string) => void;
+  setEditTaskDueDate: (date: string) => void;
+  setEditTaskDueTime: (time: string) => void;
+  setEditTaskCategories: (categories: string[]) => void;
+  setEditTaskProjectId: (id: string | null) => void;
+  setEditTaskPriority: (priority: PriorityLevel | null) => void;
+  setShowTaskEditModal: (show: boolean) => void;
+  // Task interaction functions that might be missing or need to be complete for TaskList
+  updateTaskDescription: (id: string, description: string) => void;
+  updateTaskEstimate: (id: string, estimatedMinutes: number | null) => void;
+  startTaskTimer: (id: string) => void;
+  completeTaskTimer: (id: string) => void;
 }
 
 const FocusMode: React.FC<FocusModeProps> = ({
@@ -30,6 +44,19 @@ const FocusMode: React.FC<FocusModeProps> = ({
   categories,
   projects,
   onExitFocusMode,
+  // Destructure new props
+  setEditingTaskId,
+  setEditTaskTitle,
+  setEditTaskDueDate,
+  setEditTaskDueTime,
+  setEditTaskCategories,
+  setEditTaskProjectId,
+  setEditTaskPriority,
+  setShowTaskEditModal,
+  updateTaskDescription,
+  updateTaskEstimate,
+  startTaskTimer,
+  completeTaskTimer,
 }) => {
   // Filter to high-priority tasks
   const priorityTasks = tasks.filter(
@@ -150,10 +177,23 @@ const FocusMode: React.FC<FocusModeProps> = ({
             toggleTask={toggleTask}
             deleteTask={deleteTask}
             updateTask={updateTask}
+            updateTaskDescription={updateTaskDescription} // Pass through
             addSubtask={addSubtask}
+            updateTaskEstimate={updateTaskEstimate} // Pass through
+            startTaskTimer={startTaskTimer} // Pass through
+            completeTaskTimer={completeTaskTimer} // Pass through
             moveTaskToParent={(id, parentId) => {/* Not needed in focus mode */}}
             categories={categories}
             projects={projects}
+            // Pass modal editing props
+            setEditingTaskId={setEditingTaskId}
+            setEditTaskTitle={setEditTaskTitle}
+            setEditTaskDueDate={setEditTaskDueDate}
+            setEditTaskDueTime={setEditTaskDueTime}
+            setEditTaskCategories={setEditTaskCategories}
+            setEditTaskProjectId={setEditTaskProjectId}
+            setEditTaskPriority={setEditTaskPriority}
+            setShowTaskEditModal={setShowTaskEditModal}
           />
         ) : (
           <div className="empty-priority-tasks">

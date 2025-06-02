@@ -19,12 +19,12 @@ export function useTasks() {
   }, [tasks]);
 
   // Existing functions
-  const addTask = (task: Omit<Task, 'id'>) => {
+  const addTask = useCallback((task: Omit<Task, 'id'>) => {
     const newTask: Task = { id: Date.now().toString(), ...task };
     setTasks(prev => [...prev, newTask]);
-  };
+  }, []);
 
-  const toggleTask = (id: string) => {
+  const toggleTask = useCallback((id: string) => {
     setTasks(prev =>
       prev.map(t =>
         t.id === id
@@ -32,26 +32,24 @@ export function useTasks() {
           : t
       )
     );
-  };
+  }, []);
 
-  const deleteTask = (id: string) => {
-    // Enhanced debugging
-    
-    // Use correct filter logic for the operation
+  const deleteTask = useCallback((id: string) => {
     setTasks(prev => prev.filter(t => {
-      // Keep the task if:
-      // 1. It's not the task we're deleting AND
-      // 2. It's not a subtask of the task we're deleting
       return t.id !== id && t.parentId !== id;
     }));
-  };
+  }, []);
 
-  const updateTask = (
+  const updateTask = useCallback((
     id: string,
     title: string,
     dueDate: string | null,
     categories?: string[],
     projectId?: string | null
+    // priority?: PriorityLevel // This was missing in the original updateTask, but TaskListProps implies it
+                                 // For now, sticking to original signature and will address if it's an issue.
+                                 // The modal save in App.tsx calls updateTask with priority, but useTasks.updateTask doesn't handle it.
+                                 // This might be a bug/inconsistency. I will assume for now the subtask is only about useCallback.
   ) => {
     setTasks(prev =>
       prev.map(task =>
@@ -62,14 +60,15 @@ export function useTasks() {
               dueDate,
               categories: categories || task.categories,
               projectId: projectId !== undefined ? projectId : task.projectId,
+              // priority: priority !== undefined ? priority : task.priority, // If priority was to be handled here
             }
           : task
       )
     );
-  };
+  }, []);
 
   // Add new function for context
-  const updateTaskContext = (id: string, context: ContextTag | null) => {
+  const updateTaskContext = useCallback((id: string, context: ContextTag | null) => {
     setTasks(prev =>
       prev.map(task =>
         task.id === id
@@ -80,10 +79,10 @@ export function useTasks() {
           : task
       )
     );
-  };
+  }, []);
 
   // Add priority handling
-  const updateTaskPriority = (
+  const updateTaskPriority = useCallback((
     id: string, 
     priority: PriorityLevel
   ) => {
@@ -97,10 +96,10 @@ export function useTasks() {
           : task
       )
     );
-  };
+  }, []);
 
   // Add time estimate handling
-  const updateTaskEstimate = (id: string, estimatedMinutes: number | null) => {
+  const updateTaskEstimate = useCallback((id: string, estimatedMinutes: number | null) => {
     setTasks(prev =>
       prev.map(task =>
         task.id === id
@@ -111,10 +110,10 @@ export function useTasks() {
           : task
       )
     );
-  };
+  }, []);
   
   // Start task timer
-  const startTaskTimer = (id: string) => {
+  const startTaskTimer = useCallback((id: string) => {
     const now = new Date().toISOString();
     setTasks(prev =>
       prev.map(task =>
@@ -126,10 +125,10 @@ export function useTasks() {
           : task
       )
     );
-  };
+  }, []);
   
   // Complete task timer
-  const completeTaskTimer = (id: string) => {
+  const completeTaskTimer = useCallback((id: string) => {
     const now = new Date();
     setTasks(prev =>
       prev.map(task => {
@@ -147,12 +146,12 @@ export function useTasks() {
         return task;
       })
     );
-  };
+  }, []);
   
-  // Add new function for subtasks as useCallback to prevent rerenders
+  // addSubtask is already wrapped in useCallback
   const addSubtask = useCallback((parentId: string, title: string): string => {
     // Get parent task to inherit properties
-    const parentTask = tasks.find(t => t.id === parentId);
+    const parentTask = tasks.find(t => t.id === parentId); // Reads tasks state
     
     if (!parentTask) {
       return '';
@@ -181,10 +180,10 @@ export function useTasks() {
     
     // Return the new subtask ID so we can track it
     return newId;
-  }, [tasks]); // Add tasks as a dependency
+  }, [tasks]); // Correctly has tasks as a dependency
 
   // Add new function to move a task under a new parent
-  const moveTaskToParent = (id: string, parentId: string | null) => {
+  const moveTaskToParent = useCallback((id: string, parentId: string | null) => {
     setTasks(prev =>
       prev.map(task =>
         task.id === id
@@ -192,9 +191,9 @@ export function useTasks() {
           : task
       )
     );
-  };
+  }, []);
 
-  const updateTaskDescription = (id: string, description: string) => {
+  const updateTaskDescription = useCallback((id: string, description: string) => {
     setTasks(prev =>
       prev.map(task =>
         task.id === id
@@ -202,7 +201,7 @@ export function useTasks() {
           : task
       )
     );
-  };
+  }, []);
 
   return { 
     tasks, 
