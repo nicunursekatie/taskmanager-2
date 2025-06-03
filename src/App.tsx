@@ -75,9 +75,35 @@ function App() {
 
   // Check API key status on component mount (with error handling)
   useEffect(() => {
+    console.log('🔧 App.tsx: API key check useEffect starting...');
+    console.time('App.tsx: API key check');
     try {
       checkApiKeyStatus();
+      console.log('✅ App.tsx: API key check completed');
     } catch (e) {
+      console.error('❌ App.tsx: API key check failed:', e);
+    }
+    console.timeEnd('App.tsx: API key check');
+  }, []);
+
+  useEffect(() => {
+    if ('PerformanceObserver' in window) {
+      const observer = new PerformanceObserver((list) => {
+        for (const entry of list.getEntries()) {
+          const layoutShift = entry as any;
+          console.warn('⚡ Layout shift detected:', {
+            value: layoutShift.value,
+            hadRecentInput: layoutShift.hadRecentInput,
+            sources: layoutShift.sources?.map((source: any) => ({
+              node: source.node,
+              currentRect: source.currentRect,
+              previousRect: source.previousRect
+            }))
+          });
+        }
+      });
+      observer.observe({ entryTypes: ['layout-shift'] });
+      return () => observer.disconnect();
     }
   }, []);
 
@@ -146,7 +172,10 @@ function App() {
 
   // Save categories to localStorage when they change
   useEffect(() => {
+    console.log('💾 App.tsx: Saving categories to localStorage, count:', categories.length);
+    console.time('App.tsx: Categories localStorage save');
     localStorage.setItem('categories', JSON.stringify(categories));
+    console.timeEnd('App.tsx: Categories localStorage save');
   }, [categories]);
   
   // Projects state
@@ -367,7 +396,10 @@ function App() {
     title: task.title,
   })), [tasks, activeTab]);
 
-  return (
+  console.log('🎯 App.tsx: Rendering with activeTab:', activeTab, 'focusMode:', focusModeActive);
+  console.time('App.tsx: Main render');
+  
+  const result = (
     <div className="min-h-screen bg-background font-sans">
       {/* Top Navigation */}
       <header className="sticky top-0 z-30 shadow-md flex items-center justify-between px-8 py-4 border-b border-border">
@@ -1409,6 +1441,9 @@ function App() {
       )}
     </div>
   );
+  
+  console.timeEnd('App.tsx: Main render');
+  return result;
 }
 
 export default App;
